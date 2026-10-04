@@ -12,16 +12,28 @@ genesis:
   unissued_reserve: 700000000
   allocations:
     developer_founder:
-      amount: 150000000
-      share_bps: 1500
+      amount: 100000000
+      share_bps: 1000
       vesting:
         cliff_seconds: 31536000
         linear_seconds: 94608000
     community:
-      amount: 100000000
-      share_bps: 1000
+      amount: 150000000
+      share_bps: 1500
     liquidity_market:
       amount: 50000000
+      share_bps: 500
+  allocation_targets:
+    developer_founder:
+      total_amount: 100000000
+      share_bps: 1000
+    community:
+      total_amount: 200000000
+      share_bps: 2000
+      genesis_amount: 150000000
+      reserve_amount: 50000000
+    liquidity_market:
+      total_amount: 50000000
       share_bps: 500
 
 emission_schedule:
