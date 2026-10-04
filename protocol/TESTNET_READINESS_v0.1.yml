@@ -1,0 +1,62 @@
+schema_version: 1
+status: preparation
+network:
+  profile: arbitrum-sepolia-adapter
+  chain_id: 421614
+  role: integration_testnet
+  native_bod_network: false
+  production: false
+
+surfaces:
+  protocol_objects:
+    status: implemented
+    reference: protocol/BOD_PROTOCOL_v0.1.md
+  deterministic_state_machine:
+    status: implemented
+    reference: src/bod_protocol.py
+  economic_state_machine:
+    status: implemented
+    reference: src/bod_economy.py
+  token_policy:
+    status: stage_1_candidate_verified
+    reference: protocol/genesis/BOD_TOKEN_POLICY_v0.1.yml
+  evm_adapter:
+    status: live_tested
+    reference: protocol/arbitrum/INTEGRATION_HARNESS_v0.1.md
+  live_sepolia_evidence:
+    status: recorded
+    reference: research/cycles/EC-0001/ARBITRUM_SEPOLIA_LIVE_RUN_2026-10-04.md
+  public_release_surface:
+    status: released
+    reference: PUBLICATION_POLICY.md
+
+operator_requirements:
+  funded_test_wallet: required_for_new_live_runs
+  private_key_storage: local_environment_only
+  rpc_endpoint: public_arbitrum_sepolia_default_or_operator_supplied
+  test_token: disposable_TestBODToken_allowed
+  production_credentials: prohibited
+
+native_bod_network:
+  status: not_ready
+  consensus: not_implemented
+  p2p: not_implemented
+  validator_admission: not_finalized
+  native_genesis: not_defined
+  rpc_node: not_implemented
+
+launch_gate:
+  decision: blocked
+  reasons:
+    - native_bod_network_is_not_an_approved_current_target
+    - economic_parameters_are_experimental
+    - verifier_economics_are_not_final
+    - native_consensus_and_p2p_surfaces_are_not_implemented
+  allowed_now:
+    - reproduce_arbitrum_sepolia_adapter_flow
+    - run_adversarial_protocol_and_economic_tests
+    - publish_public_safe_experiments
+  prohibited_now:
+    - mainnet_deployment
+    - presenting_arbitrum_as_the_BOD_native_network
+    - promoting_stage_1_numbers_to_final_monetary_policy
