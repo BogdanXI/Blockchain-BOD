@@ -1,0 +1,59 @@
+schema_version: 1
+network: blockchain-bod
+token:
+  name: BOD
+  symbol: BOD
+  decimals: 9
+  max_supply: 1000000000
+  max_supply_unit: BOD
+
+genesis:
+  minted_supply: 300000000
+  unissued_reserve: 700000000
+  allocations:
+    developer_founder:
+      amount: 150000000
+      share_bps: 1500
+      vesting:
+        cliff_seconds: 31536000
+        linear_seconds: 94608000
+    community:
+      amount: 100000000
+      share_bps: 1000
+    liquidity_market:
+      amount: 50000000
+      share_bps: 500
+
+emission_schedule:
+  initial_release_bps_of_envelope: 500
+  annual_decay_bps: 9000
+  max_epochs: 100
+  status: simulation_baseline_not_final
+
+emission_envelopes:
+  security_verification:
+    amount: 250000000
+  ecosystem:
+    amount: 200000000
+  treasury:
+    amount: 150000000
+  community:
+    amount: 50000000
+  research_public_goods:
+    amount: 50000000
+
+fees:
+  base_fee:
+    burn_bps: 10000
+  priority_fee:
+    proposer_arbitration_bps: 5000
+    verifier_pool_bps: 3000
+    treasury_bps: 2000
+
+accounting_invariants:
+  - minted_plus_unissued_equals_cap
+  - no_negative_balance
+  - burn_requires_existing_balance
+  - emission_cannot_exceed_envelope
+  - treasury_spend_cannot_exceed_balance
+  - no_discretionary_mint
