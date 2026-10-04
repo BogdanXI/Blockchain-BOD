@@ -54,10 +54,7 @@ def test_sepolia_test_token_is_explicitly_non_production():
         assert fragment in text
 
 
-def test_live_runner_keeps_private_key_explicit_but_can_self_host_test_token():
-    text = LIVE_RUNNER.read_text(encoding="utf-8")
-    assert 'require_env("BOD_ARBITRUM_SEPOLIA_PRIVATE_KEY")' in text
-    assert 'DEFAULT_RPC_URL = "https://sepolia-rollup.arbitrum.io/rpc"' in text
-    assert 'os.environ.get("BOD_ARBITRUM_SEPOLIA_BOD_TOKEN")' in text
-    assert 'token_source = "deployed-test"' in text
-    assert "TestBODToken" in text
+def test_live_operator_credentials_are_not_part_of_the_public_contract_source():
+    text = CONTRACT.read_text(encoding="utf-8")
+    assert "private key" not in text.lower()
+    assert "BOD_ARBITRUM_SEPOLIA_PRIVATE_KEY" not in text
