@@ -16,6 +16,16 @@ The protocol treats verification and canonicality as separate concerns:
 
 The v0.1 protocol does **not** claim a new consensus mechanism. The first chain-facing implementation uses an adapter boundary so the protocol can be tested without making the execution chain part of the protocol definition.
 
+## Try to break the state machine
+
+We published a small adversarial experiment that runs one valid transition and several deliberately invalid transitions. The reference implementation should reject the invalid cases.
+
+- Experiment: `experiments/BREAK_STATE_MACHINE.md`
+- Runner: `scripts/break_state_machine.py`
+- Test: `tests/test_break_state_machine.py`
+
+The experiment is intentionally narrow: it is a falsifiable state-machine test, not a consensus-security proof.
+
 ## Current status
 
 This is an experimental engineering project. Economic parameters are calibration baselines, not final policy.
