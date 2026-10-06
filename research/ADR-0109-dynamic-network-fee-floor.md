@@ -40,6 +40,10 @@ Official Arbitrum documentation consulted on 2026-10-06:
 - Fast Feed reference bot: PRIORITY_FEE_PER_GAS=0, 20% BASE_FEE_BOOST_PERCENT, and gas estimation before transactions.
 - Solidity Quickstart: Arbitrum Sepolia/One EVM deployment path and fee-estimation reference.
 
+## Live Arbitrum Sepolia observation — 2026-10-06
+
+Direct RPC observation: ArbGasInfo.getMinimumGasPrice() returned 20,000,000 wei (0.02 gwei). The same public RPC returned 86,060,000 wei (0.08606 gwei) for eth_gasPrice. The dynamic policy therefore avoids treating the older documented 0.2 gwei floor as a mandatory transaction price when the live chain reports a lower minimum. This is an observation, not a permanent network guarantee.
+
 ## Non-goals
 
 This ADR does not set a final BOD token price, final service tariff, or final monetary policy. It also does not introduce a BOD/ETH oracle. Native gas remains a network infrastructure cost; BOD utility pricing remains a separate protocol-economic variable.
