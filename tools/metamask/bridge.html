@@ -128,7 +128,7 @@ async function send(label, txPromise){
 async function deployContract(label,factory,args,gasLimit=2000000n){
   out('\\nSIGN: '+label);
   try{
-    const request=factory.getDeployTransaction(...args);
+    const request=await factory.getDeployTransaction(...args);
     request.gasLimit=gasLimit;
     const tx=await signer.sendTransaction(request);
     out('submitted '+tx.hash+' gasLimit='+gasLimit);
