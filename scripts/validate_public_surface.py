@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -28,15 +29,20 @@ _PRIVATE_PATH_PARTS = (
 
 
 def iter_text_files() -> list[Path]:
-    ignored = {".git", "__pycache__", ".pytest_cache"}
+    """Validate the tracked public surface, not local ignored build/runtime artifacts."""
+    output = subprocess.check_output(
+        ["git", "ls-files", "-z"], cwd=ROOT, text=False
+    )
     files: list[Path] = []
-    for path in ROOT.rglob("*"):
-        if path.is_file() and not any(part in ignored for part in path.parts):
-            try:
-                path.read_text(encoding="utf-8")
-            except (UnicodeDecodeError, OSError):
-                continue
-            files.append(path)
+    for relative in output.decode("utf-8").split("\x00"):
+        if not relative:
+            continue
+        path = ROOT / relative
+        try:
+            path.read_text(encoding="utf-8")
+        except (UnicodeDecodeError, OSError):
+            continue
+        files.append(path)
     return files
 
 
