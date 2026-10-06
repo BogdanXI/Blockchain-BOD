@@ -414,14 +414,14 @@ v0.1 does not specify:
 - final token emission parameters;
 - final verifier staking economics;
 - decentralized storage provider selection;
-- a specific AI model or coding IDE;
-- raw prompt/model-context persistence on-chain.
+- a specific execution client or development tool;
+- raw session-context persistence on-chain.
 
 These are separate engineering decisions.
 
 ## 13. Design consequence
 
-The protocol's scarce on-chain resource is not AI activity. It is canonical state transition and economic settlement.
+The protocol's scarce on-chain resource is not application activity. It is canonical state transition and economic settlement.
 
 Therefore the scaling target is:
 
@@ -431,4 +431,4 @@ rather than:
 
     O(agent tool calls + file edits + logs + tokens + model events)
 
-This keeps the protocol compatible with long-running AI development workloads without making the blockchain a database of every agent action.
+This keeps the protocol compatible with long-running software development workloads without making the blockchain a database of every agent action.

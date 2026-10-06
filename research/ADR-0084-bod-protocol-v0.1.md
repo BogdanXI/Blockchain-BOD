@@ -14,7 +14,7 @@ The existing architecture defined Candidate -> Verification -> Arbitration -> Ca
 - where BOD is mandatory;
 - how multiple independently valid candidates are represented.
 
-Without these rules, an Arbitrum MVP could accidentally turn the chain into an AI event log or couple the protocol to provisional tokenomics.
+Without these rules, an Arbitrum MVP could accidentally turn the chain into an application event log or couple the protocol to provisional tokenomics.
 
 ## Decision
 
@@ -49,7 +49,7 @@ Require BOD for reward escrow, candidate bonds and settlement-defined economic o
 
 ## Alternatives rejected
 
-### 1. Store the complete AI activity stream on-chain
+### 1. Store the complete application activity stream on-chain
 
 Rejected because it scales with tool calls, file edits, prompts, logs and model events rather than economically significant state transitions.
 
@@ -75,7 +75,7 @@ Positive:
 
 - Codex, Cursor and other agents can become execution clients without becoming protocol authorities.
 - The same protocol objects can be implemented first on an existing EVM chain and later on a native BOD chain.
-- On-chain growth is tied to canonical protocol transitions rather than raw AI activity.
+- On-chain growth is tied to canonical protocol transitions rather than raw application activity.
 - The protocol has a concrete testable boundary for signatures, evidence and settlement.
 
 Remaining work:
