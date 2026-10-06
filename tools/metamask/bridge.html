@@ -130,6 +130,13 @@ async function deployContract(label,factory,args,gasLimit=2000000n){
   try{
     const request=await factory.getDeployTransaction(...args);
     request.gasLimit=gasLimit;
+    const block=await provider.getBlock('latest');
+    const feeData=await provider.getFeeData();
+    const baseFee=block?.baseFeePerGas ?? feeData.maxFeePerGas ?? feeData.gasPrice ?? 0n;
+    const priority=feeData.maxPriorityFeePerGas ?? 1000000n;
+    request.maxPriorityFeePerGas=priority;
+    request.maxFeePerGas=baseFee*2n+priority;
+    out('fee base='+baseFee+' maxFee='+request.maxFeePerGas+' priority='+priority);
     const tx=await signer.sendTransaction(request);
     out('submitted '+tx.hash+' gasLimit='+gasLimit);
     const receipt=await tx.wait();
