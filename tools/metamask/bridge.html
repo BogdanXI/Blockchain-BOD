@@ -1,3 +1,7 @@
+[Reading 188 lines from start (total: 188 lines, 0 remaining)]
+
+[Reading 176 lines from start (total: 176 lines, 0 remaining)]
+
 <!doctype html>
 <meta charset="utf-8">
 <title>BOD MetaMask — Arbitrum Sepolia E2E</title>
@@ -103,6 +107,14 @@ async function prepare(){
   $('run').disabled=false;
 }
 
+function describeError(e){
+  const parts=[];
+  for(const k of ['code','rpcCode','shortMessage','reason','message']) if(e?.[k]!==undefined) parts.push(k+'='+String(e[k]));
+  if(e?.info?.error?.message) parts.push('info.error.message='+e.info.error.message);
+  if(e?.data) parts.push('data='+String(e.data).slice(0,220));
+  return parts.join(' | ') || String(e);
+}
+
 async function send(label, txPromise){
   out('\\nSIGN: '+label);
   const tx=await txPromise;
@@ -113,15 +125,34 @@ async function send(label, txPromise){
   return receipt;
 }
 
+async function deployContract(label,factory,args,gasLimit=2000000n){
+  out('\\nSIGN: '+label);
+  try{
+    const request=factory.getDeployTransaction(...args);
+    request.gasLimit=gasLimit;
+    const tx=await signer.sendTransaction(request);
+    out('submitted '+tx.hash+' gasLimit='+gasLimit);
+    const receipt=await tx.wait();
+    if(receipt.status!==1) throw Error(label+' transaction failed');
+    const deployed=ethers.getCreateAddress({from:address,nonce:tx.nonce});
+    out('confirmed block='+receipt.blockNumber+' gasUsed='+receipt.gasUsed);
+    out('confirmed contract='+deployed);
+    return new ethers.Contract(deployed,factory.interface,signer);
+  }catch(e){
+    out('ERROR '+label+': '+describeError(e));
+    throw e;
+  }
+}
+
 async function run(){
   $('run').disabled=true; $('plan').disabled=true; $('connect').disabled=true;
   try{
     if(!planData) await prepare();
     const factoryToken=new ethers.ContractFactory(tokenArtifact.abi,tokenArtifact.bytecode,signer);
-    const token=await (async()=>{ out('\\nSIGN: deploy disposable TestBODToken'); const c=await factoryToken.deploy(address,ethers.parseUnits('1000000',18)); out('submitted '+c.deploymentTransaction().hash); await c.waitForDeployment(); out('confirmed token='+await c.getAddress()); return c; })();
+    const token=await deployContract('deploy disposable TestBODToken',factoryToken,[address,ethers.parseUnits('1000000',18)],1000000n);
 
     const adapterFactory=new ethers.ContractFactory(adapterArtifact.abi,adapterArtifact.bytecode,signer);
-    const adapter=await (async()=>{ out('\\nSIGN: deploy BODProtocolAdapterV0_1'); const c=await adapterFactory.deploy(await token.getAddress(),address,planData.initialRoot); out('submitted '+c.deploymentTransaction().hash); await c.waitForDeployment(); out('confirmed adapter='+await c.getAddress()); return c; })();
+    const adapter=await deployContract('deploy BODProtocolAdapterV0_1',adapterFactory,[await token.getAddress(),address,planData.initialRoot],2000000n);
 
     const tokenWithSigner=new ethers.Contract(await token.getAddress(),tokenArtifact.abi,signer);
     await send('approve adapter for 1250 BOD',tokenWithSigner.approve(await adapter.getAddress(),1250n));
@@ -155,3 +186,7 @@ if(new URLSearchParams(location.search).get('autoconnect')==='1'){
 }
 $('run').onclick=run;
 </script>
+
+[executed on device: xubuntu-System-Product-Name (3acb4f90-0e92-4599-a3ac-e9552cb2b2d4)]
+
+[executed on device: xubuntu-System-Product-Name (3acb4f90-0e92-4599-a3ac-e9552cb2b2d4)]
