@@ -115,30 +115,47 @@ function describeError(e){
   return parts.join(' | ') || String(e);
 }
 
-async function send(label, txPromise){
-  out('\\nSIGN: '+label);
-  const tx=await txPromise;
-  out('submitted '+tx.hash);
-  const receipt=await tx.wait();
-  if(receipt.status!==1) throw Error(label+' transaction failed');
-  out('confirmed block='+receipt.blockNumber+' gasUsed='+receipt.gasUsed);
-  return receipt;
+async function prepareTx(request){
+  const block=await provider.getBlock('latest');
+  const feeData=await provider.getFeeData();
+  const baseFee=block?.baseFeePerGas ?? feeData.maxFeePerGas ?? feeData.gasPrice ?? 0n;
+  const floor=200000000n;
+  const feeBase=baseFee>floor?baseFee:floor;
+  const priority=0n;
+  request.maxPriorityFeePerGas=priority;
+  request.maxFeePerGas=(feeBase*120n+99n)/100n;
+  const estimate=await provider.estimateGas({...request,from:address});
+  const gasLimit=(estimate*115n+99n)/100n;
+  request.gasLimit=gasLimit;
+  out('fee base='+baseFee+' floor='+floor+' maxFee='+request.maxFeePerGas+' priority='+priority);
+  out('gas estimate='+estimate+' gasLimit='+gasLimit);
+  return request;
 }
 
-async function deployContract(label,factory,args,gasLimit=2000000n){
+async function send(label, txBuilder){
+  out('\\nSIGN: '+label);
+  try{
+    const request=await txBuilder();
+    await prepareTx(request);
+    const tx=await signer.sendTransaction(request);
+    out('submitted '+tx.hash+' gasLimit='+request.gasLimit);
+    const receipt=await tx.wait();
+    if(receipt.status!==1) throw Error(label+' transaction failed');
+    out('confirmed block='+receipt.blockNumber+' gasUsed='+receipt.gasUsed);
+    return receipt;
+  }catch(e){
+    out('ERROR '+label+': '+describeError(e));
+    throw e;
+  }
+}
+
+async function deployContract(label,factory,args){
   out('\\nSIGN: '+label);
   try{
     const request=await factory.getDeployTransaction(...args);
-    request.gasLimit=gasLimit;
-    const block=await provider.getBlock('latest');
-    const feeData=await provider.getFeeData();
-    const baseFee=block?.baseFeePerGas ?? feeData.maxFeePerGas ?? feeData.gasPrice ?? 0n;
-    const priority=feeData.maxPriorityFeePerGas ?? 1000000n;
-    request.maxPriorityFeePerGas=priority;
-    request.maxFeePerGas=baseFee*2n+priority;
-    out('fee base='+baseFee+' maxFee='+request.maxFeePerGas+' priority='+priority);
+    await prepareTx(request);
     const tx=await signer.sendTransaction(request);
-    out('submitted '+tx.hash+' gasLimit='+gasLimit);
+    out('submitted '+tx.hash+' gasLimit='+request.gasLimit);
     const receipt=await tx.wait();
     if(receipt.status!==1) throw Error(label+' transaction failed');
     const deployed=ethers.getCreateAddress({from:address,nonce:tx.nonce});
@@ -162,11 +179,11 @@ async function run(){
     const adapter=await deployContract('deploy BODProtocolAdapterV0_1',adapterFactory,[await token.getAddress(),address,planData.initialRoot],2000000n);
 
     const tokenWithSigner=new ethers.Contract(await token.getAddress(),tokenArtifact.abi,signer);
-    await send('approve adapter for 1250 BOD',tokenWithSigner.approve(await adapter.getAddress(),1250n));
-    await send('createTask',adapter.createTask(planData.taskId,planData.initialRoot,planData.taskSpecHash,planData.acceptancePolicyHash,planData.reward,planData.surcharge,planData.deadline));
-    await send('submitCandidate',adapter.submitCandidate(planData.candidateId,planData.taskId,planData.initialRoot,planData.candidateStateRoot,planData.resultArtifactHash,planData.executionManifestHash,planData.evidenceRoot,planData.bond));
-    await send('commitVerificationRoot',adapter.commitVerificationRoot(planData.candidateId,planData.verificationRoot));
-    await send('settle',adapter.settle(planData.settlementId,planData.taskId,planData.candidateId,planData.settlementPolicyHash,planData.economicOutcomeHash,planData.newStateRoot,1n,planData.reward,planData.bond,0n,address,address,address));
+    await send('approve adapter for 1250 BOD',async()=>tokenWithSigner.approve.populateTransaction(await adapter.getAddress(),1250n));
+    await send('createTask',()=>adapter.createTask.populateTransaction(planData.taskId,planData.initialRoot,planData.taskSpecHash,planData.acceptancePolicyHash,planData.reward,planData.surcharge,planData.deadline));
+    await send('submitCandidate',()=>adapter.submitCandidate.populateTransaction(planData.candidateId,planData.taskId,planData.initialRoot,planData.candidateStateRoot,planData.resultArtifactHash,planData.executionManifestHash,planData.evidenceRoot,planData.bond));
+    await send('commitVerificationRoot',()=>adapter.commitVerificationRoot.populateTransaction(planData.candidateId,planData.verificationRoot));
+    await send('settle',()=>adapter.settle.populateTransaction(planData.settlementId,planData.taskId,planData.candidateId,planData.settlementPolicyHash,planData.economicOutcomeHash,planData.newStateRoot,1n,planData.reward,planData.bond,0n,address,address,address));
 
     const observed=await adapter.currentStateRoot();
     const adapterBalance=await token.balanceOf(await adapter.getAddress());
