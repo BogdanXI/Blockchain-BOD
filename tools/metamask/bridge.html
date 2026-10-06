@@ -26,6 +26,28 @@ function hex32(hex){ return ethers.getBytes(hex); }
 function h32(...parts){ return ethers.sha256(ethers.concat(parts.map(x=>ethers.toUtf8Bytes(String(x))))); }
 function short(x){ return x ? x.slice(0,10)+'…'+x.slice(-8) : ''; }
 
+async function getMetaMaskProvider(){
+  const injected=window.ethereum;
+  const candidates=Array.isArray(injected?.providers) ? injected.providers : [injected];
+  const direct=candidates.find(p=>p?.isMetaMask);
+  if(direct) return direct;
+  return await new Promise((resolve,reject)=>{
+    const providers=[];
+    const onAnnounce=e=>{
+      const d=e.detail;
+      if(d?.provider) providers.push(d);
+    };
+    window.addEventListener('eip6963:announceProvider',onAnnounce);
+    window.dispatchEvent(new Event('eip6963:requestProvider'));
+    setTimeout(()=>{
+      window.removeEventListener('eip6963:announceProvider',onAnnounce);
+      const mm=providers.find(d=>d?.provider?.isMetaMask || d?.info?.rdns==='io.metamask' || d?.info?.name==='MetaMask');
+      if(mm?.provider) resolve(mm.provider);
+      else reject(Error('MetaMask EIP-1193 provider not found among injected wallets'));
+    },300);
+  });
+}
+
 async function loadArtifacts(){
   const [a,t]=await Promise.all([
     fetch(ARTIFACT_BASE+'BODProtocolAdapterV0_1.json').then(r=>r.json()),
@@ -36,12 +58,13 @@ async function loadArtifacts(){
 
 async function ensure(){
   if(!window.ethereum) throw Error('MetaMask provider not found');
-  provider=new ethers.BrowserProvider(window.ethereum);
+  const metaMaskProvider=await getMetaMaskProvider();
+  provider=new ethers.BrowserProvider(metaMaskProvider);
   await provider.send('eth_requestAccounts',[]);
   let net=await provider.getNetwork();
   if(net.chainId!==CHAIN_ID){
-    await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:CHAIN_HEX}]});
-    provider=new ethers.BrowserProvider(window.ethereum);
+    await metaMaskProvider.request({method:'wallet_switchEthereumChain',params:[{chainId:CHAIN_HEX}]});
+    provider=new ethers.BrowserProvider(metaMaskProvider);
     net=await provider.getNetwork();
   }
   if(net.chainId!==CHAIN_ID) throw Error('Refusing to operate outside Arbitrum Sepolia (421614)');
@@ -134,5 +157,8 @@ async function run(){
 
 $('connect').onclick=()=>ensure().catch(e=>out('ERROR '+(e.shortMessage||e.message)));
 $('plan').onclick=()=>prepare().catch(e=>out('ERROR '+(e.shortMessage||e.message)));
+if(new URLSearchParams(location.search).get('autoconnect')==='1'){
+  ensure().catch(e=>out('ERROR '+(e.shortMessage||e.message)));
+}
 $('run').onclick=run;
 </script>

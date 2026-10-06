@@ -20,6 +20,15 @@ def test_metamask_bridge_is_sepolia_only_and_uses_eip1193():
     assert "PRIVATE_KEY" not in text
 
 
+def test_metamask_bridge_explicitly_selects_metamask_provider():
+    text = BRIDGE.read_text(encoding="utf-8")
+    assert "isMetaMask" in text
+    assert "eip6963:announceProvider" in text
+    assert "eip6963:requestProvider" in text
+    assert "io.metamask" in text
+    assert "autoconnect" in text
+
+
 def test_metamask_bridge_contains_complete_transaction_sequence():
     text = BRIDGE.read_text(encoding="utf-8")
     labels = [
