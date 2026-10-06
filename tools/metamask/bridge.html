@@ -20,7 +20,10 @@ const CHAIN_ID=421614n;
 const CHAIN_HEX='0x66eee';
 const RPC='https://sepolia-rollup.arbitrum.io/rpc';
 const ARTIFACT_BASE='./artifacts/';
-let provider,signer,address,adapterArtifact,tokenArtifact,planData;
+let provider,signer,address,adapterArtifact,tokenArtifact,planData,runLock=false;
+const announcedProviders=[];
+window.addEventListener('eip6963:announceProvider',e=>{ const d=e.detail; if(d?.provider && !announcedProviders.some(x=>x.provider===d.provider)) announcedProviders.push(d); });
+window.dispatchEvent(new Event('eip6963:requestProvider'));
 
 function hex32(hex){ return ethers.getBytes(hex); }
 function h32(...parts){ return ethers.sha256(ethers.concat(parts.map(x=>ethers.toUtf8Bytes(String(x))))); }
@@ -31,21 +34,11 @@ async function getMetaMaskProvider(){
   const candidates=Array.isArray(injected?.providers) ? injected.providers : [injected];
   const direct=candidates.find(p=>p?.isMetaMask);
   if(direct) return direct;
-  return await new Promise((resolve,reject)=>{
-    const providers=[];
-    const onAnnounce=e=>{
-      const d=e.detail;
-      if(d?.provider) providers.push(d);
-    };
-    window.addEventListener('eip6963:announceProvider',onAnnounce);
-    window.dispatchEvent(new Event('eip6963:requestProvider'));
-    setTimeout(()=>{
-      window.removeEventListener('eip6963:announceProvider',onAnnounce);
-      const mm=providers.find(d=>d?.provider?.isMetaMask || d?.info?.rdns==='io.metamask' || d?.info?.name==='MetaMask');
-      if(mm?.provider) resolve(mm.provider);
-      else reject(Error('MetaMask EIP-1193 provider not found among injected wallets'));
-    },300);
-  });
+  window.dispatchEvent(new Event('eip6963:requestProvider'));
+  await new Promise(resolve=>setTimeout(resolve,500));
+  const mm=announcedProviders.find(d=>d?.provider?.isMetaMask || d?.info?.rdns==='io.metamask' || d?.info?.name==='MetaMask');
+  if(mm?.provider) return mm.provider;
+  throw Error('MetaMask EIP-1193 provider not found among injected wallets');
 }
 
 async function loadArtifacts(){
