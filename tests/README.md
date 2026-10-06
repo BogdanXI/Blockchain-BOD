@@ -1,28 +1,15 @@
-# Graph-Coupled Finality Reduction Test v0.2
+# Tests
 
-## Result sought
+The test suite is the executable verification layer for the public protocol implementation.
 
-The decisive question is not whether graph-coupled finality changes **which validators** sign.
+## Run the suite
 
-It is whether the graph changes **which certificates signed by the same validators are valid**.
+~~~bash
+python -m pytest -q
+~~~
 
-The experiment constructs two certificates with exactly the same 3 signers:
-- one satisfies all graph dependencies;
-- one violates a dependency.
+## Scope
 
-Any scalar PoS rule based only on signer weights must assign the same validity to both.
+The suite covers protocol state transitions, economic invariants, adapter behavior, readiness checks, and the published adversarial state-machine experiment.
 
-Run:
-
-```bash
-python3 tests/test_graph_coupled_finality.py
-```
-
-This is a finite semantic counterexample, not a security proof.
-
-## Interpretation
-
-If the test passes, graph dependency validity cannot be reduced to scalar signer weight.
-
-That still does **not** prove a new consensus protocol: the next reduction test is against an ordinary BFT protocol augmented with a dependency/communication rule.
-
+Individual experiments and checks can be run directly from their corresponding scripts in `scripts/` and `experiments/`.
