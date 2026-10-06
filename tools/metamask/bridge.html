@@ -1,0 +1,138 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>BOD MetaMask — Arbitrum Sepolia E2E</title>
+<style>
+body{font:14px system-ui,sans-serif;max-width:900px;margin:32px auto;padding:0 16px}
+button{margin:4px;padding:9px 14px} pre{white-space:pre-wrap;background:#f5f5f5;padding:14px;border-radius:8px}
+.warn{font-weight:600}
+</style>
+<h1>BOD — Arbitrum Sepolia</h1>
+<p>Browser signer boundary: MetaMask/EIP-1193. Mainnet is intentionally disabled.</p>
+<button id="connect">Connect MetaMask</button>
+<button id="plan" disabled>Prepare E2E plan</button>
+<button id="run" disabled>Run Sepolia E2E</button>
+<pre id="out"></pre>
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.15.0/dist/ethers.umd.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const out=t=>{ $('out').textContent+=t+'\\n'; };
+const CHAIN_ID=421614n;
+const CHAIN_HEX='0x66eee';
+const RPC='https://sepolia-rollup.arbitrum.io/rpc';
+const ARTIFACT_BASE='./artifacts/';
+let provider,signer,address,adapterArtifact,tokenArtifact,planData;
+
+function hex32(hex){ return ethers.getBytes(hex); }
+function h32(...parts){ return ethers.sha256(ethers.concat(parts.map(x=>ethers.toUtf8Bytes(String(x))))); }
+function short(x){ return x ? x.slice(0,10)+'…'+x.slice(-8) : ''; }
+
+async function loadArtifacts(){
+  const [a,t]=await Promise.all([
+    fetch(ARTIFACT_BASE+'BODProtocolAdapterV0_1.json').then(r=>r.json()),
+    fetch(ARTIFACT_BASE+'TestBODToken.json').then(r=>r.json())
+  ]);
+  adapterArtifact=a; tokenArtifact=t;
+}
+
+async function ensure(){
+  if(!window.ethereum) throw Error('MetaMask provider not found');
+  provider=new ethers.BrowserProvider(window.ethereum);
+  await provider.send('eth_requestAccounts',[]);
+  let net=await provider.getNetwork();
+  if(net.chainId!==CHAIN_ID){
+    await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:CHAIN_HEX}]});
+    provider=new ethers.BrowserProvider(window.ethereum);
+    net=await provider.getNetwork();
+  }
+  if(net.chainId!==CHAIN_ID) throw Error('Refusing to operate outside Arbitrum Sepolia (421614)');
+  signer=await provider.getSigner();
+  address=await signer.getAddress();
+  await loadArtifacts();
+  $('plan').disabled=false;
+  out('wallet='+address);
+  out('network=Arbitrum Sepolia chainId=421614');
+}
+
+async function prepare(){
+  if(!signer) throw Error('Connect MetaMask first');
+  const initialRoot=h32('initial-state','421614');
+  const now=(await provider.getBlock('latest')).timestamp;
+  const reward=1000n, bond=250n, surcharge=0n, deadline=BigInt(now)+3600n;
+  const projectId=h32('project','integration-harness-v0.1');
+  const taskSpecHash=h32('task-spec','deterministic-integration-task-v0.1');
+  const acceptancePolicyHash=h32('acceptance-policy','tests-pass-and-artifact-matches');
+  const taskId=h32('task',projectId,initialRoot,taskSpecHash,acceptancePolicyHash,reward.toString(),surcharge.toString(),deadline.toString(),address);
+  const candidateStateRoot=h32('candidate-state',taskId,'candidate-A');
+  const resultArtifactHash=h32('artifact','candidate-A');
+  const executionManifestHash=h32('manifest','candidate-A');
+  const evidenceRoot=h32('evidence',resultArtifactHash,executionManifestHash,'tests=pass','agent=candidate-A');
+  const candidateId=h32('candidate',taskId,initialRoot,candidateStateRoot,resultArtifactHash,executionManifestHash,evidenceRoot,address,bond.toString());
+  const verificationRoot=h32('verification',candidateId,evidenceRoot,acceptancePolicyHash,'VALID');
+  const newStateRoot=h32('settled-state',taskId,candidateId,verificationRoot);
+  const settlementPolicyHash=h32('settlement-policy','select-valid-candidate');
+  const economicOutcomeHash=h32('economic-outcome',reward.toString(),(bond).toString(),'0');
+  const settlementId=h32('settlement-id',taskId,candidateId,verificationRoot);
+  planData={initialRoot,deadline,reward,bond,surcharge,projectId,taskSpecHash,acceptancePolicyHash,taskId,candidateStateRoot,resultArtifactHash,executionManifestHash,evidenceRoot,candidateId,verificationRoot,newStateRoot,settlementPolicyHash,economicOutcomeHash,settlementId};
+  const balance=await provider.getBalance(address);
+  out('\\nPLAN');
+  out('initialStateRoot='+initialRoot);
+  out('taskId='+taskId);
+  out('candidateId='+candidateId);
+  out('evidenceRoot='+evidenceRoot);
+  out('verificationRoot='+verificationRoot);
+  out('newStateRoot='+newStateRoot);
+  out('reward=1000 BOD, bond=250 BOD, total BOD approval=1250');
+  out('wallet ETH='+ethers.formatEther(balance));
+  if(balance===0n) out('WARNING: wallet has no ETH for Arbitrum Sepolia gas');
+  $('run').disabled=false;
+}
+
+async function send(label, txPromise){
+  out('\\nSIGN: '+label);
+  const tx=await txPromise;
+  out('submitted '+tx.hash);
+  const receipt=await tx.wait();
+  if(receipt.status!==1) throw Error(label+' transaction failed');
+  out('confirmed block='+receipt.blockNumber+' gasUsed='+receipt.gasUsed);
+  return receipt;
+}
+
+async function run(){
+  $('run').disabled=true; $('plan').disabled=true; $('connect').disabled=true;
+  try{
+    if(!planData) await prepare();
+    const factoryToken=new ethers.ContractFactory(tokenArtifact.abi,tokenArtifact.bytecode,signer);
+    const token=await (async()=>{ out('\\nSIGN: deploy disposable TestBODToken'); const c=await factoryToken.deploy(address,ethers.parseUnits('1000000',18)); out('submitted '+c.deploymentTransaction().hash); await c.waitForDeployment(); out('confirmed token='+await c.getAddress()); return c; })();
+
+    const adapterFactory=new ethers.ContractFactory(adapterArtifact.abi,adapterArtifact.bytecode,signer);
+    const adapter=await (async()=>{ out('\\nSIGN: deploy BODProtocolAdapterV0_1'); const c=await adapterFactory.deploy(await token.getAddress(),address,planData.initialRoot); out('submitted '+c.deploymentTransaction().hash); await c.waitForDeployment(); out('confirmed adapter='+await c.getAddress()); return c; })();
+
+    const tokenWithSigner=new ethers.Contract(await token.getAddress(),tokenArtifact.abi,signer);
+    await send('approve adapter for 1250 BOD',tokenWithSigner.approve(await adapter.getAddress(),1250n));
+    await send('createTask',adapter.createTask(planData.taskId,planData.initialRoot,planData.taskSpecHash,planData.acceptancePolicyHash,planData.reward,planData.surcharge,planData.deadline));
+    await send('submitCandidate',adapter.submitCandidate(planData.candidateId,planData.taskId,planData.initialRoot,planData.candidateStateRoot,planData.resultArtifactHash,planData.executionManifestHash,planData.evidenceRoot,planData.bond));
+    await send('commitVerificationRoot',adapter.commitVerificationRoot(planData.candidateId,planData.verificationRoot));
+    await send('settle',adapter.settle(planData.settlementId,planData.taskId,planData.candidateId,planData.settlementPolicyHash,planData.economicOutcomeHash,planData.newStateRoot,1n,planData.reward,planData.bond,0n,address,address,address));
+
+    const observed=await adapter.currentStateRoot();
+    const adapterBalance=await token.balanceOf(await adapter.getAddress());
+    const walletBalance=await token.balanceOf(address);
+    out('\\nVERIFY');
+    out('stateRoot='+observed);
+    out('expectedStateRoot='+planData.newStateRoot);
+    out('adapterBOD='+adapterBalance);
+    out('walletBOD='+walletBalance);
+    if(observed.toLowerCase()!==planData.newStateRoot.toLowerCase()) throw Error('state-root mismatch');
+    if(adapterBalance!==0n) throw Error('adapter retained BOD');
+    out('E2E VERIFIED: task/candidate/evidence/verification/settlement and BOD conservation passed on-chain.');
+  }catch(e){
+    out('ERROR '+(e.shortMessage||e.message||String(e)));
+  }finally{
+    $('run').disabled=false; $('plan').disabled=false; $('connect').disabled=false;
+  }
+}
+
+$('connect').onclick=()=>ensure().catch(e=>out('ERROR '+(e.shortMessage||e.message)));
+$('plan').onclick=()=>prepare().catch(e=>out('ERROR '+(e.shortMessage||e.message)));
+$('run').onclick=run;
+</script>
