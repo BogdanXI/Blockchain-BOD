@@ -56,6 +56,13 @@ def test_browser_artifacts_match_expected_contracts():
     assert len(bytes.fromhex(token["bytecode"][2:])) == 1473
 
 
+def test_browser_bridge_reads_arbitrum_minimum_gas_price_from_arb_gas_info():
+    text = BRIDGE.read_text(encoding="utf-8")
+    assert "const ARB_GAS_INFO='0x000000000000000000000000000000000000006c'" in text
+    assert "getMinimumGasPrice() view returns (uint256)" in text
+    assert "configuredMinimum=await arbGasInfo.getMinimumGasPrice()" in text
+
+
 def test_browser_bridge_uses_documented_low_fee_strategy():
     text = BRIDGE.read_text(encoding="utf-8")
     assert "const priority=0n" in text
