@@ -125,10 +125,14 @@ async function prepareTx(request){
   request.maxPriorityFeePerGas=priority;
   request.maxFeePerGas=(feeBase*120n+99n)/100n;
   const estimate=await provider.estimateGas({...request,from:address});
-  const gasLimit=(estimate*115n+99n)/100n;
-  request.gasLimit=gasLimit;
+  // Arbitrum eth_estimateGas includes the L1-data buffer; keep the submitted
+  // gas limit at the documented estimate instead of adding a wallet-visible 15% surcharge.
+  request.gasLimit=estimate;
+  const expectedFee=estimate*(feeBase+priority);
+  const maxFeeBudget=estimate*request.maxFeePerGas;
   out('fee base='+baseFee+' floor='+floor+' maxFee='+request.maxFeePerGas+' priority='+priority);
-  out('gas estimate='+estimate+' gasLimit='+gasLimit);
+  out('gas estimate='+estimate+' gasLimit='+estimate);
+  out('expected network fee upper estimate='+expectedFee+' wei; wallet max budget='+maxFeeBudget+' wei');
   return request;
 }
 

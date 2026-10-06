@@ -56,6 +56,14 @@ def test_browser_artifacts_match_expected_contracts():
     assert len(bytes.fromhex(token["bytecode"][2:])) == 1473
 
 
+def test_browser_bridge_uses_documented_low_fee_strategy():
+    text = BRIDGE.read_text(encoding="utf-8")
+    assert "const priority=0n" in text
+    assert "request.maxFeePerGas=(feeBase*120n+99n)/100n" in text
+    assert "request.gasLimit=estimate" in text
+    assert "gasLimit=(estimate*115n+99n)/100n" not in text
+
+
 def test_browser_bridge_uses_artifacts_and_checks_onchain_conservation():
     text = BRIDGE.read_text(encoding="utf-8")
     assert "BODProtocolAdapterV0_1.json" in text
