@@ -22,7 +22,14 @@ Arbitrum Sepolia is chain ID 421614.
 
 ## Deployment
 
-Deploy BODGitCommitmentRegistryV0_1 once on Arbitrum Sepolia. The automated anchor workflow is gated on BOD_SEPOLIA_RPC_URL, BOD_SEPOLIA_PRIVATE_KEY and BOD_SEPOLIA_REGISTRY_ADDRESS. The private key must belong to a dedicated testnet signer and must never be committed.
+Use the manual GitHub Actions workflow `Deploy BOD Sepolia Registry` to deploy `BODGitCommitmentRegistryV0_1`.
+
+Configure the `bod-sepolia` GitHub Environment with:
+- `BOD_SEPOLIA_PRIVATE_KEY` — dedicated testnet signer only;
+- `BOD_SEPOLIA_RPC_URL` — optional; if omitted, the workflow uses the Arbitrum public Sepolia RPC;
+- `BOD_SEPOLIA_REGISTRY_ADDRESS` — set after deployment.
+
+The private key must never be committed or sent through chat. The signer must have Arbitrum Sepolia ETH for gas. After deployment, copy the printed registry address into `BOD_SEPOLIA_REGISTRY_ADDRESS`, then run `BOD Sepolia Anchor` manually for the first checkpoint. Automatic push-triggered anchoring can be enabled only after the first manual transaction is verified.
 
 ## Anchor identity
 
