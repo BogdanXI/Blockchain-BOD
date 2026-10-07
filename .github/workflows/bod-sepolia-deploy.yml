@@ -1,0 +1,50 @@
+name: Deploy BOD Sepolia Registry
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: bod-sepolia
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy registry
+        env:
+          BOD_SEPOLIA_PRIVATE_KEY: ${{ secrets.BOD_SEPOLIA_PRIVATE_KEY }}
+          BOD_SEPOLIA_RPC_URL: ${{ secrets.BOD_SEPOLIA_RPC_URL }}
+        run: |
+          test -n "$BOD_SEPOLIA_PRIVATE_KEY"
+          RPC="${BOD_SEPOLIA_RPC_URL:-https://sepolia-rollup.arbitrum.io/rpc}"
+          npm init -y >/dev/null 2>&1
+          npm install --silent ethers@6 solc@0.8.24
+          node <<NODE
+          const fs = require("fs");
+          const solc = require("solc");
+          const { ethers } = require("ethers");
+          const source = fs.readFileSync("protocol/arbitrum/BODGitCommitmentRegistryV0_1.sol", "utf8");
+          const input = {
+            language: "Solidity",
+            sources: {"BODGitCommitmentRegistryV0_1.sol": {content: source}},
+            settings: {optimizer: {enabled: true, runs: 200}, viaIR: true, outputSelection: {"*": {"*": ["abi","evm.bytecode.object"]}}}
+          };
+          const output = JSON.parse(solc.compile(JSON.stringify(input)));
+          if (output.errors) {
+            for (const e of output.errors) console.log(e.formattedMessage);
+            if (output.errors.some(e => e.severity === "error")) process.exit(1);
+          }
+          const c = output.contracts["BODGitCommitmentRegistryV0_1.sol"].BODGitCommitmentRegistryV0_1;
+          const provider = new ethers.JsonRpcProvider(process.env.BOD_SEPOLIA_RPC_URL || "https://sepolia-rollup.arbitrum.io/rpc");
+          const wallet = new ethers.Wallet(process.env.BOD_SEPOLIA_PRIVATE_KEY, provider);
+          console.log("deployer:", wallet.address);
+          console.log("chainId:", (await provider.getNetwork()).chainId.toString());
+          const factory = new ethers.ContractFactory(c.abi, c.evm.bytecode.object, wallet);
+          const deployed = await factory.deploy();
+          console.log("deployment tx:", deployed.deploymentTransaction().hash);
+          await deployed.waitForDeployment();
+          console.log("registry address:", await deployed.getAddress());
+          NODE
