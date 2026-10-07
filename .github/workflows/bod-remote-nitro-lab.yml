@@ -1,0 +1,30 @@
+name: BOD remote Nitro lab
+
+on:
+  push:
+    branches:
+      - experiment/hf-nitro-self-hosting-2026-10-07
+  workflow_dispatch:
+
+concurrency:
+  group: bod-remote-nitro-lab
+  cancel-in-progress: true
+
+jobs:
+  nitro-lab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout BOD
+        uses: actions/checkout@v4
+
+      - name: Validate public surface
+        run: python3 scripts/validate_public_surface.py
+
+      - name: Bootstrap pinned Nitro testnode
+        run: bash tools/remote/bootstrap_nitro_testnode.sh
+
+      - name: Run BOD deterministic regression
+        run: |
+          python3 -m pip install --disable-pip-version-check pytest PyYAML
+          pytest -q
