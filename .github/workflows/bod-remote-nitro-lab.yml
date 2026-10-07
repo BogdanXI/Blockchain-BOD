@@ -27,4 +27,4 @@ jobs:
       - name: Run BOD deterministic regression
         run: |
           python3 -m pip install --disable-pip-version-check pytest PyYAML
-          pytest -q
+          PYTHONPATH=. pytest -q
