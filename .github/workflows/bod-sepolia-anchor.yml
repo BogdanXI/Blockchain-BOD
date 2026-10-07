@@ -1,0 +1,73 @@
+name: BOD Sepolia Anchor
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  anchor:
+    runs-on: ubuntu-latest
+    environment: bod-sepolia
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip pytest pyyaml
+
+      - name: Validate public surface
+        run: python scripts/validate_public_surface.py
+
+      - name: Build BOD repository snapshot
+        run: |
+          python - <<PY
+          import hashlib, json, subprocess
+          from pathlib import Path
+          from src.bod_repository_adapter import capture_repository
+          commit = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+          artifact, manifest, _ = capture_repository(".", project_id="Blockchain-BOD", next_action="continue from anchored public checkpoint", context_refs=(f"git-head:{commit}",))
+          repo_id = hashlib.sha256(b"https://github.com/BogdanXI/Blockchain-BOD").hexdigest()
+          git_commit = hashlib.sha256(commit.encode()).hexdigest()
+          state_root = manifest.state_root()
+          manifest_hash = hashlib.sha256(artifact).hexdigest()
+          anchor_id = hashlib.sha256("|".join([repo_id, git_commit, state_root, manifest_hash]).encode()).hexdigest()
+          Path("/tmp/bod-anchor.json").write_text(json.dumps({"repositoryId":"0x"+repo_id,"gitCommit":"0x"+git_commit,"gitCommitText":commit,"stateRoot":"0x"+state_root,"manifestHash":"0x"+manifest_hash,"anchorId":"0x"+anchor_id}, indent=2)+"\n")
+          print(Path("/tmp/bod-anchor.json").read_text())
+          PY
+
+      - name: Anchor on Arbitrum Sepolia
+        env:
+          BOD_SEPOLIA_RPC_URL: ${{ secrets.BOD_SEPOLIA_RPC_URL }}
+          BOD_SEPOLIA_PRIVATE_KEY: ${{ secrets.BOD_SEPOLIA_PRIVATE_KEY }}
+          BOD_SEPOLIA_REGISTRY_ADDRESS: ${{ secrets.BOD_SEPOLIA_REGISTRY_ADDRESS }}
+        run: |
+          test -n "$BOD_SEPOLIA_RPC_URL"
+          test -n "$BOD_SEPOLIA_PRIVATE_KEY"
+          test -n "$BOD_SEPOLIA_REGISTRY_ADDRESS"
+          npm init -y >/dev/null 2>&1
+          npm install --silent ethers@6
+          node <<NODE
+          const fs = require("fs");
+          const { ethers } = require("ethers");
+          const a = JSON.parse(fs.readFileSync("/tmp/bod-anchor.json", "utf8"));
+          const abi = ["function anchor(bytes32,bytes32,bytes32,bytes32,bytes32)","function anchors(bytes32) view returns (bytes32,bytes32,bytes32,bytes32,uint64,address)"];
+          const provider = new ethers.JsonRpcProvider(process.env.BOD_SEPOLIA_RPC_URL);
+          const wallet = new ethers.Wallet(process.env.BOD_SEPOLIA_PRIVATE_KEY, provider);
+          const contract = new ethers.Contract(process.env.BOD_SEPOLIA_REGISTRY_ADDRESS, abi, wallet);
+          const existing = await contract.anchors(a.anchorId);
+          if (existing[4] !== 0n) { console.log("Anchor already exists:", a.anchorId); process.exit(0); }
+          const tx = await contract.anchor(a.anchorId, a.repositoryId, a.gitCommit, a.stateRoot, a.manifestHash);
+          console.log("tx:", tx.hash);
+          const receipt = await tx.wait();
+          console.log("block:", receipt.blockNumber);
+          console.log("anchor:", a.anchorId);
+          NODE
