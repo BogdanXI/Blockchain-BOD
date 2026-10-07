@@ -34,7 +34,7 @@ jobs:
           from pathlib import Path
           from src.bod_repository_adapter import capture_repository
           commit = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
-          artifact, manifest, _ = capture_repository(".", project_id="Blockchain-BOD", next_action="continue from anchored public checkpoint", context_refs=(f"git-head:{commit}",))
+          artifact, manifest, _ = capture_repository(".", project_id="Blockchain-BOD", next_action="continue from anchored public checkpoint", context_refs=())
           repo_id = hashlib.sha256(b"https://github.com/BogdanXI/Blockchain-BOD").hexdigest()
           git_commit = hashlib.sha256(commit.encode()).hexdigest()
           state_root = manifest.state_root()
