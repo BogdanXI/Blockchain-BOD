@@ -22,7 +22,22 @@ jobs:
         run: python3 scripts/validate_public_surface.py
 
       - name: Bootstrap pinned Nitro testnode
-        run: bash tools/remote/bootstrap_nitro_testnode.sh
+        timeout-minutes: 20
+        run: |
+          set -o pipefail
+          timeout --signal=TERM --kill-after=60s 18m             bash tools/remote/bootstrap_nitro_testnode.sh             2>&1 | tee "$RUNNER_TEMP/bod-nitro-bootstrap.log"
+
+      - name: Diagnose Nitro bootstrap failure
+        if: failure()
+        run: |
+          echo "=== docker containers ==="
+          docker ps -a || true
+          echo "=== docker compose/process summary ==="
+          docker info 2>/dev/null | sed -n '1,80p' || true
+          echo "=== bootstrap log tail ==="
+          if [ -f "$RUNNER_TEMP/bod-nitro-bootstrap.log" ]; then
+            tail -n 120 "$RUNNER_TEMP/bod-nitro-bootstrap.log"
+          fi
 
       - name: Run BOD deterministic regression
         run: |
