@@ -14,7 +14,10 @@ import sys
 import tempfile
 from pathlib import Path
 
-from src.bod_evidence_envelope import EvidenceReferenceV0_1, create_evidence_envelope
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+
+from bod_evidence_envelope import EvidenceReferenceV0_1, create_evidence_envelope
 
 
 def digest(value: str) -> str:
@@ -51,7 +54,7 @@ def main() -> int:
         clean = root / "chain.json"
         clean.write_text(json.dumps({"envelopes": chain}), encoding="utf-8")
         good = subprocess.run(
-            [sys.executable, "scripts/independent_verify.py", str(clean), "--chain"],
+            [sys.executable, str(ROOT / "scripts/independent_verify.py"), str(clean), "--chain"],
             capture_output=True,
             text=True,
             check=False,
@@ -66,7 +69,7 @@ def main() -> int:
         bad = root / "mutated.json"
         bad.write_text(json.dumps(mutated), encoding="utf-8")
         rejected = subprocess.run(
-            [sys.executable, "scripts/independent_verify.py", str(bad), "--chain"],
+            [sys.executable, str(ROOT / "scripts/independent_verify.py"), str(bad), "--chain"],
             capture_output=True,
             text=True,
             check=False,
