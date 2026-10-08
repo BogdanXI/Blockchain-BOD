@@ -114,11 +114,11 @@ def cmd_verify(args) -> int:
             raise EvidenceEnvelopeError("verify without --chain requires exactly one envelope")
         report = verify_envelopes(envs)
         print(json.dumps({
-            **report.to_document(),
+            **report,
             "envelopes": len(envs),
             "commitments": [e.commitment() for e in envs],
         }, indent=2))
-        return 0 if report.valid else 1
+        return 0 if report["status"] == "VALID_INTEGRITY" else 1
     except (EvidenceEnvelopeError, OSError, json.JSONDecodeError) as exc:
         print(json.dumps({
             "schema": "bod-verification-report-v0.1",
