@@ -18,7 +18,7 @@ bod = "bod_cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-py-modules = ["bod_cli", "bod_evidence_envelope", "bod_anchor"]
+py-modules = ["bod_cli", "bod_evidence_envelope", "bod_anchor", "bod_verify_simple"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
