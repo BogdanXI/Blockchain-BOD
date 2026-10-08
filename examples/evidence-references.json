@@ -1,0 +1,14 @@
+[
+  {
+    "evidence_type": "slsa-provenance",
+    "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+    "media_type": "application/json",
+    "uri": "urn:example:slsa"
+  },
+  {
+    "evidence_type": "cyclonedx-sbom",
+    "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "media_type": "application/vnd.cyclonedx+json",
+    "uri": "urn:example:sbom"
+  }
+]
