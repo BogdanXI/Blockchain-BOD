@@ -1,5 +1,7 @@
 # BOD
 
+![BOD Evidence Fabric](docs/assets/bod-mark.svg)
+
 ## Evidence Fabric for verifiable digital state
 
 **Prove what existed. Prove how it changed. Recover it on another runtime. Verify it independently.**
