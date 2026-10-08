@@ -1,3 +1,12 @@
+## 2026-10-08 — Evidence Fabric public product baseline
+
+- Reframed the public repository around BOD Evidence Fabric: deterministic state -> evidence envelope -> verification -> optional external anchor -> fresh-runtime recovery.
+- Published deterministic Evidence Envelope v0.1 and adversarial lineage verification.
+- Added an installable `bod` CLI with repository snapshots, envelope creation, verification and local demonstration.
+- Added an anchor-provider abstraction with a free local provider for development.
+- Added product quickstart, architecture documentation and public product identity assets.
+- Hardened the public-surface validator so legitimate identifiers containing blocked substrings are not rejected.
+- Verified the public tree locally: public-surface validation passed, product demo returned `VALID`, and **97 tests passed**.
 
 ## 2026-10-06 — Network-aware Arbitrum fee preparation
 
