@@ -45,5 +45,5 @@ def main():
     x=s.add_parser("evidence-create"); x.add_argument("--project",required=True); x.add_argument("--state-root",required=True); x.add_argument("--transition",required=True); x.add_argument("--predecessor"); x.add_argument("--capture-boundary",default="repository-state"); x.add_argument("--evidence"); x.add_argument("--out"); x.set_defaults(func=cmd_create)
     x=s.add_parser("verify"); x.add_argument("file"); x.add_argument("--chain",action="store_true"); x.set_defaults(func=cmd_verify)
     x=s.add_parser("demo"); x.set_defaults(func=cmd_demo)
-    return p.parse_args().func(p.parse_args())
+    args = p.parse_args()\n    return args.func(args)
 if __name__=="__main__": raise SystemExit(main())
