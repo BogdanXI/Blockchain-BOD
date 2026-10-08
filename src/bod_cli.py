@@ -2,7 +2,8 @@ from __future__ import annotations
 import argparse, hashlib, json, subprocess
 from pathlib import Path
 from typing import Any
-from src.bod_evidence_envelope import EvidenceEnvelopeError, EvidenceEnvelopeV0_1, EvidenceReferenceV0_1, create_evidence_envelope, verify_chain
+try:
+    from bod_evidence_envelope import EvidenceEnvelopeError, EvidenceEnvelopeV0_1, EvidenceReferenceV0_1, create_evidence_envelope, verify_chain
 
 def sha256_bytes(data: bytes) -> str: return hashlib.sha256(data).hexdigest()
 def canonical_json(value: Any) -> bytes: return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
