@@ -4,68 +4,34 @@ token:
   name: BOD
   symbol: BOD
   decimals: 9
-  max_supply: 1000000000
+  max_supply: 100000000
   max_supply_unit: BOD
+  status: experimental_calibration_candidate
 
 genesis:
-  minted_supply: 300000000
-  unissued_reserve: 700000000
-  allocations:
-    developer_founder:
-      amount: 100000000
-      share_bps: 1000
-      vesting:
-        cliff_seconds: 31536000
-        linear_seconds: 94608000
-    community:
-      amount: 150000000
-      share_bps: 1500
-    liquidity_market:
-      amount: 50000000
-      share_bps: 500
-  allocation_targets:
-    developer_founder:
-      total_amount: 100000000
-      share_bps: 1000
-    community:
-      total_amount: 200000000
-      share_bps: 2000
-      genesis_amount: 150000000
-      reserve_amount: 50000000
-    liquidity_market:
-      total_amount: 50000000
-      share_bps: 500
+  minted_supply: 25000000
+  unissued_reserve: 75000000
+  status: experimental_calibration_candidate
+  allocation_policy_status: not_final
 
-emission_schedule:
-  initial_release_bps_of_envelope: 500
-  annual_decay_bps: 9000
-  max_epochs: 100
-  status: simulation_baseline_not_final
-
-emission_envelopes:
-  security_verification:
-    amount: 250000000
-  ecosystem:
-    amount: 200000000
-  treasury:
-    amount: 150000000
-  community:
-    amount: 50000000
-  research_public_goods:
-    amount: 50000000
+emission_policy:
+  status: experimental
+  rule: "No issuance may exceed the unissued reserve or the declared promotion-gate envelope."
+  promotion_rule: "Numerical issuance, allocation and burn parameters remain provisional until EC-0001 promotion criteria are satisfied."
 
 fees:
-  base_fee:
-    burn_bps: 10000
-  priority_fee:
-    proposer_arbitration_bps: 5000
-    verifier_pool_bps: 3000
-    treasury_bps: 2000
+  status: experimental
+  burn_policy: optional_usage_linked_burn_under_ec0001
+  priority_allocation: "not_final"
 
 accounting_invariants:
   - minted_plus_unissued_equals_cap
   - no_negative_balance
   - burn_requires_existing_balance
-  - emission_cannot_exceed_envelope
-  - treasury_spend_cannot_exceed_balance
+  - issuance_cannot_exceed_unissued_reserve
   - no_discretionary_mint
+
+notes:
+  - "This file is a calibration boundary, not a final monetary policy."
+  - "Founder, community, treasury and other allocation percentages are not promoted by this candidate."
+  - "The 100,000,000 BOD candidate is the current experimental normalization used by EC-0001; it may change if the promotion gate rejects the feasible region."
