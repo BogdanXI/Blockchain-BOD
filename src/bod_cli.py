@@ -6,6 +6,8 @@ try:
     from bod_evidence_envelope import EvidenceEnvelopeError, EvidenceEnvelopeV0_1, EvidenceReferenceV0_1, create_evidence_envelope, verify_chain
 except ImportError:
     from src.bod_evidence_envelope import EvidenceEnvelopeError, EvidenceEnvelopeV0_1, EvidenceReferenceV0_1, create_evidence_envelope, verify_chain
+except ImportError:
+    from src.bod_evidence_envelope import EvidenceEnvelopeError, EvidenceEnvelopeV0_1, EvidenceReferenceV0_1, create_evidence_envelope, verify_chain
 def sha256_bytes(data: bytes) -> str: return hashlib.sha256(data).hexdigest()
 def canonical_json(value: Any) -> bytes: return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
 def repository_snapshot(root: Path) -> dict[str, Any]:
