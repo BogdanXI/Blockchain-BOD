@@ -1,0 +1,150 @@
+name: BOD Sepolia Bootstrap Anchor
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/SEPOLIA_BOOTSTRAP"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    environment: bod-sepolia
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: python -m pip install --upgrade pip pytest pyyaml
+
+      - name: Validate public surface
+        run: python scripts/validate_public_surface.py
+
+      - name: Build deterministic checkpoint
+        run: |
+          python - <<PY
+          import hashlib, json, subprocess
+          from pathlib import Path
+          from src.bod_repository_adapter import capture_repository
+
+          commit = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+          artifact, manifest, _ = capture_repository(
+              ".", project_id="Blockchain-BOD",
+              next_action="continue from anchored public checkpoint", context_refs=()
+          )
+          repo_id = hashlib.sha256(b"https://github.com/BogdanXI/Blockchain-BOD").hexdigest()
+          git_commit = hashlib.sha256(commit.encode()).hexdigest()
+          state_root = manifest.state_root()
+          manifest_hash = hashlib.sha256(artifact).hexdigest()
+          anchor_id = hashlib.sha256("|".join([
+              repo_id, git_commit, state_root, manifest_hash
+          ]).encode()).hexdigest()
+          Path("/tmp/bod-anchor.json").write_text(json.dumps({
+              "repositoryId": "0x" + repo_id,
+              "gitCommit": "0x" + git_commit,
+              "gitCommitText": commit,
+              "stateRoot": "0x" + state_root,
+              "manifestHash": "0x" + manifest_hash,
+              "anchorId": "0x" + anchor_id
+          }, indent=2) + "\n")
+          print(Path("/tmp/bod-anchor.json").read_text())
+          PY
+
+      - name: Deploy registry and anchor checkpoint
+        env:
+          BOD_SEPOLIA_PRIVATE_KEY: ${{ secrets.BOD_SEPOLIA_PRIVATE_KEY }}
+          BOD_SEPOLIA_RPC_URL: ${{ secrets.BOD_SEPOLIA_RPC_URL }}
+        run: |
+          test -n "$BOD_SEPOLIA_PRIVATE_KEY"
+          RPC="${BOD_SEPOLIA_RPC_URL:-https://sepolia-rollup.arbitrum.io/rpc}"
+          npm init -y >/dev/null 2>&1
+          npm install --silent ethers@6 solc@0.8.24
+          node <<'NODE'
+          const fs = require("fs");
+          const solc = require("solc");
+          const { ethers } = require("ethers");
+
+          const source = fs.readFileSync(
+            "protocol/arbitrum/BODGitCommitmentRegistryV0_1.sol", "utf8"
+          );
+          const input = {
+            language: "Solidity",
+            sources: {"BODGitCommitmentRegistryV0_1.sol": {content: source}},
+            settings: {
+              optimizer: {enabled: true, runs: 200},
+              viaIR: true,
+              outputSelection: {"*": {"*": ["abi", "evm.bytecode.object"]}}
+            }
+          };
+          const output = JSON.parse(solc.compile(JSON.stringify(input)));
+          if (output.errors) {
+            for (const e of output.errors) console.log(e.formattedMessage);
+            if (output.errors.some(e => e.severity === "error")) process.exit(1);
+          }
+
+          const c = output.contracts[
+            "BODGitCommitmentRegistryV0_1.sol"
+          ].BODGitCommitmentRegistryV0_1;
+
+          const provider = new ethers.JsonRpcProvider(RPC);
+          const wallet = new ethers.Wallet(
+            process.env.BOD_SEPOLIA_PRIVATE_KEY, provider
+          );
+          const network = await provider.getNetwork();
+          if (network.chainId !== 421614n) {
+            throw new Error("Unexpected chain ID: " + network.chainId);
+          }
+
+          const a = JSON.parse(fs.readFileSync("/tmp/bod-anchor.json", "utf8"));
+          const factory = new ethers.ContractFactory(c.abi, c.evm.bytecode.object, wallet);
+
+          const deployment = await factory.deploy();
+          console.log("registry deployment tx:", deployment.deploymentTransaction().hash);
+          await deployment.waitForDeployment();
+          const registryAddress = await deployment.getAddress();
+          console.log("registry address:", registryAddress);
+
+          const registry = new ethers.Contract(
+            registryAddress,
+            [
+              "function anchor(bytes32,bytes32,bytes32,bytes32,bytes32)",
+              "function anchors(bytes32) view returns (bytes32,bytes32,bytes32,bytes32,uint64,address)"
+            ],
+            wallet
+          );
+
+          const gas = await registry.anchor.estimateGas(
+            a.anchorId, a.repositoryId, a.gitCommit, a.stateRoot, a.manifestHash
+          );
+          console.log("anchor gas estimate:", gas.toString());
+
+          const tx = await registry.anchor(
+            a.anchorId, a.repositoryId, a.gitCommit, a.stateRoot, a.manifestHash
+          );
+          console.log("anchor tx:", tx.hash);
+          const receipt = await tx.wait();
+          console.log("anchor block:", receipt.blockNumber);
+
+          const stored = await registry.anchors(a.anchorId);
+          if (stored[0] !== a.repositoryId ||
+              stored[1] !== a.gitCommit ||
+              stored[2] !== a.stateRoot ||
+              stored[3] !== a.manifestHash) {
+            throw new Error("On-chain checkpoint does not match deterministic snapshot");
+          }
+
+          console.log("checkpoint verification: PASS");
+          console.log("registry:", registryAddress);
+          console.log("anchor:", a.anchorId);
+          console.log("tx:", tx.hash);
+          console.log("block:", receipt.blockNumber);
+          NODE
