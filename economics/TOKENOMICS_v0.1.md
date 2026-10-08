@@ -2,33 +2,33 @@
 
 **Status:** experimental; not final monetary policy.
 
-## Current calibration candidate
-
-EC-0001 currently uses:
+## Current EC-0001 candidate
 
 | Parameter | Candidate |
 |---|---:|
 | Maximum supply | 100,000,000 BOD |
 | Genesis minted supply | 25,000,000 BOD |
-| Unissued capacity | 75,000,000 BOD |
+| Founder allocation | 5,000,000 BOD (5%), locked at genesis |
+| Initial circulation | 20,000,000 BOD |
+| Unissued issuance capacity | 75,000,000 BOD |
 
-These values are **calibration inputs**, not a production-token launch specification.
+The founder allocation is a fixed ownership-policy variable. It does not create privileged future minting authority. Unissued capacity is not an account balance and is not owned by the founder or treasury.
 
 ## Economic direction
 
-The current EC-0001 model is revenue-first:
+EC-0001 is calibrated revenue-first:
 
 1. real service demand creates protocol revenue;
 2. verifier, proposer and treasury operating costs are explicit;
 3. candidate bonds cover modeled invalid-work harm;
-4. bootstrap issuance is bounded rather than treated as permanent revenue;
+4. bootstrap issuance is bounded;
 5. usage-linked burn may be used as a monetary-policy mechanism, but burn is not treated as the source of business revenue.
 
 The feasible region is solved first in abstract economic units. Only surviving regions are mapped into BOD units.
 
-## Allocation status
+## Remaining allocation policy
 
-Founder, community, treasury, liquidity, security and research allocation percentages are **not final** in this public v0.1 surface. They must not be inferred from historical parameter sets.
+The current candidate fixes the founder boundary and initial circulation boundary above. Final long-term allocations for security, treasury, ecosystem, liquidity, research and community are **not promoted** by this document.
 
 Older 1,000,000,000 BOD / 300,000,000 genesis configurations are historical calibration baselines and are not the current EC-0001 candidate.
 
