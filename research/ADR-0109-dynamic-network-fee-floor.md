@@ -44,6 +44,10 @@ Official Arbitrum documentation consulted on 2026-10-06:
 
 Direct RPC observation: ArbGasInfo.getMinimumGasPrice() returned 20,000,000 wei (0.02 gwei). The same public RPC returned 86,060,000 wei (0.08606 gwei) for eth_gasPrice. The dynamic policy therefore avoids treating the older documented 0.2 gwei floor as a mandatory transaction price when the live chain reports a lower minimum. This is an observation, not a permanent network guarantee.
 
+## Live Arbitrum Sepolia observation — 2026-10-06
+
+Direct RPC observation: ArbGasInfo.getMinimumGasPrice() returned 20,000,000 wei (0.02 gwei). The same public RPC returned 86,060,000 wei (0.08606 gwei) for eth_gasPrice. The dynamic policy therefore avoids treating the older documented 0.2 gwei floor as a mandatory transaction price when the live chain reports a lower minimum. This is an observation, not a permanent network guarantee.
+
 ## Non-goals
 
 This ADR does not set a final BOD token price, final service tariff, or final monetary policy. It also does not introduce a BOD/ETH oracle. Native gas remains a network infrastructure cost; BOD utility pricing remains a separate protocol-economic variable.
