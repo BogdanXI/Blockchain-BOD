@@ -15,7 +15,7 @@ try:
         create_evidence_envelope,
         verify_chain,
     )
-    from bod_verification import EvidencePolicy, verify_envelopes
+    from bod_verify_simple import verify_envelopes
 except ImportError:
     from src.bod_evidence_envelope import (
         EvidenceEnvelopeError,
@@ -24,7 +24,7 @@ except ImportError:
         create_evidence_envelope,
         verify_chain,
     )
-    from src.bod_verification import EvidencePolicy, verify_envelopes
+    from src.bod_verify_simple import verify_envelopes
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -112,7 +112,7 @@ def cmd_verify(args) -> int:
         envs = parse_envelopes(load(args.file))
         if not args.chain and len(envs) != 1:
             raise EvidenceEnvelopeError("verify without --chain requires exactly one envelope")
-        report = verify_envelopes(envs, policy=EvidencePolicy())
+        report = verify_envelopes(envs)
         print(json.dumps({
             **report.to_document(),
             "envelopes": len(envs),
