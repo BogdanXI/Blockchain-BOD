@@ -179,3 +179,40 @@ Every important claim should be backed by code, a reproducible experiment, an ex
 ## License
 
 MIT — see [LICENSE](LICENSE).
+## Critical trust boundary
+
+BOD does **not** claim that a hash proves a statement is true.
+
+```
+VALID_INTEGRITY
+    !=
+SEMANTIC TRUTH
+    !=
+AVAILABILITY
+    !=
+EXTERNAL FINALITY
+```
+
+A `VALID_INTEGRITY` result means the declared bytes, commitments and lineage satisfy the verifier. It does not certify the correctness of the underlying claim, the honesty of the producer, or the availability of the referenced evidence.
+
+BOD deliberately composes existing standards instead of replacing them:
+
+- SLSA/in-toto: build/source provenance;
+- Sigstore/Rekor: signatures and transparency;
+- CycloneDX/SPDX: software inventory;
+- Git: source history.
+
+BOD's product hypothesis is narrower: **portable continuity across successive project states and independent reconstruction of that continuity after the original runtime disappears.**
+
+See [Why BOD Exists](docs/WHY_BOD_v0.1.md) and [Threat Model](docs/THREAT_MODEL_v0.1.md).
+
+## Independent verification
+
+The repository contains a second verifier that does not import the BOD implementation:
+
+```bash
+python scripts/independent_verify.py envelope.json
+python scripts/independent_verify.py chain.json --chain
+```
+
+This is an explicit defense against implementation self-confirmation.
