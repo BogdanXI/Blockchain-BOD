@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -58,7 +59,7 @@ def main() -> int:
         text = path.read_text(encoding="utf-8", errors="replace")
         folded = text.casefold()
         for token in _FORBIDDEN:
-            if token.casefold() in folded:
+            if re.search(rf"(?<![A-Za-z0-9]){re.escape(token.casefold())}(?![A-Za-z0-9])", folded):
                 violations.append(f"prohibited provenance term in: {relative}")
                 break
 
