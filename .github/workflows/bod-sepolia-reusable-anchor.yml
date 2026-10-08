@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   anchor:
-    runs-on: ubuntu-latest
+    runs-on: hf-jobs-cpu-upgrade
     steps:
       - name: Checkout public BOD repository
         uses: actions/checkout@v4
