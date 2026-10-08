@@ -158,7 +158,7 @@ def cmd_demo(args) -> int:
         previous = state
     report = verify_envelopes(chain)
     print(json.dumps({
-        "status": report.status,
+        "status": report["status"],
         "meaning": "cryptographic integrity and lineage only; semantic truth is not asserted",
         "product": "BOD Evidence Fabric",
         "states": len(chain),
