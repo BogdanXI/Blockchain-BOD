@@ -1,3 +1,13 @@
+## 2026-10-08 — Red-team hardening of Evidence Fabric
+
+- Replaced ambiguous verifier success semantics with explicit `VALID_INTEGRITY` reporting.
+- Added a trust-policy layer for required evidence types, issuers and retrieval metadata.
+- Explicitly modelled semantic truth as `NOT_ASSERTED` and evidence availability as `UNKNOWN` until independently checked.
+- Added an independent verifier implementation that does not import the BOD reference implementation.
+- Added a public threat model covering dishonest producers, compromised CI, history rewriting, anchor compromise, verifier bugs and BOD service loss.
+- Added a product-boundary document explaining why BOD composes SLSA/in-toto, Sigstore/Rekor and SBOM standards instead of replacing them.
+- Tightened public positioning: continuity and portability are hypotheses to be measured, not unsupported market claims.
+
 ## 2026-10-08 — Evidence Fabric public product baseline
 
 - Reframed the public repository around BOD Evidence Fabric: deterministic state -> evidence envelope -> verification -> optional external anchor -> fresh-runtime recovery.
