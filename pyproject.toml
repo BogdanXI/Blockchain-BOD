@@ -14,7 +14,11 @@ keywords = ["provenance", "evidence", "integrity", "software-supply-chain", "blo
 classifiers = ["Development Status :: 3 - Alpha", "License :: OSI Approved :: MIT License", "Programming Language :: Python :: 3"]
 
 [project.scripts]
-bod = "src.bod_cli:main"
+bod = "bod_cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+py-modules = ["bod_cli", "bod_evidence_envelope", "bod_anchor"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
