@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Iterable, Mapping
 
-from bod_evidence_envelope import EvidenceEnvelopeError, EvidenceEnvelopeV0_1, verify_chain
+try:\n    from bod_evidence_envelope import EvidenceEnvelopeError, EvidenceEnvelopeV0_1, verify_chain\nexcept ImportError:\n    from src.bod_evidence_envelope import EvidenceEnvelopeError, EvidenceEnvelopeV0_1, verify_chain
 
 
 @dataclass(frozen=True)
