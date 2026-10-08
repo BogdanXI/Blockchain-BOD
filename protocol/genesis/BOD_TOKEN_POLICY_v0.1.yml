@@ -1,4 +1,5 @@
-schema_version: 1
+schema_version: 2
+status: candidate_not_final
 network: blockchain-bod
 token:
   name: BOD
@@ -6,32 +7,74 @@ token:
   decimals: 9
   max_supply: 100000000
   max_supply_unit: BOD
-  status: experimental_calibration_candidate
+
+monetary_authority:
+  model: consensus_defined_issuance
+  admin_mint_authority: none
+  discretionary_founder_mint: false
+  discretionary_treasury_mint: false
+  founder_control_of_unissued_capacity: none
+  founder_allocation_is_fixed: true
+  founder_allocation_share_bps: 500
+  unissued_capacity_is_balance: false
+  unused_capacity_ever_owned: false
+  unused_capacity_can_be_minted_later_at_discretion: false
 
 genesis:
   minted_supply: 25000000
-  unissued_reserve: 75000000
-  status: experimental_calibration_candidate
-  allocation_policy_status: not_final
+  founder_preallocation: 5000000
+  founder_preallocation_share_bps: 500
+  founder_vesting:
+    cliff_seconds: 31536000
+    linear_seconds: 94608000
+    additional_mint_authority: none
+  initial_circulation_allocation: 20000000
+  treasury_preallocation: 0
+  liquidity_preallocation: 0
+  circulating_at_genesis: 20000000
+  founder_locked_at_genesis: 5000000
+  unissued_issuance_capacity: 75000000
+  issuance_capacity_is_not_an_account_balance: true
 
-emission_policy:
-  status: experimental
-  rule: "No issuance may exceed the unissued reserve or the declared promotion-gate envelope."
-  promotion_rule: "Numerical issuance, allocation and burn parameters remain provisional until EC-0001 promotion criteria are satisfied."
+future_issuance:
+  source: verified_protocol_work_and_security
+  deterministic: true
+  discretionary: false
+  admission_rule:
+    excess_work: rejected_or_deferred_without_minting
+  bounded_by:
+    - max_supply
+    - remaining_unissued_issuance_capacity
+    - protocol_defined_epoch_issuance_cap
+  eligibility:
+    requires_verifiable_protocol_work: true
+    requires_protocol_validity: true
+  unused_capacity:
+    remains_unissued: true
+    becomes_owned_without_issuance: false
 
 fees:
-  status: experimental
-  burn_policy: optional_usage_linked_burn_under_ec0001
-  priority_allocation: "not_final"
+  base_fee:
+    burn_bps: 10000
+  priority_fee:
+    proposer_arbitration_bps: 5000
+    verifier_pool_bps: 3000
+    treasury_bps: 2000
 
 accounting_invariants:
-  - minted_plus_unissued_equals_cap
+  - minted_plus_unissued_capacity_equals_cap
+  - unissued_capacity_is_not_a_balance
   - no_negative_balance
   - burn_requires_existing_balance
-  - issuance_cannot_exceed_unissued_reserve
+  - issuance_requires_verified_eligibility
+  - issuance_cannot_exceed_remaining_capacity
   - no_discretionary_mint
+  - founder_allocation_equals_five_percent_of_max_supply
+  - genesis_minted_equals_founder_plus_initial_circulation
+  - circulating_at_genesis_equals_initial_circulation_allocation
+  - founder_has_no_privileged_future_issuance_right
+  - unused_capacity_never_becomes_owned_allocation
 
 notes:
-  - "This file is a calibration boundary, not a final monetary policy."
-  - "Founder, community, treasury and other allocation percentages are not promoted by this candidate."
-  - "The 100,000,000 BOD candidate is the current experimental normalization used by EC-0001; it may change if the promotion gate rejects the feasible region."
+  - "This is the current EC-0001 experimental candidate, not final monetary policy."
+  - "The 100,000,000 BOD candidate may change if the promotion gate rejects the feasible region."
