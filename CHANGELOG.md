@@ -1,3 +1,11 @@
+## 2026-10-09 — External review readiness
+
+- Clarified that BOD is an experimental continuity prototype and does not claim a production network or solved native consensus.
+- Added an evidence-gated public roadmap and a dedicated current-status document.
+- Expanded the local quickstart with clean-checkout verification commands and explicit limits on what verification proves.
+- Strengthened contribution and security reporting guidance.
+- These changes are documentation-only; current CI must pass before merging.
+
 ## 2026-10-08 — Red-team hardening of Evidence Fabric
 
 - Replaced ambiguous verifier success semantics with explicit `VALID_INTEGRITY` reporting.
