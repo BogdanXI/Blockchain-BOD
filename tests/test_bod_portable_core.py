@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from src.bod_evidence_envelope import EvidenceEnvelopeError, create_evidence_envelope
-from src.bod_portable import create_portable_checkpoint, parse_portable, repository_snapshot
+from bod_evidence_envelope import EvidenceEnvelopeError, create_evidence_envelope
+from bod_portable import create_portable_checkpoint, parse_portable, repository_snapshot
 
 
 def test_capture_verify_recover_cli(tmp_path):
