@@ -138,6 +138,8 @@ See [SECURITY.md](SECURITY.md).
 
 **Experimental / public engineering release**
 
+BOD is not a production blockchain and does not claim a solved native consensus mechanism. See [the public roadmap](docs/ROADMAP.md) for evidence-gated milestones and [the project status](docs/PROJECT_STATUS.md) for the current verification boundary.
+
 Implemented:
 
 - deterministic state commitments;
