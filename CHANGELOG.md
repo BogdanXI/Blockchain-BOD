@@ -1,3 +1,13 @@
+## 2026-10-09 — External review readiness
+
+- Clarified that BOD is an experimental continuity prototype and does not claim a production network or solved native consensus.
+- Added an evidence-gated public roadmap and a dedicated current-status document.
+- Expanded the local quickstart with clean-checkout verification commands and explicit limits on what verification proves.
+- Strengthened contribution and security reporting guidance.
+- Normalized the installed portable-checkpoint module import path and test configuration after the install-and-test smoke check exposed mismatched exception classes.
+- Isolated Python 3.12 verification passed after the fix: package install, public-surface validation, CLI demo, repository snapshot, and full pytest suite.
+- GitHub Actions status is not available from the current connector response; do not merge until the PR checks are inspected.
+
 ## 2026-10-08 — Red-team hardening of Evidence Fabric
 
 - Replaced ambiguous verifier success semantics with explicit `VALID_INTEGRITY` reporting.

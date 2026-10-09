@@ -6,7 +6,9 @@
 
 **Prove what existed. Prove how it changed. Recover it on another runtime. Verify it independently.**
 
-[![CI](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml/badge.svg)](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml) [![License](https://img.shields.io/badge/license-MIT-111827.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-3.11%2B-111827.svg)](pyproject.toml)
+[![CI](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml/badge.svg)](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml) [![License](https://img.shields.io/badge/license-MIT-111827.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-3.11%2B-111827.svg)](pyproject.toml) [![Status: Experimental](https://img.shields.io/badge/status-experimental-orange.svg)](docs/PROJECT_STATUS.md)
+
+[Getting started](docs/GETTING_STARTED.md) · [Project status](docs/PROJECT_STATUS.md) · [Roadmap](docs/ROADMAP.md) · [Threat model](docs/THREAT_MODEL_v0.1.md) · [Contributing](CONTRIBUTING.md)
 
 ---
 
@@ -82,9 +84,11 @@ bod verify envelope.json
 bod verify chain.json --chain
 ```
 
-Run the tests:
+Run the repository checks from a clean checkout:
 
 ```bash
+python -m pip install pytest pyyaml
+python scripts/validate_public_surface.py
 python -m pytest -q
 ```
 
@@ -137,6 +141,8 @@ See [SECURITY.md](SECURITY.md).
 ## Project status
 
 **Experimental / public engineering release**
+
+BOD is not a production blockchain and does not claim a solved native consensus mechanism. See [the public roadmap](docs/ROADMAP.md) for evidence-gated milestones and [the project status](docs/PROJECT_STATUS.md) for the current verification boundary.
 
 Implemented:
 
