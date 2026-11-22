@@ -108,6 +108,7 @@ if (sequence > 0n) {
   if (parent.uid === ethers.ZeroHash) throw new Error("Parent EAS attestation does not exist.");
   if (parent.schema.toLowerCase() !== schemaUID.toLowerCase()) throw new Error("Parent attestation uses a different schema.");
   if (BigInt(parent.revocationTime) !== 0n) throw new Error("Parent attestation has been revoked.");
+  if (parent.revocable !== false) throw new Error("Parent attestation is not immutable.");
   if (BigInt(parent.expirationTime) !== 0n && BigInt(parent.expirationTime) <= BigInt(Math.floor(Date.now() / 1000))) {
     throw new Error("Parent attestation has expired.");
   }
@@ -116,8 +117,12 @@ if (sequence > 0n) {
     parent.data
   );
   if (parentValues[0].toLowerCase() !== projectId.toLowerCase()) throw new Error("Parent attestation belongs to a different project.");
-  if (BigInt(parentValues[6]) + 1n !== sequence) throw new Error("BOD_EAS_SEQUENCE is not the parent's sequence plus one.");
-  if (sequence === 1n && parent.refUID !== ethers.ZeroHash) throw new Error("Sequence-0 parent must be the genesis attestation.");
+  if (parentValues[1] === ethers.ZeroHash) throw new Error("Parent checkpoint ID is empty.");
+  const parentSequence = BigInt(parentValues[6]);
+  if (parentSequence + 1n !== sequence) throw new Error("BOD_EAS_SEQUENCE is not the parent's sequence plus one.");
+  if ((parentSequence === 0n) !== (parent.refUID === ethers.ZeroHash)) {
+    throw new Error("Parent refUID does not match its genesis/child sequence.");
+  }
 }
 
 const encoder = new SchemaEncoder(BOD_EAS_SCHEMA);
