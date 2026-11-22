@@ -3,7 +3,7 @@
 - Added evidence-verify CLI modes that delegate GitHub workflow identity/claim verification and generic identity/OIDC issuer verification to the official sigstore-python CLI.
 - The wrapper uses argument arrays without a shell, enforces explicit expected identity claims, supports explicit offline mode and reports the verifier exit status.
 - Added mocked tests for success, policy requirements, missing verifier and failed verification.
-- Manually verified a real GitHub Actions SBOM attestation bundle offline using sigstore-python 4.5.1; documented the exact source run, subject digest, expected workflow identity and trust-root freshness caveat.
+- Verified a real GitHub Actions SBOM attestation bundle offline using sigstore-python 4.5.1; then packaged the SBOM and Sigstore bundle with a BOD checkpoint bound to the exact 108-file GitHub merge-tree snapshot, deleted local original copies, recovered both payloads and re-verified the recovered SBOM. Documented exact run, digests, identities and trust-root freshness caveat.
 - BOD delegates cryptography; it does not implement Sigstore signature or transparency verification itself.
 
 ## 2026-11-22 — Evidence format interoperability

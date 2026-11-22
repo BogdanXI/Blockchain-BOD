@@ -1,68 +1,89 @@
-# Evidence verification experiment
+# Real evidence continuity and recovery experiment
 
 **Date:** 22 November 2026  
-**Scope:** real GitHub Actions SBOM attestation; offline Sigstore verification.
+**Scope:** real GitHub Actions SBOM and Sigstore attestation, bound to the exact PR merge tree, packaged by BOD, recovered after local origin copies were deleted, then verified offline.
 
 ## Objective
 
-Verify that BOD can preserve and invoke an established cryptographic verifier rather than treating JSON structure or a SHA-256 reference as proof of authenticity.
+Test whether BOD can preserve a deterministic project-state commitment and carry the exact bytes of real third-party evidence, then hand the recovered payloads to the official cryptographic verifier.
 
-## Source evidence
+The experiment checks four distinct properties:
+
+1. The checkpoint's repository snapshot corresponds to the exact source tree recorded by the GitHub build provenance.
+2. The BOD bundle contains every referenced evidence payload and passes independent integrity/completeness verification.
+3. The recovered SBOM remains structurally inspectable.
+4. The recovered SBOM and Sigstore bundle pass cryptographic verification against explicit GitHub workflow identity claims.
+
+## Source build and attestation
 
 - Public repository: BogdanXI/Blockchain-BOD
-- GitHub Actions run: 45030724173
-- Run head: 8968f8f93b64f06044bc59cdb4859d6e5ae9e62f
-- Artifact: sbom-python
-- Artifact ID: 14757571608
-- Subject file: sbom-python.cdx.json
-- Subject SHA-256: f5a70d32a8fabdbe57e8932c10a84c98f7deb556856d5bf58b2f6d3dd52679fb
-- Attestation bundle media type: application/vnd.dev.sigstore.bundle.v0.3+json
+- GitHub Actions run: 45032926600
+- Run head: 01cb1ecdecd782c787867299cfe4cd1e35b60b93
+- PR merge commit recorded in provenance: 2cf637ada2bfb248e0126d948e5d2b287497b00a
+- Exact GitHub merge-tree SHA: 21d965d40ffacb69b38e7f535977ed59bbe20ef1
 - Workflow identity: https://github.com/BogdanXI/Blockchain-BOD/.github/workflows/ci.yml@refs/pull/4/merge
 - Workflow event: pull_request
-- Source revision recorded by the attestation: 38b4249c27548a0ddba88bdc5a8bc15602678453
+- Artifact: sbom-python / sbom-python.cdx.json
+- Artifact ID: 14758497646
+- SBOM SHA-256: 3ce448c9ecda91858d593a9312550abb88dea193e6e04469e706faa106974cea
+- SBOM size: 6,665 bytes
+- Sigstore bundle media type: application/vnd.dev.sigstore.bundle.v0.3+json
+- Sigstore bundle SHA-256: 9495827045dd14fcfdaeb208edf13beb43cae81c8fe098dfcc92ca8a50b89592
+- Sigstore bundle size: 10,684 bytes
 
-## Verification procedure
+The PR merge tree was reconstructed from the exact base and head commits. Its tree SHA matched the GitHub merge commit tree SHA returned by the GitHub API. BOD's repository snapshot covered 108 tracked files and produced state root:
 
-1. Download the SBOM artifact from GitHub Actions run 45030724173.
-2. Compute the SHA-256 digest and request the corresponding repository attestation from the GitHub REST API.
-3. Save the returned Sigstore bundle.
-4. Install sigstore-python 4.5.1 in an isolated temporary environment.
-5. Invoke BOD's evidence verification wrapper with the exact expected GitHub workflow identity, repository, event, source SHA and ref, using offline verification.
+    422e702cf152ad8770fc1335483a556cdedadb816fb83e7269023eb4c33f6ecd
 
-Example:
+## BOD checkpoint and bundle
 
-    bod evidence-verify github sbom-python.cdx.json \
-      --bundle sbom-python.bundle.json \
-      --offline \
-      --cert-identity 'https://github.com/BogdanXI/Blockchain-BOD/.github/workflows/ci.yml@refs/pull/4/merge' \
-      --trigger pull_request \
-      --sha 38b4249c27548a0ddba88bdc5a8bc15602678453 \
-      --workflow-name CI \
-      --repository BogdanXI/Blockchain-BOD \
-      --ref refs/pull/4/merge
+One portable checkpoint was created with two evidence references:
 
-## Result
+- CycloneDX SBOM;
+- Sigstore v0.3 attestation bundle.
 
-The official sigstore-python CLI returned exit code 0 and OK for the subject. The BOD wrapper returned:
+Results:
+
+- BOD checkpoint ID: 41774869170bc6b79ac53abd0cd9bf921e24024110a94a6069225252057bcad3
+- BOD bundle ID: 69b5fd2b976cff9db6f4f9cee1c4ca826ac13e6869f054d2da82b9034dc02f8b
+- Evidence objects: 2
+- Total evidence payload bytes: 17,349
+- Snapshot file count: 108
+
+The BOD bundle was created through the Python API and then independently recreated through the installed CLI command bod bundle-create. Both paths produced the exact same bundle ID. The installed CLI command bod bundle-verify returned VALID_SELF_CONTAINED_BUNDLE.
+
+## Recovery and verification
+
+The local original-evidence directory was deleted after BOD bundle creation. Both payloads were extracted from the BOD bundle into a new recovery directory.
+
+Then:
+
+1. bod bundle-verify validated the BOD bundle and complete payload coverage.
+2. bod evidence-inspect validated the recovered CycloneDX document: specVersion 1.4, 37 components.
+3. bod evidence-verify github delegated to sigstore-python 4.5.1 with the expected workflow identity, repository, event, source SHA, workflow name and ref, using offline mode.
+4. The Sigstore CLI returned exit code 0 and OK for the recovered SBOM.
+
+BOD wrapper result:
 
 - status: VALID
 - signature_verification: VALID
 - offline: true
-- expected workflow identity, repository, event, source SHA and ref: matched
+- expected identity, repository, event, source SHA, workflow name and ref: matched
 
-This is a real external attestation bundle, not a synthetic fixture. It demonstrates that BOD can delegate cryptographic signature, certificate identity, GitHub workflow claim and transparency evidence verification to the upstream Sigstore implementation.
+The recovered payloads passed verification without access to the deleted local original-evidence directory. The exact command and identity policy are reproducible using the details above and the CLI syntax in [Evidence format support](EVIDENCE_FORMAT_SUPPORT.md).
 
-## Limits
+## Limits and interpretation
 
-- The attestation belongs to the earlier run and PR merge ref recorded above, not the latest public branch head.
-- Offline verification used the locally available Sigstore trust root. Sigstore warned that offline mode does not refresh TUF trust metadata. A valid result therefore does not establish that the local trust root includes the latest revocations or trust-root changes.
-- The result proves the attested SBOM file matches the signed subject and expected workflow identity under the supplied trust configuration. It does not prove that the SBOM is complete, accurate or semantically truthful.
-- This is one manual integration experiment, not yet an automated CI gate or multi-provider interoperability result.
-- BOD does not implement cryptography itself; it delegates to sigstore-python. The verifier version and trust-root policy must be recorded in a production workflow.
+- The checkpoint contains a deterministic manifest of 108 tracked repository files (paths, sizes and hashes), not the source file contents. BOD does not restore the repository working tree from this bundle.
+- The experiment proves that referenced evidence payloads can be carried, recovered and verified independently of their original local evidence directory. It does not prove that the SBOM is complete, accurate or semantically truthful.
+- Offline verification used the locally available Sigstore trust root. Sigstore warned that offline mode does not refresh TUF trust metadata. A valid result does not establish that the local trust root includes the latest revocations or trust-root changes.
+- The bundle ID is an unkeyed commitment, not a signature. Authenticity comes from the separately verified Sigstore attestation and its explicit identity policy, not from the BOD bundle ID alone.
+- This is one manual GitHub Actions/Sigstore integration experiment. It is not yet a multi-provider benchmark, customer pilot or proof that BOD outperforms Chainloop, Kosli, Archivista or GUAC.
+- BOD delegates cryptography to sigstore-python. It does not implement Sigstore signature, certificate or transparency verification itself.
 
 ## Reproduction sources
 
-- GitHub Actions run: https://github.com/BogdanXI/Blockchain-BOD/actions/runs/45030724173
+- GitHub Actions run: https://github.com/BogdanXI/Blockchain-BOD/actions/runs/45032926600
 - GitHub repository attestations API: https://docs.github.com/en/rest/repos/attestations
 - Sigstore verification: https://sigstore.github.io/sigstore-python/verify/
 - Sigstore offline verification caveats: https://sigstore.github.io/sigstore-python/advanced/offline/

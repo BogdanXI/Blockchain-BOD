@@ -11,7 +11,7 @@
 - deterministic repository snapshots;
 - experimental self-contained evidence bundles that package every referenced evidence payload with a checkpoint and support independent integrity/completeness verification;
 - minimal structural inspection for in-toto Statement v1, SLSA provenance v1, DSSE envelope shape, CycloneDX JSON and SPDX JSON 2.x;
-- optional delegation to sigstore-python for actual Sigstore identity/GitHub attestation verification; one manual offline GitHub SBOM attestation round trip passed; trust-root freshness remains an operator responsibility;
+- optional delegation to sigstore-python for actual Sigstore identity/GitHub attestation verification; one real end-to-end test packaged a SBOM and Sigstore bundle against a matching 108-file GitHub merge-tree snapshot, recovered them after local original copies were deleted and passed offline verification; trust-root freshness remains an operator responsibility;
 - versioned evidence envelopes and predecessor-linked history;
 - independent verification and portable checkpoint recovery, including normalized-path checks and symlink-target hashing;
 - branch-aware lineage graph verification that reports fork points and heads without selecting a canonical head;
