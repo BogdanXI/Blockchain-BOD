@@ -58,15 +58,6 @@ The external anchor is optional. It is a witness for a commitment; it does not d
 
 ## What is implemented
 
-- Deterministic snapshots of Git-tracked working-tree files.
-- Versioned Evidence Envelope v0.1 with canonical serialization and self-verifying commitments.
-- Predecessor-linked state history with checks for missing predecessors, duplicate roots, forks and disconnected components.
-- Portable checkpoint format binding a snapshot to its evidence envelope.
-- A Python CLI for demonstration, snapshot capture, evidence creation and verification.
-- A second verifier that does not import the reference implementation.
-- Tests and a public CI workflow.
-- An experimental Arbitrum Sepolia anchoring path.
-
 Implementation details and limits are documented in [Project Status](docs/PROJECT_STATUS.md) and the [Threat Model](docs/THREAT_MODEL_v0.1.md).
 
 ## Important scope boundary

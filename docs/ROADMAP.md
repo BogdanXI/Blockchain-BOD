@@ -65,20 +65,6 @@ The current repository snapshot records metadata and digests. It does not retain
 
 **Gate:** a documented threat model and reproducible restore test across clean environments. Do not describe the current checkpoint format as a backup.
 
-## 6. Arbitrum testnet integration
-
-**Status: experimental.**
-
-- Keep external anchoring optional.
-- Treat chain inclusion as an external witness, not protocol validity or consensus.
-- Publish deterministic test vectors and verify stored commitments.
-- Compile all public Solidity sources in CI with a pinned compiler and locked Node dependencies.
-- Separate testnet observations from production cost or security claims.
-
-Before any deployment involving value, the Solidity lifecycle needs additional review. Current review targets include unrestricted and repeatable verification-root writes, and the handling of bonds belonging to candidates that are not selected when a task settles. These are unresolved design issues, not production guarantees.
-
-**Gate:** behavioral contract tests, explicit authorization and settlement invariants, independent Solidity review, and reproducible testnet evidence. Compilation alone is not behavioral validation.
-
 ## 7. Production decision
 
 **Status: not started.**

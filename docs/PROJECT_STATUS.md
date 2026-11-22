@@ -23,16 +23,6 @@ I am treating measured results and reproducible counterexamples as more importan
 
 The public repository contains:
 
-- deterministic snapshots of Git-tracked working-tree files;
-- Evidence Envelope v0.1 with canonical serialization and self-verifying commitments;
-- predecessor-linked state history;
-- checks for missing predecessors, duplicate roots, forks and disconnected components;
-- a portable checkpoint format binding a snapshot to an evidence envelope;
-- a Python CLI for snapshot capture, checkpoint creation and verification;
-- a separate verifier that does not import the reference implementation;
-- regression and adversarial tests;
-- an experimental Arbitrum Sepolia anchoring path.
-
 Start with [Getting Started](GETTING_STARTED.md). The protocol and implementation are versioned independently from any future production network or economic design.
 
 ## Important implementation boundary
@@ -46,14 +36,6 @@ Likewise, `VALID_INTEGRITY` means only that the verifier accepted the declared c
 ## Verification and security status
 
 The public-readiness implementation passed GitHub Actions CI run [#126](https://github.com/BogdanXI/Blockchain-BOD/actions/runs/45007920517) on Python 3.11, 3.12 and 3.13 and the Solidity 0.8.24 compile job for commit `843899f3d094ccd441ca27207921821e9c802af0`. The run covered public-surface validation, Ruff static analysis, the Python test suite, the installed CLI smoke test, dependency consistency and compilation of all public Solidity sources. The current follow-up changes only record this verification result; executable code and workflows are unchanged.
-
-- The reference verifier and independent verifier are both included in the public tree.
-- The test suite covers Python protocol behavior and selected adversarial cases.
-- CI compiles all public Solidity sources with pinned compiler tooling; this is a compile check only, not a Solidity behavioral test suite.
-- CI results are commit-specific. A historical green run does not prove that a later commit passes.
-- No independent third-party security audit is published.
-- The Arbitrum integration and Solidity contracts are experimental and must not be used to secure production value.
-- The economic model and any token parameters are research artifacts, not finalized monetary policy.
 
 The [Threat Model](THREAT_MODEL_v0.1.md) documents the trust boundaries. The [Security Policy](../SECURITY.md) explains how to report issues.
 

@@ -49,11 +49,6 @@ This approach avoids redefining upstream formats while testing whether a cross-s
 
 A blockchain is optional infrastructure, not the definition of BOD.
 
-- Local verification does not require a wallet, RPC endpoint or token.
-- An external anchor may provide a timestamped witness for a commitment.
-- Anchor inclusion does not prove semantic truth, evidence availability, producer honesty or transition canonicality.
-- The current Arbitrum Sepolia integration is experimental and testnet-only.
-
 ## Current maturity
 
 - deterministic repository snapshot: implemented;
