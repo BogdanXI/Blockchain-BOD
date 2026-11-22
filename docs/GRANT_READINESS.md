@@ -12,7 +12,7 @@ BOD has a credible experimental engineering base and a plausible builder-tooling
 
 ## 1. Current ESP fit
 
-ESP describes support for open-source, non-commercial public goods that strengthen Ethereum and enable builders. Its stated principles are CROPS: Censorship Resistance, Open Source, Privacy and Security. Published evaluation criteria include technical approach, ecosystem impact, open source, budget, experience and alignment.
+ESP describes support for work that strengthens Ethereum and enables builders, with open-source outputs aligned with CROPS: Censorship Resistance, Open Source, Privacy and Security. Its applicant guidance says for-profit companies may apply, but the specific grant-funded work must be open-source and accessible to the community. The published selection factors are technical approach, ecosystem impact, open source, budget, experience and alignment; the page introduces them as factors “such as”, so they should not be treated as an exhaustive or weighted scoring rubric. See the [ESP alignment framework](ESP_ALIGNMENT_FRAMEWORK.md) for the criterion-by-criterion evidence map.
 
 | ESP criterion | BOD evidence | Assessment |
 |---|---|---|
@@ -101,4 +101,4 @@ The accompanying [Grant Technical Brief](GRANT_TECHNICAL_BRIEF.md) contains the 
 - Office Hours: https://esp.ethereum.foundation/applicants/office-hours
 - ESP Q2 2026 allocation update: https://blog.ethereum.org/2026/08/18/allocation-q2-26
 
-ESP states that approved grants are paid on-chain in ETH by default and that final funding depends on proposal scope and complexity. Office Hours are non-financial guidance and do not provide advice on creating, structuring or launching a token.
+ESP states that approved grants are paid on-chain in ETH by default; recipients complete onboarding, including identity verification and a formal grant letter. Limited exceptions may be considered for legal or operational constraints. The applicant must confirm their ability to securely receive and manage ETH before accepting a grant. Office Hours are non-financial guidance, not a grant application or pitch opportunity, and do not provide advice on creating, structuring or launching a token.

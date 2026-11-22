@@ -196,7 +196,7 @@ Issues and focused pull requests are welcome. Please include a reproducible scen
 
 ## Grant context
 
-BOD is being prepared as an open-source Ethereum builder-tooling proposal. The current prototype is not a grant award, active pilot or production service. The Ethereum Foundation ESP currently lists no active Wishlist items, RFPs or open rounds; see the dated [grant readiness assessment](docs/GRANT_READINESS.md) before treating this repository as an application-ready submission.
+BOD is being prepared as a possible open-source Ethereum builder-tooling proposal. The current prototype is not a grant award, active pilot or production service. The Ethereum Foundation ESP currently lists no active Wishlist items, RFPs or open rounds. See the dated [grant readiness assessment](docs/GRANT_READINESS.md) and the [ESP alignment framework](docs/ESP_ALIGNMENT_FRAMEWORK.md); neither is an EF template, endorsement or claim of application readiness.
 
 ## License
 
