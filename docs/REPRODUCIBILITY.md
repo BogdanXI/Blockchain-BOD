@@ -26,7 +26,7 @@ A verifier or reviewer should be able to reproduce the documented checks from a 
 - The npm audit result is time-sensitive and must be rechecked on dependency updates. The EAS SDK currently requires a CommonJS loading path under Node because its published ESM entrypoint imports named exports from CommonJS Lodash; CI now exercises the supported runtime path.
 - The EAS SDK dependency tree includes build tooling that is not needed at runtime. Overrides reduce known advisories, but the override set must be reviewed when the SDK or its contracts package changes.
 - CI uploads separate CycloneDX SBOM artifacts for the Python CI toolchain and npm dependency tree; these are build/dependency inventories, not signed release provenance or a complete inventory of every future runtime deployment.
-- CI creates Sigstore-signed SLSA provenance attestations for the two SBOM artifacts. Full provenance for shipped software/release artifacts, signed release tags and a release verification procedure remain open.
+- CI creates and verifies Sigstore-signed SLSA provenance attestations for the two SBOM artifacts. Full provenance for shipped software/release artifacts, signed release tags and a release verification procedure remain open.
 
 ## Required release controls
 
