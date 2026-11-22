@@ -104,7 +104,7 @@ def cmd_verify(args) -> int:
             checkpoints = parse_checkpoints(value)
             verify_portable_chain(checkpoints)
             commitments = [parse_portable(x)[1].commitment() for x in checkpoints]
-            print(json.dumps({"status": "VALID_INTEGRITY", "portable_checkpoints": len(checkpoints), "envelope_commitments": commitments, "recovery": "VERIFIABLE"}, indent=2))
+            print(json.dumps({"status": "VALID_INTEGRITY", "portable_checkpoints": len(checkpoints), "envelope_commitments": commitments, "checkpoint_verification": "PASS"}, indent=2))
         else:
             envs = parse_envelopes(value)
             if not args.chain and len(envs) != 1:
@@ -123,7 +123,7 @@ def cmd_recover(args) -> int:
         verify_portable_chain(checkpoints)
         snapshot, envelope = parse_portable(checkpoints[-1])
         print(json.dumps({
-            "status": "RECOVERY_VERIFIED",
+            "status": "CHECKPOINT_VERIFIED",
             "project_id": envelope.project_id,
             "state_root": snapshot["state_root"],
             "envelope_id": envelope.envelope_id,
@@ -148,7 +148,15 @@ def cmd_demo(args) -> int:
         capture_boundary="demo",
     )
     checkpoint = create_portable_checkpoint(snapshot=snapshot, envelope=envelope)
-    print(json.dumps({"status": "PASS", "checkpoint_id": checkpoint["checkpoint_id"], "state_root": snapshot["state_root"]}, indent=2))
+    verify_portable_chain([checkpoint])
+    print(json.dumps({
+        "status": "PASS",
+        "verification": "VALID_INTEGRITY",
+        "portable_checkpoints": 1,
+        "checkpoint_id": checkpoint["checkpoint_id"],
+        "state_root": snapshot["state_root"],
+        "source_payloads": "NOT_INCLUDED",
+    }, indent=2))
     return 0
 
 

@@ -1,69 +1,68 @@
 # BOD Evidence Fabric v0.1
 
-BOD Evidence Fabric is a verification layer for digital state that survives replacement of the machine, process, CI runner or model runtime that produced it.
+## Purpose
 
-## The product
+BOD is an experimental verification layer for digital project state. It creates deterministic state commitments, binds them to versioned evidence references and predecessor relationships, and allows portable checkpoints to be verified in a separate runtime.
+
+The project is testing a focused hypothesis:
+
+> A portable continuity record can make it easier to verify which project state was captured, which evidence was associated with it, and how successive states relate after the original workspace is unavailable.
+
+This hypothesis requires independent user and technical validation.
+
+## Processing model
 
 ```text
-SOURCE
-  ↓
+GIT-TRACKED WORKING TREE
+          |
+          v
 DETERMINISTIC SNAPSHOT
-  ↓
+  ordered paths, digests, sizes
+          |
+          v
 EVIDENCE ENVELOPE
-  ├── state root
-  ├── predecessor state root
-  ├── provenance / SBOM / attestation digests
-  └── transition boundary
-  ↓
-VERIFIER
-  ├── integrity
-  ├── lineage
-  ├── replay/fork detection
-  └── project boundary
-  ↓
-OPTIONAL EXTERNAL ANCHOR
-  ├── Arbitrum
-  ├── another EVM network
-  └── future BOD-native provider
-  ↓
-FRESH RUNTIME RECOVERY
+  state root
+  predecessor state root
+  provenance / SBOM / attestation digests
+  capture boundary
+          |
+          v
+REFERENCE + INDEPENDENT VERIFICATION
+          |
+          v
+OPTIONAL EXTERNAL WITNESS
 ```
 
-The blockchain is an **anchor**, not the place where large evidence payloads are stored. The durable BOD object is a compact, deterministic commitment that can be reconstructed and independently verified.
+## Current data boundary
 
-## Why this is different from a simple hash registry
+The current repository snapshot contains file paths, SHA-256 digests and byte sizes for Git-tracked working-tree files. It does not embed source files or external evidence payloads.
 
-A single hash answers: "Did these bytes match?"
-
-An Evidence Fabric answers:
-
-> "What state existed, what transition produced it, what external evidence supports it, what state came before it, where was the result anchored, and can a fresh runtime independently recover and verify the same history?"
+A portable checkpoint can therefore be independently checked for integrity and lineage, but it is not a backup archive and does not restore the original repository contents. Actual payload retrieval or restoration requires a separately designed storage and availability layer.
 
 ## Interoperability
 
-BOD does not replace existing provenance formats. SLSA/in-toto provenance, CycloneDX SBOMs, Sigstore transparency records and other evidence remain owned by their source systems. BOD records their cryptographic digests and relationships.
+BOD does not replace existing provenance formats. SLSA/in-toto provenance, CycloneDX or SPDX inventories, Sigstore transparency records and other evidence remain owned by their source systems. BOD records references and cryptographic digests for those objects.
 
-This avoids creating another incompatible supply-chain format while adding cross-runtime continuity and external anchoring.
+This approach avoids redefining upstream formats while testing whether a cross-system continuity layer provides additional value.
 
-## Zero-cost development path
+## External anchoring
 
-The reference workflow is deliberately usable without a paid blockchain service:
+A blockchain is optional infrastructure, not the definition of BOD.
 
-1. Git repository provides source state.
-2. Local Python implementation creates deterministic snapshots and envelopes.
-3. Public CI or a self-hosted runner executes verification.
-4. External blockchain anchoring is optional during development.
-5. Testnet transactions use test tokens when an external anchor is useful.
-
-Production economics are a separate gate. No experimental token parameter is implied by this product layer.
+- Local verification does not require a wallet, RPC endpoint or token.
+- An external anchor may provide a timestamped witness for a commitment.
+- Anchor inclusion does not prove semantic truth, evidence availability, producer honesty or transition canonicality.
+- The current Arbitrum Sepolia integration is experimental and testnet-only.
 
 ## Current maturity
 
 - deterministic repository snapshot: implemented;
-- versioned Evidence Envelope v0.1: implemented;
-- lineage verification: implemented;
-- adversarial verification: implemented;
-- fresh-process recovery experiments: implemented;
-- external anchor adapter: existing experimental path;
-- production security: **not claimed**;
+- Evidence Envelope v0.1: implemented;
+- predecessor-linked lineage verification: implemented;
+- portable checkpoint format: implemented;
+- reference CLI verification: implemented;
+- independent verifier: implemented; parity hardening remains ongoing;
+- source-payload restoration from portable checkpoints: **not implemented**;
+- external anchor adapter: experimental;
+- production security and consensus: **not claimed**;
 - production economic policy: **not final**.

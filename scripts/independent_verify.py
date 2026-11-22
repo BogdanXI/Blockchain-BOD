@@ -10,7 +10,7 @@ import hashlib
 import json
 import re
 import sys
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 ENVELOPE_SCHEMA = "bod-evidence-envelope-v0.1"
 SNAPSHOT_SCHEMA = "bod-repository-snapshot-v0.1"
@@ -43,15 +43,33 @@ def verify_snapshot(snapshot):
         raise ValueError("invalid repository snapshot")
     if snapshot["schema"] != SNAPSHOT_SCHEMA or not isinstance(snapshot["files"], list):
         raise ValueError("unsupported repository snapshot")
-    seen = set()
+    if not isinstance(snapshot["state_root"], str) or not HEX.fullmatch(snapshot["state_root"]):
+        raise ValueError("invalid snapshot state_root")
+
+    previous_path = None
     for item in snapshot["files"]:
         if not isinstance(item, dict) or set(item) != {"path", "sha256", "size"}:
             raise ValueError("invalid snapshot file entry")
-        if item["path"] in seen:
-            raise ValueError("duplicate snapshot path")
-        seen.add(item["path"])
-        if not HEX.fullmatch(item["sha256"]) or not isinstance(item["size"], int) or item["size"] < 0:
-            raise ValueError("invalid snapshot file digest or size")
+        relative = item["path"]
+        if not isinstance(relative, str) or not relative or chr(92) in relative or chr(0) in relative:
+            raise ValueError("invalid snapshot path")
+        portable_path = PurePosixPath(relative)
+        if (
+            portable_path.is_absolute()
+            or not portable_path.parts
+            or portable_path.as_posix() != relative
+            or any(part in {".", ".."} for part in portable_path.parts)
+            or portable_path.parts[0].endswith(":")
+        ):
+            raise ValueError("snapshot path is not a normalized relative path")
+        if previous_path is not None and relative <= previous_path:
+            raise ValueError("snapshot paths must be unique and sorted")
+        previous_path = relative
+        if not isinstance(item["sha256"], str) or not HEX.fullmatch(item["sha256"]):
+            raise ValueError("invalid snapshot file digest")
+        if type(item["size"]) is not int or item["size"] < 0:
+            raise ValueError("invalid snapshot file size")
+
     durable = {"schema": snapshot["schema"], "files": snapshot["files"]}
     if sha(SNAPSHOT_DOMAIN + canonical(durable)) != snapshot["state_root"]:
         raise ValueError("snapshot state_root mismatch")
@@ -61,19 +79,41 @@ def verify_envelope(document):
     required = {"schema", "project_id", "protocol_version", "state_root", "predecessor_state_root", "transition_id", "evidence", "capture_boundary", "envelope_id"}
     if not isinstance(document, dict) or set(document) != required or document["schema"] != ENVELOPE_SCHEMA:
         raise ValueError("unsupported envelope schema or fields")
+
+    for field in ("project_id", "protocol_version", "transition_id", "capture_boundary"):
+        if not isinstance(document[field], str) or not document[field]:
+            raise ValueError(f"invalid {field}")
     for field in ("state_root", "envelope_id"):
         if not isinstance(document[field], str) or not HEX.fullmatch(document[field]):
             raise ValueError(f"invalid {field}")
+
     predecessor = document["predecessor_state_root"]
     if predecessor is not None and (not isinstance(predecessor, str) or not HEX.fullmatch(predecessor)):
         raise ValueError("invalid predecessor_state_root")
     if not isinstance(document["evidence"], list):
         raise ValueError("invalid evidence")
+
+    allowed = {"evidence_type", "digest", "media_type", "uri", "issuer"}
+    required_evidence = {"evidence_type", "digest", "media_type"}
+    seen_evidence = set()
     for item in document["evidence"]:
-        if not isinstance(item, dict) or not {"evidence_type", "digest", "media_type"} <= set(item):
+        if not isinstance(item, dict) or set(item) - allowed or not required_evidence <= set(item):
             raise ValueError("invalid evidence reference")
-        if not isinstance(item["digest"], str) or not item["digest"].startswith("sha256:") or not HEX.fullmatch(item["digest"][7:]):
+        for field in ("evidence_type", "media_type", "digest"):
+            if not isinstance(item[field], str) or not item[field]:
+                raise ValueError(f"invalid evidence {field}")
+        if not item["digest"].startswith("sha256:") or not HEX.fullmatch(item["digest"][7:]):
             raise ValueError("invalid evidence digest")
+        for field in ("uri", "issuer"):
+            if field in item and item[field] is not None and (
+                not isinstance(item[field], str) or not item[field]
+            ):
+                raise ValueError(f"invalid evidence {field}")
+        key = canonical(item)
+        if key in seen_evidence:
+            raise ValueError("duplicate evidence reference")
+        seen_evidence.add(key)
+
     if envelope_commitment(document) != document["envelope_id"]:
         raise ValueError("envelope_id mismatch")
 
