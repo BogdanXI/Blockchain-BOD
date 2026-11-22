@@ -28,6 +28,7 @@ const schemaUID = process.env.BOD_EAS_SCHEMA_UID;
 if (!rpcUrl || !privateKey || !schemaUID) {
   throw new Error("Set ETHEREUM_SEPOLIA_RPC_URL, ETHEREUM_SEPOLIA_PRIVATE_KEY and BOD_EAS_SCHEMA_UID.");
 }
+if (!/^0x[0-9a-fA-F]{64}$/.test(schemaUID)) throw new Error("BOD_EAS_SCHEMA_UID must be a bytes32 schema UID.");
 
 const provider = new ethers.JsonRpcProvider(rpcUrl);
 const network = await provider.getNetwork();
@@ -83,6 +84,7 @@ const checkpointId = ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(
     manifestHash,
     evidenceRoot,
     sequence,
+    parentUID,
   ],
 ));
 
