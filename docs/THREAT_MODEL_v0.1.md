@@ -46,6 +46,10 @@ A recent checkpoint may be removed by a reorg. A receipt is not finality. Client
 
 One implementation may accept an invalid envelope. BOD publishes an independent verifier; cross-implementation vectors and external review remain required.
 
+### Path and symlink abuse
+
+Repository capture hashes a tracked symlink's link target rather than dereferencing the target and reading arbitrary external file contents. Snapshot verification rejects absolute paths, traversal components, non-normalized paths, duplicate/unsorted entries and invalid size/digest types. These checks reduce path confusion and accidental data capture; they do not replace OS sandboxing or a review of the capture boundary.
+
 ## Ethereum contract boundaries
 
 - Permissionless publication is not repository authorization.
