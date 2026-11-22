@@ -84,7 +84,9 @@ contract BODEthereumCheckpointRegistryTest {
         left.stateRoot = keccak256("left-state");
         left.previousCheckpointId = parentId;
         left.sequence = 1;
-        BODEthereumCheckpointRegistry.CheckpointInput memory right = left;
+        BODEthereumCheckpointRegistry.CheckpointInput memory right = _genesis(projectId);
+        right.previousCheckpointId = parentId;
+        right.sequence = 1;
         right.gitCommit = keccak256("right-commit");
         right.stateRoot = keccak256("right-state");
         bytes32 leftId = registry.anchor(left);
