@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { ethers } from "ethers";
-import { EAS, NO_EXPIRATION, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
+import { EAS, NO_EXPIRATION, SchemaEncoder, SchemaRegistry } from "@ethereum-attestation-service/eas-sdk";
 import { BOD_EAS_SCHEMA, EAS_DEPLOYMENTS } from "./schema.mjs";
 
 function canonical(value) {
@@ -92,6 +92,16 @@ const signer = new ethers.Wallet(privateKey, provider);
 const easDeployment = EAS_DEPLOYMENTS[Number(network.chainId)];
 const eas = new EAS(easDeployment.eas);
 eas.connect(signer);
+
+const schemaRegistry = new SchemaRegistry(easDeployment.schemaRegistry);
+schemaRegistry.connect(provider);
+const schemaRecord = await schemaRegistry.getSchema({ uid: schemaUID });
+if (schemaRecord.uid === ethers.ZeroHash) throw new Error("EAS schema UID is not registered on Ethereum Sepolia.");
+if (schemaRecord.schema !== BOD_EAS_SCHEMA) throw new Error("EAS schema string does not match the BOD checkpoint schema.");
+if (schemaRecord.revocable !== false) throw new Error("BOD checkpoint schema must be registered as non-revocable.");
+if (schemaRecord.resolver.toLowerCase() !== ethers.ZeroAddress.toLowerCase()) {
+  throw new Error("BOD sample client requires the schema to use the zero-address resolver.");
+}
 
 if (sequence > 0n) {
   const parent = await eas.getAttestation(parentUID);
