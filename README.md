@@ -39,14 +39,6 @@ Current workstream: **EC-0001 — economic calibration**.
 
 Public artifacts include:
 
-- protocol specifications;
-- deterministic state-machine and economic implementations;
-- executable tests;
-- an Arbitrum adapter prototype;
-- economic invariants and calibration documentation;
-- reproducible validation and readiness checks.
-- a local continuity MVP for capture, recovery, repository-state commitments, and deterministic utility quoting.
-
 Economic parameters are calibration baselines, not final policy.
 
 ## Quick start
