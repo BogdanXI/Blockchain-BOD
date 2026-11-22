@@ -45,7 +45,7 @@ Likewise, `VALID_INTEGRITY` means only that the verifier accepted the declared c
 
 ## Verification and security status
 
-The public-readiness branch passed GitHub Actions CI run [#123](https://github.com/BogdanXI/Blockchain-BOD/actions/runs/45007814377) on Python 3.11, 3.12 and 3.13 and the Solidity 0.8.24 compile job for branch-head commit `f59105375ff73444d6e443f98de4bee4599ba7f9`. The run covered public-surface validation, Ruff static analysis, the Python test suite, the installed CLI smoke test, dependency consistency and compilation of all public Solidity sources.
+The public-readiness implementation passed GitHub Actions CI run [#126](https://github.com/BogdanXI/Blockchain-BOD/actions/runs/45007920517) on Python 3.11, 3.12 and 3.13 and the Solidity 0.8.24 compile job for commit `843899f3d094ccd441ca27207921821e9c802af0`. The run covered public-surface validation, Ruff static analysis, the Python test suite, the installed CLI smoke test, dependency consistency and compilation of all public Solidity sources. The current follow-up changes only record this verification result; executable code and workflows are unchanged.
 
 - The reference verifier and independent verifier are both included in the public tree.
 - The test suite covers Python protocol behavior and selected adversarial cases.

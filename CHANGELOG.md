@@ -12,7 +12,7 @@
 - Added locked Node tooling for Arbitrum workflows and a CI compile gate for all public Solidity contracts.
 - Added explicit Arbitrum Sepolia chain-ID checks before deployment or anchoring.
 - Local validation on Python 3.14.4: public-surface validation passed, **109 tests passed**, Ruff static analysis passed, the Solidity 0.8.24 compile check passed, the CLI demo passed and `pip check` reported no broken requirements. The distributable wheel built successfully; snapshot tests cover symlink handling without reading target contents. A distributable wheel also built successfully and contained the CLI and core verification modules.
-- GitHub Actions CI run [#123](https://github.com/BogdanXI/Blockchain-BOD/actions/runs/45007814377) passed Python 3.11, 3.12 and 3.13 plus the Solidity 0.8.24 compile job for branch-head commit `f59105375ff73444d6e443f98de4bee4599ba7f9`.
+- GitHub Actions CI run [#126](https://github.com/BogdanXI/Blockchain-BOD/actions/runs/45007920517) passed Python 3.11, 3.12 and 3.13 plus the Solidity 0.8.24 compile job for commit `843899f3d094ccd441ca27207921821e9c802af0`.
 
 ## 2026-10-09 — External review readiness
 
