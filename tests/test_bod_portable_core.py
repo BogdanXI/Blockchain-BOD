@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from bod_evidence_envelope import EvidenceEnvelopeError, create_evidence_envelope
-from bod_portable import create_portable_checkpoint, parse_portable, repository_snapshot
+from bod_portable import create_portable_checkpoint, parse_portable, repository_snapshot, verify_snapshot
 
 
 def test_capture_verify_recover_cli(tmp_path):
@@ -63,12 +63,7 @@ def test_snapshot_rejects_unsafe_paths_and_noncanonical_entries():
     unsafe = json.loads(json.dumps(snapshot))
     unsafe["files"][0]["path"] = "../outside"
     with pytest.raises(EvidenceEnvelopeError):
-        parse_portable({
-            "schema": "bod-portable-checkpoint-v0.1",
-            "snapshot": unsafe,
-            "envelope": {},
-            "checkpoint_id": "0" * 64,
-        })
+        verify_snapshot(unsafe)
 
     boolean_size = json.loads(json.dumps(snapshot))
     boolean_size["files"][0]["size"] = True
