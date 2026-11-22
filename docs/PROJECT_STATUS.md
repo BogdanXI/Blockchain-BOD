@@ -10,6 +10,7 @@
 
 - deterministic repository snapshots;
 - experimental self-contained evidence bundles that package every referenced evidence payload with a checkpoint and support independent integrity/completeness verification;
+- minimal structural inspection for in-toto Statement v1, SLSA provenance v1, DSSE envelope shape, CycloneDX JSON and SPDX JSON 2.x; cryptographic signatures are not verified;
 - versioned evidence envelopes and predecessor-linked history;
 - independent verification and portable checkpoint recovery, including normalized-path checks and symlink-target hashing;
 - branch-aware lineage graph verification that reports fork points and heads without selecting a canonical head;

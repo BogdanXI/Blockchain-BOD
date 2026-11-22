@@ -1,3 +1,11 @@
+## 2026-11-22 — Evidence format interoperability
+
+- Added dependency-free structural inspection for in-toto Statement v1, SLSA provenance v1, DSSE envelope shape, CycloneDX JSON and SPDX JSON 2.x.
+- Added the bod evidence-inspect CLI command and regression fixtures for supported structures and malformed documents.
+- Extended the synthetic offline recovery experiment to inspect SLSA and CycloneDX fixture structures before packaging.
+- Documented that structural inspection is not full schema validation, signature verification, trust-policy evaluation or a claim of semantic truth.
+- Added official format specification references and explicit SPDX 3.x non-support.
+
 ## 2026-11-22 — Evidence continuity and recovery
 
 - Added experimental Evidence Bundle v0.1 to package every raw evidence payload referenced by one portable checkpoint.

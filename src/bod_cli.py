@@ -24,6 +24,7 @@ try:
         verify_portable_chain,
         verify_portable_graph,
     )
+    from bod_evidence_formats import EvidenceFormatError, inspect_evidence_payload
 except ImportError:
     from src.bod_evidence_envelope import (
         EvidenceEnvelopeError,
@@ -42,6 +43,7 @@ except ImportError:
         verify_portable_chain,
         verify_portable_graph,
     )
+    from src.bod_evidence_formats import EvidenceFormatError, inspect_evidence_payload
 
 
 def load(path: str | Path) -> Any:
@@ -150,9 +152,15 @@ def cmd_verify(args) -> int:
                 verify_chain(envs)
                 print(json.dumps({"status": "VALID_INTEGRITY", "envelopes": len(envs), "commitments": [e.commitment() for e in envs]}, indent=2))
         return 0
-    except (EvidenceEnvelopeError, OSError, json.JSONDecodeError) as exc:
+    except (EvidenceEnvelopeError, EvidenceFormatError, OSError, json.JSONDecodeError) as exc:
         print(json.dumps({"status": "INVALID", "reason": str(exc)}, indent=2))
         return 1
+
+
+def cmd_evidence_inspect(args) -> int:
+    result = inspect_evidence_payload(Path(args.file).read_bytes(), args.format)
+    print(json.dumps(result, indent=2))
+    return 0
 
 
 def cmd_bundle_create(args) -> int:
@@ -202,7 +210,7 @@ def cmd_recover(args) -> int:
             "source_payloads": "NOT_INCLUDED",
         }, indent=2))
         return 0
-    except (EvidenceEnvelopeError, OSError, json.JSONDecodeError) as exc:
+    except (EvidenceEnvelopeError, EvidenceFormatError, OSError, json.JSONDecodeError) as exc:
         print(json.dumps({"status": "RECOVERY_FAILED", "reason": str(exc)}, indent=2))
         return 1
 
@@ -256,6 +264,11 @@ def main() -> int:
     x.add_argument("--graph", action="store_true", help="verify all branches without selecting a canonical head")
     x.set_defaults(func=cmd_verify)
 
+    x = sub.add_parser("evidence-inspect", help="inspect supported evidence document structure without verifying signatures")
+    x.add_argument("file")
+    x.add_argument("--format", choices=("auto", "in-toto", "slsa-provenance", "cyclonedx-json", "spdx-json", "dsse"), default="auto")
+    x.set_defaults(func=cmd_evidence_inspect)
+
     x = sub.add_parser("bundle-create", help="package all referenced evidence payloads with one checkpoint")
     x.add_argument("checkpoint")
     x.add_argument("--payload", action="append", metavar="SHA256=PATH", help="repeat once for each evidence digest")
@@ -277,7 +290,7 @@ def main() -> int:
     args = parser.parse_args()
     try:
         return args.func(args)
-    except (EvidenceEnvelopeError, OSError, json.JSONDecodeError) as exc:
+    except (EvidenceEnvelopeError, EvidenceFormatError, OSError, json.JSONDecodeError) as exc:
         print(json.dumps({"status": "INVALID", "reason": str(exc)}, indent=2))
         return 1
 

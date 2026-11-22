@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from bod_evidence_envelope import EvidenceReferenceV0_1, create_evidence_envelope
+from bod_evidence_formats import inspect_evidence_payload
 from bod_portable import (
     canonical_json,
     create_evidence_bundle,
@@ -124,6 +125,10 @@ def main() -> int:
         digest: details[0]
         for digest, details in payloads_by_state[-1].items()
     }
+    inspected_formats = set()
+    for _, (payload, evidence_type, _) in payloads_by_state[-1].items():
+        if evidence_type in {"slsa-provenance", "cyclonedx-sbom"}:
+            inspected_formats.add(inspect_evidence_payload(payload)["format"])
     bundle = create_evidence_bundle(checkpoint=chain[-1], payloads=latest_payloads)
 
     with tempfile.TemporaryDirectory() as directory:
@@ -174,6 +179,7 @@ def main() -> int:
         "status": "PASS",
         "synthetic_checkpoints": len(chain),
         "latest_evidence_payloads": len(latest_payloads),
+        "format_structures_inspected": sorted(inspected_formats),
         "lineage_verification": "PASS",
         "fresh_process_bundle_verification": "PASS",
         "original_evidence_store_removed_before_verification": True,

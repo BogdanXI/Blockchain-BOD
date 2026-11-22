@@ -59,7 +59,7 @@ The v0.1 representation embeds payloads as base64 in JSON. This is simple and in
 
 Bundles are not encrypted or access-controlled. Evidence may contain confidential metadata, source fragments, credentials or personal data. Review payloads before packaging or publishing them. Do not include secrets.
 
-## Current limitations
+## Structural evidence inspection\n\nBOD also provides a separate, deliberately limited structural inspector for selected in-toto, SLSA, DSSE, CycloneDX and SPDX JSON documents. It does not perform signature verification or full schema validation. See [Evidence format support](EVIDENCE_FORMAT_SUPPORT.md).\n\n## Current limitations
 
 - One bundle contains one checkpoint; lineage is verified separately through the checkpoint graph/chain formats.
 - The bundle carries raw evidence bytes but does not yet implement SLSA, in-toto, Sigstore, SPDX or CycloneDX semantic/signature validation.

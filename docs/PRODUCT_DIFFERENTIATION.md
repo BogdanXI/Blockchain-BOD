@@ -51,6 +51,8 @@ The distinction is the composition and workflow, not a claim that hashing, Merkl
 Implemented in the current public branch:
 
 - deterministic portable checkpoint and snapshot verification;
+- self-contained evidence bundles with complete referenced-payload coverage and a separate independent verifier;
+- minimal structural inspection of in-toto Statement v1, SLSA provenance v1, DSSE envelope shape, CycloneDX JSON and SPDX JSON 2.x; no cryptographic signature verification is claimed;
 - predecessor-linked checkpoint semantics in the Ethereum registry source;
 - branch-aware lineage graph verification in the Python library, CLI and independent verifier;
 - local Foundry tests, including fuzz tests;
@@ -59,7 +61,7 @@ Implemented in the current public branch:
 
 Not yet demonstrated:
 
-- end-to-end ingestion and policy verification of SLSA/in-toto, SPDX/CycloneDX and Sigstore evidence from independent systems;
+- full schema-level ingestion, cryptographic signature verification and trust-policy evaluation of SLSA/in-toto, SPDX/CycloneDX and Sigstore evidence from independent systems;
 - a live Sepolia deployment and EAS schema/attestation round trip;
 - recovery after removing access to a real external CI/storage provider using independent pilots and third-party evidence;
 - comparative results against Git + SLSA/in-toto + Sigstore/GitHub attestations without BOD;

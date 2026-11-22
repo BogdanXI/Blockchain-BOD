@@ -263,3 +263,111 @@ def test_bundle_cli_round_trip(tmp_path):
     )
     assert independent.returncode == 0, independent.stdout + independent.stderr
     assert json.loads(independent.stdout)["status"] == "VALID_SELF_CONTAINED_BUNDLE"
+
+
+def test_evidence_inspector_validates_slsa_and_cyclonedx_structure():
+    from bod_evidence_formats import inspect_evidence_payload
+
+    slsa = {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [{"name": "release.tar.gz", "digest": {"sha256": "a" * 64}}],
+        "predicateType": "https://slsa.dev/provenance/v1",
+        "predicate": {
+            "buildDefinition": {
+                "buildType": "https://example.invalid/buildtype/v1",
+                "externalParameters": {"ref": "refs/tags/v1"},
+            },
+            "runDetails": {"builder": {"id": "https://example.invalid/builder"}},
+        },
+    }
+    result = inspect_evidence_payload(json.dumps(slsa).encode())
+    assert result["format"] == "slsa-provenance-v1"
+    assert result["structure"] == "VALID"
+    assert result["signature_verification"] == "NOT_PERFORMED"
+
+    cyclonedx = {
+        "bomFormat": "CycloneDX",
+        "specVersion": "1.7",
+        "version": 1,
+        "components": [{"type": "library", "name": "example", "version": "1.0"}],
+    }
+    result = inspect_evidence_payload(json.dumps(cyclonedx).encode())
+    assert result["format"] == "cyclonedx-json"
+    assert result["component_count"] == 1
+
+
+def test_evidence_inspector_validates_spdx_23_and_dsse_wrapper():
+    import base64
+    from bod_evidence_formats import inspect_evidence_payload
+
+    spdx = {
+        "spdxVersion": "SPDX-2.3",
+        "dataLicense": "CC0-1.0",
+        "SPDXID": "SPDXRef-DOCUMENT",
+        "name": "example SBOM",
+        "documentNamespace": "https://example.invalid/spdx/123",
+        "creationInfo": {
+            "created": "2026-11-22T00:00:00Z",
+            "creators": ["Tool: fixture-1.0"],
+        },
+        "packages": [],
+    }
+    result = inspect_evidence_payload(json.dumps(spdx).encode())
+    assert result["format"] == "spdx-json-2"
+    assert result["package_count"] == 0
+
+    statement = {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [],
+        "predicateType": "https://example.invalid/predicate/v1",
+        "predicate": {},
+    }
+    dsse = {
+        "payloadType": "application/vnd.in-toto+json",
+        "payload": base64.b64encode(json.dumps(statement).encode()).decode(),
+        "signatures": [{"keyid": "fixture-key", "sig": base64.b64encode(b"signature").decode()}],
+    }
+    result = inspect_evidence_payload(json.dumps(dsse).encode())
+    assert result["format"] == "in-toto-statement-v1"
+    assert result["dsse_signature_count"] == 1
+    assert result["signature_verification"] == "NOT_PERFORMED"
+
+
+def test_evidence_inspector_rejects_malformed_slsa_and_invalid_spdx():
+    import pytest
+    from bod_evidence_formats import EvidenceFormatError, inspect_evidence_payload
+
+    malformed_slsa = {
+        "_type": "https://in-toto.io/Statement/v1",
+        "subject": [],
+        "predicateType": "https://slsa.dev/provenance/v1",
+        "predicate": {
+            "buildDefinition": {
+                "buildType": "https://example.invalid/buildtype/v1",
+                "externalParameters": {},
+            },
+            "runDetails": {"builder": {}},
+        },
+    }
+    with pytest.raises(EvidenceFormatError, match="builder.id"):
+        inspect_evidence_payload(json.dumps(malformed_slsa).encode())
+
+    invalid_spdx = {"spdxVersion": "SPDX-2.3"}
+    with pytest.raises(EvidenceFormatError, match="dataLicense"):
+        inspect_evidence_payload(json.dumps(invalid_spdx).encode())
+
+
+def test_evidence_inspector_cli(tmp_path):
+    payload = {
+        "bomFormat": "CycloneDX",
+        "specVersion": "1.7",
+        "components": [],
+    }
+    evidence_path = tmp_path / "bom.json"
+    evidence_path.write_text(json.dumps(payload), encoding="utf-8")
+    result = subprocess.run(
+        [sys.executable, "-m", "src.bod_cli", "evidence-inspect", str(evidence_path)],
+        capture_output=True, text=True, check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert json.loads(result.stdout)["structure"] == "VALID"
