@@ -3,7 +3,7 @@
 - Repositioned the public product around Ethereum-anchored software-state continuity and supply-chain evidence interoperability.
 - Added a permissionless append-only Ethereum checkpoint registry with explicit predecessor and sequence validation.
 - Added Foundry tests for genesis, parent validation, duplicate rejection, project isolation and observable forks.
-- Added Ethereum integration, threat-model, market-hypothesis and roadmap documentation.
+- Added Ethereum integration, threat-model, market-hypothesis and roadmap documentation.\n- Added an EAS SDK integration path for non-revocable checkpoint attestations with predecessor references and parent checks.
 - Added Ethereum Mainnet and Sepolia fee-policy descriptors using live base-fee inputs rather than a stale hard-coded floor.
 - Retained the Arbitrum implementation as a legacy experimental adapter; no mainnet deployment or security audit is claimed.
 
