@@ -52,7 +52,7 @@ These results do not constitute:
 - independent user adoption or product-market fit;
 - an independently reproduced multi-project benchmark.
 
-GitHub Actions run [45046678505](https://github.com/BogdanXI/Blockchain-BOD/actions/runs/45046678505) passed on commit cac8ce81546e895d76fcba743525f773735132d4 across Python 3.11, 3.12, 3.13, Foundry Solidity tests and EAS tooling. Foundry is not installed locally, but the remote Solidity job passed. Any subsequent source or workflow changes require another run.
+GitHub Actions run [45047051723](https://github.com/BogdanXI/Blockchain-BOD/actions/runs/45047051723) passed on commit ab1ed4b0e93990476b6978cb40b59e8cbe24aa82 across Python 3.11, 3.12, 3.13, Foundry Solidity tests and EAS tooling. Foundry is not installed locally, but the remote Solidity job passed. Any subsequent source or workflow changes require another run.
 
 ## 4. Recommended grant framing
 

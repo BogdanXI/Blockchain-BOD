@@ -7,7 +7,7 @@
 - Extended the EAS schema to carry both the EAS-context checkpoint identifier and the portable BOD checkpoint identifier. The client now checks that the supplied checkpoint matches the current clean repository snapshot before submitting an attestation.
 - Updated public documentation, quickstart commands, grant status, roadmap and zero-cost test status to reflect the current implementation and known limitations.
 - Made the historical task/settlement and token-economics boundary explicit in testnet readiness metadata and documentation; added a packaging regression test to ensure legacy economic modules stay outside the installed Python wheel.
-- Local validation: Python tests, Ruff, public-surface validation, CLI smoke test, recovery experiment, EAS SDK schema-encoding smoke test and npm production dependency audit passed. Foundry is unavailable in the local workstation environment; GitHub Actions run 45046678505 passed all five jobs on commit cac8ce81546e895d76fcba743525f773735132d4.
+- Local validation: Python tests, Ruff, public-surface validation, CLI smoke test, recovery experiment, EAS SDK schema-encoding smoke test and npm production dependency audit passed. Foundry is unavailable in the local workstation environment; GitHub Actions run 45047051723 passed all five jobs on commit ab1ed4b0e93990476b6978cb40b59e8cbe24aa82.
 - No EAS schema registration, wallet signing, Sepolia deployment, mainnet transaction or paid test service was used.
 
 ## 2026-11-22 — Verified evidence bundle extraction
