@@ -14,8 +14,6 @@ The existing architecture defined Candidate -> Verification -> Arbitration -> Ca
 - where BOD is mandatory;
 - how multiple independently valid candidates are represented.
 
-Without these rules, an Arbitrum MVP could accidentally turn the chain into an application event log or couple the protocol to provisional tokenomics.
-
 ## Decision
 
 Adopt the minimal BOD Protocol v0.1 lifecycle:
@@ -79,11 +77,5 @@ Positive:
 - The protocol has a concrete testable boundary for signatures, evidence and settlement.
 
 Remaining work:
-
-- define canonical serialization and signature implementation;
-- implement the deterministic object/state machine;
-- build an Arbitrum adapter prototype;
-- test concurrent candidates, forged evidence, replay, stale state and economic griefing;
-- continue EC-0001 parameter calibration before final token economics.
 
 This ADR does not resolve RC-0019 or claim a novel consensus mechanism.

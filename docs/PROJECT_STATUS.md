@@ -24,13 +24,6 @@ Tests are evidence for the behaviors they exercise. They are not an external sec
 
 ## What is not claimed
 
-- No production-ready BOD blockchain or native consensus mechanism is claimed.
-- No production token launch is claimed.
-- Cryptographic integrity does not prove semantic truth.
-- The repository does not guarantee availability of referenced evidence.
-- EVM or Arbitrum inclusion does not by itself make a BOD transition valid or canonical.
-- Economic assumptions and fee targets remain experimental until measured and independently reviewed.
-
 ## Current open question
 
 Does portable, independently verifiable continuity materially improve a real engineering workflow compared with Git and established provenance/signing tools? This requires independent users and reproducible comparisons, not marketing claims.

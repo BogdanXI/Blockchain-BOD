@@ -31,18 +31,6 @@ Compare recovery from BOD checkpoints with a baseline using Git and existing pro
 
 Gate: an independent reviewer can reproduce the experiment.
 
-## 4. Arbitrum testnet integration
-
-**Status: experimental.**
-
-- Treat EVM anchoring as optional infrastructure, not BOD consensus.
-- Complete the test-only custom gas-token creation path before L3 genesis.
-- Measure execution and parent-chain data-posting costs separately.
-- Test bridge and fee-pricer configuration.
-- Keep production token decisions behind separate review gates.
-
-Gate: deterministic integration tests, testnet evidence, and a documented cost model. Testnet success is not production readiness.
-
 ## 5. Canonicality review
 
 **Status: blocking for production claims.**
