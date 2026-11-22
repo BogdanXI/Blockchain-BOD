@@ -15,6 +15,20 @@
 | [GitHub Artifact Attestations](https://docs.github.com/en/actions/concepts/security/artifact-attestations) | Signed attestations for artifact provenance and related verification in GitHub workflows. | Medium: verifiable release provenance. | Show useful portability across providers and time after the GitHub workflow/account is unavailable, not merely a second way to verify provenance. |
 | [SLSA / in-toto](https://slsa.dev/spec/v1.2/) | Standards for describing and verifying build/source provenance and supply-chain steps. | Foundational standards rather than a direct BOD product competitor. | Integrate their native statements and verification tools; never imply that BOD replaces their semantic or signature checks. |
 
+## Ethereum ecosystem baseline
+
+Ethereum client teams already use meaningful release-integrity controls. This matters because the intended grant ecosystem is not starting from zero:
+
+- Nethermind release documentation says release files are listed in SHA256SUMS signed with OpenPGP and that each released file has a GitHub build-provenance attestation verifiable with gh attestation verify. [Nethermind releases](https://github.com/NethermindEth/nethermind/releases)
+- Lodestar release notes include attestation of Docker image provenance and SBOMs. [Lodestar releases](https://github.com/ChainSafe/lodestar/releases)
+- Geth publishes signed binary artifacts and OpenPGP signatures; ethereum.org instructs node operators to verify client binaries using signatures or checksums. [Geth downloads](https://geth.ethereum.org/downloads) · [Ethereum client verification guidance](https://ethereum.org/developers/docs/nodes-and-clients/run-a-node/)
+- Reth release notes publish PGP signatures for binary artifacts. [Reth releases](https://github.com/paradigmxyz/reth/releases)
+- Besu documents Gradle dependency verification metadata and signed release tags. [Besu repository](https://github.com/besu-eth/besu)
+
+The Ethereum Foundation's public disclosures program coordinates vulnerabilities across execution and consensus clients. This creates a multi-team ecosystem where release evidence and security records have real operational importance, but sensitive vulnerability details must remain confidential until coordinated disclosure. [Ethereum public disclosures](https://github.com/ethereum/public-disclosures/).
+
+**Implication for BOD:** do not pitch basic provenance, SBOM generation, artifact signing or GitHub attestation as missing from Ethereum clients. A plausible pilot would test whether a team can preserve and independently reconstruct the evidence set for a historical release across CI/provider changes, repository forks and long retention periods. No client team has expressed interest or agreed to pilot BOD.
+
 ## What this review establishes
 
 1. Evidence collection, signed attestation storage, immutable SDLC histories, metadata graphs, and export are already implemented by real projects.
@@ -64,3 +78,5 @@ If the head-to-head test shows that Chainloop, Archivista or another existing to
 - Sigstore documentation: https://docs.sigstore.dev/
 - GitHub Artifact Attestations: https://docs.github.com/en/actions/concepts/security/artifact-attestations
 - SLSA v1.2: https://slsa.dev/spec/v1.2/
+- Ethereum client download verification: https://ethereum.org/developers/docs/nodes-and-clients/run-a-node/
+- Ethereum Foundation public disclosures: https://github.com/ethereum/public-disclosures/
