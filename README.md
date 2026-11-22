@@ -1,224 +1,179 @@
-# BOD
+# BOD — Evidence Fabric
 
 ![BOD Evidence Fabric](docs/assets/bod-mark.svg)
 
-## Evidence Fabric for verifiable digital state
+**Portable, independently verifiable continuity for digital project state.**
 
-**Prove what existed. Prove how it changed. Recover it on another runtime. Verify it independently.**
+[![CI](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml/badge.svg)](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-MIT-111827.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.11%2B-111827.svg)](pyproject.toml)
+[![Status](https://img.shields.io/badge/status-experimental-orange.svg)](docs/PROJECT_STATUS.md)
 
-[![CI](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml/badge.svg)](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml) [![License](https://img.shields.io/badge/license-MIT-111827.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-3.11%2B-111827.svg)](pyproject.toml) [![Status: Experimental](https://img.shields.io/badge/status-experimental-orange.svg)](docs/PROJECT_STATUS.md)
-
-[Getting started](docs/GETTING_STARTED.md) · [Project status](docs/PROJECT_STATUS.md) · [Roadmap](docs/ROADMAP.md) · [Threat model](docs/THREAT_MODEL_v0.1.md) · [Contributing](CONTRIBUTING.md)
+[Getting started](docs/GETTING_STARTED.md) · [Project status](docs/PROJECT_STATUS.md) · [Roadmap](docs/ROADMAP.md) · [Architecture](protocol/ARCHITECTURE_v0.1.md) · [Threat model](docs/THREAT_MODEL_v0.1.md) · [Security](SECURITY.md)
 
 ---
 
+## Overview
+
+BOD is an experimental Evidence Fabric for creating deterministic commitments to digital project state, binding those commitments to a versioned evidence envelope, and verifying predecessor-linked history independently of the runtime that created it.
+
+The project addresses a specific engineering question:
+
+> Can a portable continuity record make it materially easier to verify what state was captured, which evidence was associated with it, and how one state follows another after the original workspace is no longer available?
+
+This is a product hypothesis under validation, not an established market claim.
+
 ## The problem
 
-Software projects lose trustworthy history when the machine, CI runner, agent, model runtime or local workspace disappears.
+Git records source history. Provenance and signing systems describe how artifacts were produced and who attested to them. Transparency logs and blockchains can provide external witnesses.
 
-A Git commit proves that bytes existed in a repository. A blockchain transaction can prove that a commitment was anchored. Neither alone gives a complete, machine-verifiable answer to what project state was captured, what evidence supported it, which state came before it, whether a result was replayed/forked, or whether a fresh runtime can reconstruct the same history.
+Those systems are complementary, but a project may still need a portable record that binds a sequence of project-state commitments to references to external evidence and can be checked in a clean runtime.
 
-**BOD connects those layers.**
+**BOD focuses on that continuity layer.** It is designed to compose with existing tools, not replace them.
 
-## The product
+## How it works
 
 ```text
-SOURCE / GIT / BUILD
-        |
-        v
-DETERMINISTIC STATE SNAPSHOT
-        |
-        v
-EVIDENCE ENVELOPE
-  state root + predecessor
-  provenance/SBOM/attestation digests
-        |
-        v
-BOD VERIFIER
-  integrity + lineage + replay/fork detection
-        |
-        v
-OPTIONAL EXTERNAL ANCHOR
-  Arbitrum / another EVM / future BOD network
-        |
-        v
-FRESH RUNTIME RECOVERY
-        |
-        v
-VALID / INVALID
+GIT-TRACKED PROJECT STATE
+          |
+          v
+DETERMINISTIC SNAPSHOT
+  ordered paths, digests, sizes
+          |
+          v
+VERSIONED EVIDENCE ENVELOPE
+  state root, predecessor, evidence references
+          |
+          v
+PORTABLE CHECKPOINT
+          |
+          +------> REFERENCE VERIFIER
+          |
+          +------> INDEPENDENT VERIFIER
+          |
+          +------> OPTIONAL EXTERNAL ANCHOR
 ```
 
-The blockchain is an **external anchor**, not a database for large evidence payloads.
+The external anchor is optional. It is a witness for a commitment; it does not determine whether the BOD envelope or the underlying evidence is semantically correct.
 
-## Why this is useful
+## What is implemented
 
-- **Deterministic:** machine-specific runtime metadata is excluded from durable commitments.
-- **Lineage-aware:** state transitions form a verifiable chain and missing predecessors, forks and replayed roots are rejected.
-- **Evidence-native:** BOD references SLSA/in-toto, CycloneDX, Sigstore/Rekor and other evidence by digest instead of duplicating their payload formats.
-- **Runtime-independent:** verification can restart in a fresh process or on another machine.
-- **Anchor-agnostic:** external blockchain anchoring is a provider, not the definition of BOD.
+- Deterministic snapshots of Git-tracked working-tree files.
+- Versioned Evidence Envelope v0.1 with canonical serialization and self-verifying commitments.
+- Predecessor-linked state history with checks for missing predecessors, duplicate roots, forks and disconnected components.
+- Portable checkpoint format binding a snapshot to its evidence envelope.
+- A Python CLI for demonstration, snapshot capture, evidence creation and verification.
+- A second verifier that does not import the reference implementation.
+- Tests and a public CI workflow.
+- An experimental Arbitrum Sepolia anchoring path.
 
-## Try it locally
+Implementation details and limits are documented in [Project Status](docs/PROJECT_STATUS.md) and the [Threat Model](docs/THREAT_MODEL_v0.1.md).
 
-No wallet. No blockchain account. No paid service.
+## Important scope boundary
+
+**A BOD checkpoint is a verification record, not a backup archive.**
+
+The repository snapshot currently records tracked file paths, SHA-256 digests and sizes. It does not embed the source files or other payloads. The `bod recover` command verifies the checkpoint and reports the captured state metadata; it does not recreate the original files.
+
+Likewise, a successful integrity check does not prove that a claim is true, that the evidence is available, that the producer was honest, or that an external anchor is canonical.
+
+BOD v0.1 is experimental. It is not a production blockchain, a native consensus network, a production token or a production security certification.
+
+## Quick start
+
+Requirements: Python 3.11 or newer.
 
 ```bash
 git clone https://github.com/BogdanXI/Blockchain-BOD.git
 cd Blockchain-BOD
-python -m pip install -e .
+python -m pip install --editable ".[test]"
+```
+
+Run the local demonstration:
+
+```bash
 bod demo
 ```
 
-The demo creates three linked state transitions and verifies the complete chain.
-
-Create a deterministic repository state root:
+Capture a deterministic snapshot:
 
 ```bash
 bod snapshot . --out snapshot.json
 ```
 
-Verify an envelope or chain:
+Create a portable checkpoint:
 
 ```bash
-bod verify envelope.json
-bod verify chain.json --chain
+bod capture . --project my-project --out checkpoint.json
 ```
 
-Run the repository checks from a clean checkout:
+Verify a checkpoint:
 
 ```bash
-python -m pip install pytest pyyaml
+bod verify checkpoint.json --portable
+python scripts/independent_verify.py checkpoint.json
+```
+
+Verify a chain:
+
+```bash
+bod verify chain.json --portable
+python scripts/independent_verify.py chain.json --chain
+```
+
+Run the full public checks:
+
+```bash
 python scripts/validate_public_surface.py
 python -m pytest -q
 ```
 
-Full walkthrough: [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
+See [Getting Started](docs/GETTING_STARTED.md) for the complete walkthrough.
 
-## Architecture
+## Architecture and standards
 
-| Layer | Responsibility | Current implementation |
+BOD is intended to compose with established components:
+
+| Concern | Existing ecosystem | BOD responsibility |
 |---|---|---|
-| State | deterministic project snapshot | `bod snapshot` |
-| Evidence | versioned durable envelope | Evidence Envelope v0.1 |
-| Verification | integrity + lineage + adversarial checks | Python reference verifier |
-| Provenance | references to external evidence | digest-only evidence records |
-| Anchor | independent external checkpoint | experimental Arbitrum path |
-| Recovery | fresh-runtime reconstruction | executable recovery experiments |
-| Economics | service-backed token policy | **separate, not final** |
+| Source history | Git | Consume tracked project state |
+| Build provenance | SLSA, in-toto | Bind references and digests |
+| Signing and transparency | Sigstore, Rekor | Reference external evidence |
+| Software inventory | CycloneDX, SPDX | Bind inventory references |
+| State commitments | Hashes and Merkle structures | Define deterministic project-state roots |
+| Longitudinal continuity | Project-specific workflows | Link successive state commitments |
+| Independent verification | Existing verifier implementations | Verify portable BOD records |
 
-**BOD protocol validity is not the same thing as blockchain consensus, and a successful testnet transaction is not a production-security claim.**
+The proposed differentiator is the continuity relationship across state commitments, evidence references and portable verification—not hashing, signing, provenance or blockchain inclusion in isolation.
 
-## Technology strategy
+## Development priorities
 
-BOD composes mature technologies rather than rebuilding them:
+I am keeping the public engineering scope focused on four measurable priorities:
 
-- Git and content hashing for source identity;
-- deterministic canonical serialization for durable commitments;
-- SLSA/in-toto for provenance semantics;
-- CycloneDX for software inventory;
-- Sigstore/Rekor for transparency evidence;
-- EVM networks for independent external anchoring;
-- public or self-hosted CI for reproducible verification.
+1. Make the implementation, specifications and CLI behavior agree exactly.
+2. Strengthen reproducibility, supported-version testing and supply-chain hygiene.
+3. Publish adversarial test cases and clear verification boundaries.
+4. Validate whether independent engineering teams gain measurable value over their existing Git and provenance workflows.
 
-The differentiating layer is the **continuity relationship** between state, evidence, lineage, external anchoring and fresh-runtime recovery.
-
-## Cost strategy
-
-The development stack is intentionally close to zero incremental infrastructure cost:
-
-1. local deterministic verification is free;
-2. public CI executes the open-source test surface;
-3. a self-hosted runner can execute heavier experiments on existing hardware;
-4. external testnet anchors use test assets;
-5. production anchoring is optional and costed separately.
-
-## Security model
-
-BOD v0.1 is experimental. It does not claim production consensus security, censorship resistance, availability of external evidence, correctness of upstream evidence producers, economic finality, or that EVM inclusion makes a BOD transition valid.
-
-See [SECURITY.md](SECURITY.md).
-
-## Project status
-
-**Experimental / public engineering release**
-
-BOD is not a production blockchain and does not claim a solved native consensus mechanism. See [the public roadmap](docs/ROADMAP.md) for evidence-gated milestones and [the project status](docs/PROJECT_STATUS.md) for the current verification boundary.
-
-Implemented:
-
-- deterministic state commitments;
-- Evidence Envelope v0.1;
-- canonical evidence ordering;
-- self-verifying envelope IDs;
-- predecessor-linked state history;
-- adversarial lineage verification;
-- local CLI;
-- reproducible test suite;
-- experimental external-anchor integration.
-
-Still gated:
-
-- production economic policy;
-- production token launch;
-- native BOD network;
-- production security audit.
+Progress is evidence-gated. The [public roadmap](docs/ROADMAP.md) records the validation gates; it does not promise delivery dates or production readiness.
 
 ## Repository map
 
 ```text
+src/          Python reference implementation and CLI
+scripts/      independent verifier and public validation tools
+tests/        executable regression and adversarial checks
 protocol/     protocol and chain-facing specifications
-src/          reference implementation and CLI
-tests/        executable verification
-docs/         product and architecture documentation
+docs/         product scope, status, roadmap and threat model
+experiments/  reproducible engineering experiments
+research/     public design records and research notes
 economics/    experimental economic model
-experiments/ reproducible falsification work
-research/     public research and decision records
-scripts/      validation and experiment runners
 ```
 
-## Design principle
+## Contributing and security
 
-> **Don't market the blockchain. Market the experiment.**
-
-Every important claim should be backed by code, a reproducible experiment, an explicit invariant or independently verifiable evidence.
+Reproducible counterexamples, missing invariants, implementation issues and comparison results are welcome. See [Contributing](CONTRIBUTING.md) and [Security](SECURITY.md).
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
-## Critical trust boundary
-
-BOD does **not** claim that a hash proves a statement is true.
-
-```
-VALID_INTEGRITY
-    !=
-SEMANTIC TRUTH
-    !=
-AVAILABILITY
-    !=
-EXTERNAL FINALITY
-```
-
-A `VALID_INTEGRITY` result means the declared bytes, commitments and lineage satisfy the verifier. It does not certify the correctness of the underlying claim, the honesty of the producer, or the availability of the referenced evidence.
-
-BOD deliberately composes existing standards instead of replacing them:
-
-- SLSA/in-toto: build/source provenance;
-- Sigstore/Rekor: signatures and transparency;
-- CycloneDX/SPDX: software inventory;
-- Git: source history.
-
-BOD's product hypothesis is narrower: **portable continuity across successive project states and independent reconstruction of that continuity after the original runtime disappears.**
-
-See [Why BOD Exists](docs/WHY_BOD_v0.1.md) and [Threat Model](docs/THREAT_MODEL_v0.1.md).
-
-## Independent verification
-
-The repository contains a second verifier that does not import the BOD implementation:
-
-```bash
-python scripts/independent_verify.py envelope.json
-python scripts/independent_verify.py chain.json --chain
-```
-
-This is an explicit defense against implementation self-confirmation.
+MIT. See [LICENSE](LICENSE).

@@ -1,14 +1,14 @@
 # Blockchain-BOD Protocol Architecture v0.1
 
-Status: proposed architecture baseline
+Status: proposed future architecture; not a description of a production network.
 
 ## 1. Objective
 
-Build a public blockchain whose canonical state changes through a verifiable state-transition pipeline:
+The long-term architecture explores a public blockchain whose canonical state changes through a verifiable state-transition pipeline:
 
     Candidate -> Verification -> Arbitration -> Canonical State
 
-The architecture is derived from the Canonical Architecture adaptation in docs/CANONICAL_ARCHITECTURE_ADAPTED_v0.1.md.
+This document records a proposed architecture baseline. The current public implementation is an experimental Python continuity prototype with an EVM testnet adapter; it does not implement the complete network described here.
 
 ## 2. Layers
 
@@ -188,9 +188,9 @@ An initial EVM/Arbitrum adapter is permitted without making Arbitrum part of the
 The Task-to-Settlement object model is a v0.1 specification baseline. Canonical serialization, executable state transitions, signature implementation and adapter contracts remain implementation work.
 
 
-## 11. Arbitrum adapter v0.1
+## 12. Arbitrum adapter v0.1
 
-The first chain-facing adapter is implemented at protocol/arbitrum/BODProtocolAdapterV0_1.sol.
+An experimental chain-facing adapter is present at protocol/arbitrum/BODProtocolAdapterV0_1.sol. It is not production-audited and must not be used to secure production value. See the [public roadmap](../docs/ROADMAP.md) for unresolved contract-review gates.
 
 It stores only protocol-significant state:
 

@@ -10,3 +10,5 @@ build/
 coverage.xml
 htmlcov/
 .DS_Store
+
+node_modules/

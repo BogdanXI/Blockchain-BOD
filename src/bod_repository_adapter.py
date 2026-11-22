@@ -85,7 +85,7 @@ def _tracked_paths(repository_root: Path) -> tuple[str, ...]:
 def _hash_tracked_entry(repository_root: Path, relative_path: str) -> tuple[str, bytes]:
     path = repository_root / relative_path
     try:
-        stat_result = path.lstat()
+        path.lstat()
     except FileNotFoundError:
         marker = b"missing\0" + relative_path.encode("utf-8")
         return "missing", marker

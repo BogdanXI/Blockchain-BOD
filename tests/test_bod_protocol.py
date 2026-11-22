@@ -1,4 +1,3 @@
-import hmac
 import pytest
 
 from src.bod_protocol import (

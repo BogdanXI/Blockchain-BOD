@@ -3,7 +3,6 @@ import pytest
 from src.bod_economy import (
     MAX_SUPPLY,
     EconomicError,
-    State,
     Transition,
     Vesting,
     apply,

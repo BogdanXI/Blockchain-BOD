@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import re
+import stat
 import subprocess
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 try:
@@ -32,7 +35,23 @@ def repository_snapshot(root: Path) -> dict[str, Any]:
     entries = []
     for rel in sorted(files, key=lambda p: p.as_posix()):
         path = root / rel
-        entries.append({"path": rel.as_posix(), "sha256": sha256_bytes(path.read_bytes()), "size": path.stat().st_size})
+        try:
+            metadata = path.lstat()
+        except FileNotFoundError as exc:
+            raise EvidenceEnvelopeError(f"tracked path is missing from the working tree: {rel.as_posix()}") from exc
+
+        if stat.S_ISLNK(metadata.st_mode):
+            payload = os.fsencode(os.readlink(path))
+        elif stat.S_ISREG(metadata.st_mode):
+            payload = path.read_bytes()
+        else:
+            raise EvidenceEnvelopeError(f"tracked path is not a regular file or symlink: {rel.as_posix()}")
+
+        entries.append({
+            "path": rel.as_posix(),
+            "sha256": sha256_bytes(payload),
+            "size": len(payload),
+        })
     durable = {"schema": SNAPSHOT_SCHEMA, "files": entries}
     return {**durable, "state_root": sha256_bytes(SNAPSHOT_DOMAIN + canonical_json(durable))}
 
@@ -42,18 +61,36 @@ def verify_snapshot(snapshot: dict[str, Any]) -> None:
         raise EvidenceEnvelopeError("invalid repository snapshot")
     if snapshot["schema"] != SNAPSHOT_SCHEMA or not isinstance(snapshot["files"], list):
         raise EvidenceEnvelopeError("unsupported repository snapshot schema")
-    seen = set()
+    if not isinstance(snapshot["state_root"], str) or not re.fullmatch(r"[0-9a-f]{64}", snapshot["state_root"]):
+        raise EvidenceEnvelopeError("invalid snapshot state_root")
+
+    previous_path: str | None = None
     for item in snapshot["files"]:
         if not isinstance(item, dict) or set(item) != {"path", "sha256", "size"}:
             raise EvidenceEnvelopeError("invalid snapshot file entry")
-        if not isinstance(item["path"], str) or not item["path"] or item["path"] in seen:
-            raise EvidenceEnvelopeError("invalid or duplicate snapshot path")
-        seen.add(item["path"])
+
+        relative = item["path"]
+        if not isinstance(relative, str) or not relative or chr(92) in relative or chr(0) in relative:
+            raise EvidenceEnvelopeError("invalid snapshot path")
+        portable_path = PurePosixPath(relative)
+        if (
+            portable_path.is_absolute()
+            or not portable_path.parts
+            or portable_path.as_posix() != relative
+            or any(part in {".", ".."} for part in portable_path.parts)
+            or portable_path.parts[0].endswith(":")
+        ):
+            raise EvidenceEnvelopeError("snapshot path is not a normalized relative path")
+        if previous_path is not None and relative <= previous_path:
+            raise EvidenceEnvelopeError("snapshot paths must be unique and sorted")
+        previous_path = relative
+
         digest = item["sha256"]
-        if not isinstance(digest, str) or len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
+        if not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest):
             raise EvidenceEnvelopeError("invalid snapshot file digest")
-        if not isinstance(item["size"], int) or item["size"] < 0:
+        if type(item["size"]) is not int or item["size"] < 0:
             raise EvidenceEnvelopeError("invalid snapshot file size")
+
     durable = {"schema": snapshot["schema"], "files": snapshot["files"]}
     expected = sha256_bytes(SNAPSHOT_DOMAIN + canonical_json(durable))
     if expected != snapshot["state_root"]:

@@ -1,67 +1,108 @@
 # Public Roadmap
 
-The project advances by evidence, not dates. This roadmap describes plans, not guarantees.
+The roadmap is evidence-gated. Status labels describe the public repository as it exists today; planned work is not a delivery promise.
 
 ## 1. Portable continuity core
 
-**Status: implemented; regression-gated.**
+**Status: implemented; hardening in progress.**
 
-- Deterministic repository snapshots.
-- Versioned evidence envelopes and predecessor links.
-- Independent verification and portable checkpoints.
-- Fresh-process recovery and tamper-rejection tests.
+- Deterministic snapshots of Git-tracked working-tree files.
+- Versioned Evidence Envelope v0.1.
+- Predecessor-linked state history and lineage checks.
+- Portable checkpoint serialization.
+- Reference and independent verification paths.
+- CLI and regression tests.
 
-Gate: implementation, tests, independent verifier, and passing CI for the reviewed commit.
+**Boundary:** checkpoints currently contain file paths, digests and sizes, not source payloads. Verification is not file restoration.
 
-## 2. Independent review
+**Gate:** strict canonical-input validation, reference/independent verifier parity, clean-install tests and green CI for the reviewed commit.
+
+## 2. Reproducible engineering and supply-chain hygiene
 
 **Status: in progress.**
 
-- Document trust assumptions and known limits.
-- Reproduce verification from a clean checkout.
-- Invite external technical review and track findings.
+- Test the supported Python versions in CI.
+- Pin GitHub Actions to immutable commit SHAs.
+- Declare test dependencies in project metadata.
+- Check public files for private workspace material and high-confidence credential formats.
+- Keep the public documentation aligned with executable behavior.
 
-Gate: current CI green and review findings triaged.
+**Gate:** clean-checkout installation, full test suite, CLI smoke test and dependency consistency checks pass in CI.
 
-## 3. Product-value experiment
+## 3. Independent technical review
+
+**Status: not yet completed.**
+
+- Review canonical serialization and commitment boundaries.
+- Compare reference and independent verifier behavior on shared positive and negative vectors.
+- Review lineage, replay and fork handling.
+- Review snapshot path semantics and portability.
+- Review the Solidity adapter separately from the Python continuity core.
+- Publish findings, severity, affected commit, reproduction steps and remediation status.
+
+**Gate:** an external reviewer can reproduce the findings and verify the fixes against a named commit.
+
+## 4. Product-value experiment
 
 **Status: planned.**
 
-Compare recovery from BOD checkpoints with a baseline using Git and existing provenance tools. Measure recovery correctness, missing context, time to resume, and verification failures. Publish reproducible methods and privacy-safe results, including negative results.
+Compare a BOD checkpoint workflow with a baseline using Git and established provenance/signing tools. Measure:
 
-Gate: an independent reviewer can reproduce the experiment.
+- time to verify the recorded state and lineage;
+- ability to identify missing, modified or disconnected evidence;
+- effort required to resume work in a clean runtime;
+- additional operational complexity and storage cost.
 
-## 4. Arbitrum testnet integration
+Publish the method, baseline, raw reproducible artifacts and negative results. Do not claim differentiation unless the experiment supports it.
+
+**Gate:** an independent engineering team can reproduce the comparison and confirm a material benefit.
+
+## 5. Payload availability and actual restoration
+
+**Status: not implemented.**
+
+The current repository snapshot records metadata and digests. It does not retain source payloads. A future restoration capability would require an explicit payload-storage or retrieval design, integrity checks, access control, retention policy and tests for missing or unavailable objects.
+
+**Gate:** a documented threat model and reproducible restore test across clean environments. Do not describe the current checkpoint format as a backup.
+
+## 6. Arbitrum testnet integration
 
 **Status: experimental.**
 
-- Treat EVM anchoring as optional infrastructure, not BOD consensus.
-- Complete the test-only custom gas-token creation path before L3 genesis.
-- Measure execution and parent-chain data-posting costs separately.
-- Test bridge and fee-pricer configuration.
-- Keep production token decisions behind separate review gates.
+- Keep external anchoring optional.
+- Treat chain inclusion as an external witness, not protocol validity or consensus.
+- Publish deterministic test vectors and verify stored commitments.
+- Compile all public Solidity sources in CI with a pinned compiler and locked Node dependencies.
+- Separate testnet observations from production cost or security claims.
 
-Gate: deterministic integration tests, testnet evidence, and a documented cost model. Testnet success is not production readiness.
+Before any deployment involving value, the Solidity lifecycle needs additional review. Current review targets include unrestricted and repeatable verification-root writes, and the handling of bonds belonging to candidates that are not selected when a task settles. These are unresolved design issues, not production guarantees.
 
-## 5. Canonicality review
+**Gate:** behavioral contract tests, explicit authorization and settlement invariants, independent Solidity review, and reproducible testnet evidence. Compilation alone is not behavioral validation.
 
-**Status: blocking for production claims.**
-
-Specify transition authority and conflict handling; distinguish validity, acceptance, and canonicality; obtain independent review; resolve critical findings with evidence.
-
-## 6. Production decision
+## 7. Production decision
 
 **Status: not started.**
 
-Requires a clear user value proposition, security and operational review, recovery and availability expectations, measured sustainable costs, key-management procedures, and relevant legal review.
+A production decision requires:
+
+- independently validated user demand;
+- a narrow product boundary and measurable value proposition;
+- external security review;
+- defined transition authority and conflict handling;
+- payload availability and recovery expectations;
+- operational and key-management procedures;
+- measured sustainable costs;
+- legal and economic review where applicable.
 
 ## Explicit non-goals
 
-- Hashes do not prove semantic truth.
-- A testnet adapter does not implement native BOD consensus.
-- Experimental economic values are not final monetary policy.
-- No production token or network is claimed.
+- A hash does not prove semantic truth.
+- A portable checkpoint is not currently a source-code backup.
+- An EVM anchor does not implement BOD consensus.
+- A testnet transaction is not production-security evidence.
+- Experimental economic parameters are not final monetary policy.
+- No production token or native BOD network is claimed.
 
 ## Contribute
 
-Submit reproducible counterexamples, missing invariants, security concerns, or comparisons with existing tools. See [Contributing](../CONTRIBUTING.md) and [Security](../SECURITY.md).
+Reproducible counterexamples, missing invariants, security findings and independent comparisons are welcome. See [Contributing](../CONTRIBUTING.md) and [Security](../SECURITY.md).

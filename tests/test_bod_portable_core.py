@@ -1,4 +1,6 @@
+import hashlib
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -6,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from bod_evidence_envelope import EvidenceEnvelopeError, create_evidence_envelope
-from bod_portable import create_portable_checkpoint, parse_portable, repository_snapshot
+from bod_portable import create_portable_checkpoint, parse_portable, repository_snapshot, verify_snapshot
 
 
 def test_capture_verify_recover_cli(tmp_path):
@@ -26,7 +28,7 @@ def test_capture_verify_recover_cli(tmp_path):
         capture_output=True, text=True, check=False,
     )
     assert recover.returncode == 0, recover.stdout + recover.stderr
-    assert json.loads(recover.stdout)["status"] == "RECOVERY_VERIFIED"
+    assert json.loads(recover.stdout)["status"] == "CHECKPOINT_VERIFIED"
 
 
 def test_portable_checkpoint_binds_snapshot_and_envelope():
@@ -56,3 +58,58 @@ def test_cli_rejects_mutation(tmp_path):
         capture_output=True, text=True, check=False,
     )
     assert verify.returncode != 0
+
+
+
+def test_demo_reports_verified_portable_checkpoint():
+    demo = subprocess.run(
+        [sys.executable, "-m", "src.bod_cli", "demo", "."],
+        capture_output=True, text=True, check=False,
+    )
+    assert demo.returncode == 0, demo.stdout + demo.stderr
+    result = json.loads(demo.stdout)
+    assert result["status"] == "PASS"
+    assert result["verification"] == "VALID_INTEGRITY"
+    assert result["portable_checkpoints"] == 1
+    assert result["source_payloads"] == "NOT_INCLUDED"
+
+
+
+def test_snapshot_rejects_unsafe_paths_and_noncanonical_entries():
+    snapshot = repository_snapshot(Path("."))
+    unsafe = json.loads(json.dumps(snapshot))
+    unsafe["files"][0]["path"] = "../outside"
+    with pytest.raises(EvidenceEnvelopeError):
+        verify_snapshot(unsafe)
+
+    boolean_size = json.loads(json.dumps(snapshot))
+    boolean_size["files"][0]["size"] = True
+    with pytest.raises(EvidenceEnvelopeError):
+        verify_snapshot(boolean_size)
+
+    unsorted = json.loads(json.dumps(snapshot))
+    unsorted["files"] = list(reversed(unsorted["files"]))
+    with pytest.raises(EvidenceEnvelopeError):
+        verify_snapshot(unsorted)
+
+
+
+def test_snapshot_hashes_symlink_target_not_external_file_contents(tmp_path):
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    external_file = tmp_path / "outside.txt"
+    external_file.write_text("external payload must not be read", encoding="utf-8")
+    link = repository / "linked.txt"
+    link.symlink_to(external_file)
+
+    subprocess.run(["git", "-C", str(repository), "init"], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(repository), "add", "--", "linked.txt"], check=True, capture_output=True)
+
+    snapshot = repository_snapshot(repository)
+    entry = snapshot["files"][0]
+    link_target = os.fsencode(os.readlink(link))
+
+    assert entry["path"] == "linked.txt"
+    assert entry["sha256"] == hashlib.sha256(link_target).hexdigest()
+    assert entry["size"] == len(link_target)
+    assert entry["sha256"] != hashlib.sha256(external_file.read_bytes()).hexdigest()

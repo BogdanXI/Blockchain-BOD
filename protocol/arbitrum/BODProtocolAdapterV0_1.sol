@@ -2,17 +2,26 @@
 pragma solidity ^0.8.24;
 
 interface IERC20Like {
+    function balanceOf(address account) external view returns (uint256);
     function transfer(address to, uint256 amount) external returns (bool);
     function transferFrom(address from, address to, uint256 amount) external returns (bool);
 }
 
 /// @notice Minimal EVM adapter for BOD Protocol v0.1.
-/// Project/evidence payloads remain off-chain; only protocol commitments and locked
-/// BOD accounting are represented here. Consensus/arbitration is injected through
-/// settlementAuthority and is not defined by this adapter.
+/// @dev Project and evidence payloads remain off-chain. This adapter records commitments
+/// and token accounting only. settlementAuthority is a trusted verification and
+/// arbitration boundary; this contract does not independently validate evidence.
 contract BODProtocolAdapterV0_1 {
-    enum TaskStatus { OPEN, SETTLED }
-    enum CandidateStatus { SUBMITTED, SELECTED, REJECTED }
+    enum TaskStatus {
+        OPEN,
+        SETTLED
+    }
+
+    enum CandidateStatus {
+        SUBMITTED,
+        SELECTED,
+        REJECTED
+    }
 
     struct Task {
         address requester;
@@ -53,6 +62,8 @@ contract BODProtocolAdapterV0_1 {
     address public immutable settlementAuthority;
     bytes32 public currentStateRoot;
 
+    uint256 private _entered = 1;
+
     mapping(bytes32 => Task) public tasks;
     mapping(bytes32 => Candidate) public candidates;
     mapping(bytes32 => bytes32) public verificationRoots;
@@ -65,81 +76,214 @@ contract BODProtocolAdapterV0_1 {
     error InvalidAmount();
     error InvalidDeadline();
     error TaskNotOpen();
+    error TaskNotSettled();
     error CandidateNotSubmitted();
     error VerificationMissing();
     error UnauthorizedSettlement();
     error InvalidStateRoot();
     error EconomicOutcomeMismatch();
     error TokenTransferFailed();
+    error InvalidToken();
+    error ZeroCommitment();
+    error ReentrantCall();
 
-    event TaskCreated(bytes32 indexed taskId, address indexed requester, bytes32 indexed parentStateRoot,
-        uint256 rewardAmount, uint256 deadline, bytes32 taskSpecHash, bytes32 acceptancePolicyHash);
-    event CandidateSubmitted(bytes32 indexed candidateId, bytes32 indexed taskId, address indexed executor,
-        bytes32 parentStateRoot, bytes32 candidateStateRoot, bytes32 evidenceRoot, uint256 bondAmount);
+    event TaskCreated(
+        bytes32 indexed taskId,
+        address indexed requester,
+        bytes32 indexed parentStateRoot,
+        uint256 rewardAmount,
+        uint256 deadline,
+        bytes32 taskSpecHash,
+        bytes32 acceptancePolicyHash
+    );
+    event CandidateSubmitted(
+        bytes32 indexed candidateId,
+        bytes32 indexed taskId,
+        address indexed executor,
+        bytes32 parentStateRoot,
+        bytes32 candidateStateRoot,
+        bytes32 evidenceRoot,
+        uint256 bondAmount
+    );
     event EvidenceRootCommitted(bytes32 indexed candidateId, bytes32 indexed evidenceRoot);
     event VerificationRootCommitted(bytes32 indexed candidateId, bytes32 indexed verificationRoot);
-    event SettlementExecuted(bytes32 indexed settlementId, bytes32 indexed taskId, bytes32 indexed selectedCandidateId,
-        bytes32 parentStateRoot, bytes32 candidateStateRoot, bytes32 evidenceRoot, bytes32 verificationRoot,
-        bytes32 newStateRoot, bytes32 economicOutcomeHash, uint256 rewardPaid, uint256 bondReturned, uint256 bondSlashed);
+    event CandidateBondResolved(
+        bytes32 indexed candidateId,
+        bytes32 indexed taskId,
+        address indexed recipient,
+        uint256 amount,
+        bool slashed
+    );
+    event SettlementExecuted(
+        bytes32 indexed settlementId,
+        bytes32 indexed taskId,
+        bytes32 indexed selectedCandidateId,
+        bytes32 parentStateRoot,
+        bytes32 candidateStateRoot,
+        bytes32 evidenceRoot,
+        bytes32 verificationRoot,
+        bytes32 newStateRoot,
+        bytes32 economicOutcomeHash,
+        uint256 rewardPaid,
+        uint256 bondReturned,
+        uint256 bondSlashed
+    );
+
+    modifier nonReentrant() {
+        if (_entered != 1) revert ReentrantCall();
+        _entered = 2;
+        _;
+        _entered = 1;
+    }
 
     constructor(IERC20Like token, address authority, bytes32 initialStateRoot) {
-        if (address(token) == address(0) || authority == address(0) || initialStateRoot == bytes32(0)) {
+        if (address(token) == address(0) || address(token).code.length == 0) {
+            revert InvalidToken();
+        }
+        if (authority == address(0) || initialStateRoot == bytes32(0)) {
             revert InvalidStateRoot();
         }
+
         bodToken = token;
         settlementAuthority = authority;
         currentStateRoot = initialStateRoot;
     }
 
-    function createTask(bytes32 taskId, bytes32 parentStateRoot, bytes32 taskSpecHash,
-        bytes32 acceptancePolicyHash, uint256 rewardAmount, uint256 deadline) external {
+    function createTask(
+        bytes32 taskId,
+        bytes32 parentStateRoot,
+        bytes32 taskSpecHash,
+        bytes32 acceptancePolicyHash,
+        uint256 rewardAmount,
+        uint256 deadline
+    ) external nonReentrant {
+        if (
+            taskId == bytes32(0) ||
+            taskSpecHash == bytes32(0) ||
+            acceptancePolicyHash == bytes32(0)
+        ) revert ZeroCommitment();
         if (tasks[taskId].requester != address(0)) revert AlreadyExists();
         if (parentStateRoot != currentStateRoot) revert InvalidParent();
         if (rewardAmount == 0) revert InvalidAmount();
         if (deadline <= block.timestamp) revert InvalidDeadline();
 
         _pull(msg.sender, rewardAmount);
-        tasks[taskId] = Task(msg.sender, parentStateRoot, taskSpecHash, acceptancePolicyHash,
-            rewardAmount, deadline, TaskStatus.OPEN);
-        emit TaskCreated(taskId, msg.sender, parentStateRoot, rewardAmount, deadline, taskSpecHash, acceptancePolicyHash);
+        tasks[taskId] = Task(
+            msg.sender,
+            parentStateRoot,
+            taskSpecHash,
+            acceptancePolicyHash,
+            rewardAmount,
+            deadline,
+            TaskStatus.OPEN
+        );
+
+        emit TaskCreated(
+            taskId,
+            msg.sender,
+            parentStateRoot,
+            rewardAmount,
+            deadline,
+            taskSpecHash,
+            acceptancePolicyHash
+        );
     }
 
-    function submitCandidate(bytes32 candidateId, bytes32 taskId, bytes32 parentStateRoot,
-        bytes32 candidateStateRoot, bytes32 resultArtifactHash, bytes32 executionManifestHash,
-        bytes32 evidenceRoot, uint256 bondAmount) external {
+    function submitCandidate(
+        bytes32 candidateId,
+        bytes32 taskId,
+        bytes32 parentStateRoot,
+        bytes32 candidateStateRoot,
+        bytes32 resultArtifactHash,
+        bytes32 executionManifestHash,
+        bytes32 evidenceRoot,
+        uint256 bondAmount
+    ) external nonReentrant {
+        if (
+            candidateId == bytes32(0) ||
+            resultArtifactHash == bytes32(0) ||
+            executionManifestHash == bytes32(0)
+        ) revert ZeroCommitment();
+
         Task storage task = tasks[taskId];
         if (task.requester == address(0)) revert UnknownTask();
         if (task.status != TaskStatus.OPEN) revert TaskNotOpen();
         if (block.timestamp > task.deadline) revert InvalidDeadline();
-        if (parentStateRoot != task.parentStateRoot || parentStateRoot != currentStateRoot) revert InvalidParent();
-        if (candidateStateRoot == bytes32(0) || evidenceRoot == bytes32(0)) revert InvalidStateRoot();
+        if (parentStateRoot != task.parentStateRoot || parentStateRoot != currentStateRoot) {
+            revert InvalidParent();
+        }
+        if (candidateStateRoot == bytes32(0) || evidenceRoot == bytes32(0)) {
+            revert InvalidStateRoot();
+        }
         if (bondAmount == 0) revert InvalidAmount();
         if (candidates[candidateId].executor != address(0)) revert AlreadyExists();
 
         _pull(msg.sender, bondAmount);
-        candidates[candidateId] = Candidate(msg.sender, taskId, parentStateRoot, candidateStateRoot,
-            resultArtifactHash, executionManifestHash, evidenceRoot, bondAmount, CandidateStatus.SUBMITTED);
-        emit CandidateSubmitted(candidateId, taskId, msg.sender, parentStateRoot, candidateStateRoot, evidenceRoot, bondAmount);
+        candidates[candidateId] = Candidate(
+            msg.sender,
+            taskId,
+            parentStateRoot,
+            candidateStateRoot,
+            resultArtifactHash,
+            executionManifestHash,
+            evidenceRoot,
+            bondAmount,
+            CandidateStatus.SUBMITTED
+        );
+
+        emit CandidateSubmitted(
+            candidateId,
+            taskId,
+            msg.sender,
+            parentStateRoot,
+            candidateStateRoot,
+            evidenceRoot,
+            bondAmount
+        );
         emit EvidenceRootCommitted(candidateId, evidenceRoot);
     }
 
-    /// @notice Records a verification commitment; validity and verifier economics remain off-chain policy.
-    function commitVerificationRoot(bytes32 candidateId, bytes32 verificationRoot) external {
+    /// @notice Records one immutable verification commitment from the trusted authority.
+    /// @dev The root is an attestation input, not proof of semantic validity.
+    function commitVerificationRoot(
+        bytes32 candidateId,
+        bytes32 verificationRoot
+    ) external nonReentrant {
+        if (msg.sender != settlementAuthority) revert UnauthorizedSettlement();
+
         Candidate storage candidate = candidates[candidateId];
         if (candidate.executor == address(0)) revert UnknownCandidate();
         if (candidate.status != CandidateStatus.SUBMITTED) revert CandidateNotSubmitted();
+        if (tasks[candidate.taskId].status != TaskStatus.OPEN) revert TaskNotOpen();
         if (verificationRoot == bytes32(0)) revert InvalidStateRoot();
+        if (verificationRoots[candidateId] != bytes32(0)) revert AlreadyExists();
+
         verificationRoots[candidateId] = verificationRoot;
         emit VerificationRootCommitted(candidateId, verificationRoot);
     }
 
-    /// @notice Applies an authorized settlement and conserves locked reward/bond balances.
-    /// settlementAuthority is the explicit arbitration/consensus adapter boundary.
-    function settle(bytes32 settlementId, bytes32 taskId, bytes32 selectedCandidateId,
-        bytes32 settlementPolicyHash, bytes32 economicOutcomeHash, bytes32 newStateRoot,
-        uint256 settlementEpoch, uint256 rewardPaid, uint256 bondReturned, uint256 bondSlashed,
-        address rewardRecipient, address bondReturnRecipient, address bondSlashRecipient) external {
+    /// @notice Applies an authorized settlement and conserves reward and selected-bond balances.
+    function settle(
+        bytes32 settlementId,
+        bytes32 taskId,
+        bytes32 selectedCandidateId,
+        bytes32 settlementPolicyHash,
+        bytes32 economicOutcomeHash,
+        bytes32 newStateRoot,
+        uint256 settlementEpoch,
+        uint256 rewardPaid,
+        uint256 bondReturned,
+        uint256 bondSlashed,
+        address rewardRecipient,
+        address bondReturnRecipient,
+        address bondSlashRecipient
+    ) external nonReentrant {
         if (msg.sender != settlementAuthority) revert UnauthorizedSettlement();
+        if (
+            settlementId == bytes32(0) ||
+            settlementPolicyHash == bytes32(0) ||
+            economicOutcomeHash == bytes32(0)
+        ) revert ZeroCommitment();
         if (settlements[settlementId].taskId != bytes32(0)) revert AlreadyExists();
         if (newStateRoot == bytes32(0)) revert InvalidStateRoot();
 
@@ -154,49 +298,141 @@ contract BODProtocolAdapterV0_1 {
         uint256 bondAmount;
 
         if (selectedCandidateId == bytes32(0)) {
-            if (rewardPaid != task.rewardAmount || bondReturned != 0 || bondSlashed != 0 ||
-                rewardRecipient != task.requester) revert EconomicOutcomeMismatch();
+            if (
+                rewardPaid != task.rewardAmount ||
+                bondReturned != 0 ||
+                bondSlashed != 0 ||
+                rewardRecipient != task.requester
+            ) revert EconomicOutcomeMismatch();
         } else {
             Candidate storage selected = candidates[selectedCandidateId];
-            if (selected.executor == address(0) || selected.taskId != taskId) revert UnknownCandidate();
+            if (selected.executor == address(0) || selected.taskId != taskId) {
+                revert UnknownCandidate();
+            }
             if (selected.status != CandidateStatus.SUBMITTED) revert CandidateNotSubmitted();
             if (selected.parentStateRoot != currentStateRoot) revert InvalidParent();
+
             verificationRoot = verificationRoots[selectedCandidateId];
             if (verificationRoot == bytes32(0)) revert VerificationMissing();
 
             bondAmount = selected.bondAmount;
-            if (rewardPaid != task.rewardAmount || bondReturned + bondSlashed != bondAmount) {
+            if (
+                rewardPaid != task.rewardAmount ||
+                bondReturned + bondSlashed != bondAmount
+            ) revert EconomicOutcomeMismatch();
+            if (rewardPaid != 0 && rewardRecipient == address(0)) {
                 revert EconomicOutcomeMismatch();
             }
-            if (rewardPaid != 0 && rewardRecipient == address(0)) revert EconomicOutcomeMismatch();
-            if (bondReturned != 0 && bondReturnRecipient == address(0)) revert EconomicOutcomeMismatch();
-            if (bondSlashed != 0 && bondSlashRecipient == address(0)) revert EconomicOutcomeMismatch();
+            if (bondReturned != 0 && bondReturnRecipient == address(0)) {
+                revert EconomicOutcomeMismatch();
+            }
+            if (bondSlashed != 0 && bondSlashRecipient == address(0)) {
+                revert EconomicOutcomeMismatch();
+            }
 
             selected.status = CandidateStatus.SELECTED;
+            selected.bondAmount = 0;
             candidateStateRoot = selected.candidateStateRoot;
             evidenceRoot = selected.evidenceRoot;
         }
 
         task.status = TaskStatus.SETTLED;
         currentStateRoot = newStateRoot;
-        settlements[settlementId] = Settlement(taskId, selectedCandidateId, task.parentStateRoot,
-            candidateStateRoot, evidenceRoot, verificationRoot, settlementPolicyHash, economicOutcomeHash,
-            newStateRoot, settlementEpoch);
+        settlements[settlementId] = Settlement(
+            taskId,
+            selectedCandidateId,
+            task.parentStateRoot,
+            candidateStateRoot,
+            evidenceRoot,
+            verificationRoot,
+            settlementPolicyHash,
+            economicOutcomeHash,
+            newStateRoot,
+            settlementEpoch
+        );
 
         if (rewardPaid != 0) _push(rewardRecipient, rewardPaid);
         if (bondReturned != 0) _push(bondReturnRecipient, bondReturned);
         if (bondSlashed != 0) _push(bondSlashRecipient, bondSlashed);
 
-        emit SettlementExecuted(settlementId, taskId, selectedCandidateId, task.parentStateRoot,
-            candidateStateRoot, evidenceRoot, verificationRoot, newStateRoot, economicOutcomeHash,
-            rewardPaid, bondReturned, bondSlashed);
+        emit SettlementExecuted(
+            settlementId,
+            taskId,
+            selectedCandidateId,
+            task.parentStateRoot,
+            candidateStateRoot,
+            evidenceRoot,
+            verificationRoot,
+            newStateRoot,
+            economicOutcomeHash,
+            rewardPaid,
+            bondReturned,
+            bondSlashed
+        );
+    }
+
+    /// @notice Resolves a non-selected candidate's locked bond after task settlement.
+    /// @dev The trusted settlement authority chooses return-to-executor or slashing.
+    function resolveUnselectedCandidateBond(
+        bytes32 candidateId,
+        bool slash,
+        address slashRecipient
+    ) external nonReentrant {
+        if (msg.sender != settlementAuthority) revert UnauthorizedSettlement();
+
+        Candidate storage candidate = candidates[candidateId];
+        if (candidate.executor == address(0)) revert UnknownCandidate();
+
+        Task storage task = tasks[candidate.taskId];
+        if (task.status != TaskStatus.SETTLED) revert TaskNotSettled();
+        if (candidate.status != CandidateStatus.SUBMITTED) revert CandidateNotSubmitted();
+
+        address recipient = slash ? slashRecipient : candidate.executor;
+        if (recipient == address(0) || recipient == address(this)) {
+            revert EconomicOutcomeMismatch();
+        }
+
+        uint256 amount = candidate.bondAmount;
+        candidate.status = CandidateStatus.REJECTED;
+        candidate.bondAmount = 0;
+
+        if (amount != 0) _push(recipient, amount);
+
+        emit CandidateBondResolved(
+            candidateId,
+            candidate.taskId,
+            recipient,
+            amount,
+            slash
+        );
     }
 
     function _pull(address from, uint256 amount) internal {
-        if (!bodToken.transferFrom(from, address(this), amount)) revert TokenTransferFailed();
+        uint256 beforeBalance = bodToken.balanceOf(address(this));
+        if (!bodToken.transferFrom(from, address(this), amount)) {
+            revert TokenTransferFailed();
+        }
+        uint256 afterBalance = bodToken.balanceOf(address(this));
+        if (afterBalance < beforeBalance || afterBalance - beforeBalance != amount) {
+            revert TokenTransferFailed();
+        }
     }
 
     function _push(address to, uint256 amount) internal {
+        if (to == address(0) || to == address(this)) revert TokenTransferFailed();
+
+        uint256 beforeContractBalance = bodToken.balanceOf(address(this));
+        uint256 beforeRecipientBalance = bodToken.balanceOf(to);
+
         if (!bodToken.transfer(to, amount)) revert TokenTransferFailed();
+
+        uint256 afterContractBalance = bodToken.balanceOf(address(this));
+        uint256 afterRecipientBalance = bodToken.balanceOf(to);
+        if (
+            beforeContractBalance < afterContractBalance ||
+            beforeContractBalance - afterContractBalance != amount ||
+            afterRecipientBalance < beforeRecipientBalance ||
+            afterRecipientBalance - beforeRecipientBalance != amount
+        ) revert TokenTransferFailed();
     }
 }
