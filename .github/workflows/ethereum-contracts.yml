@@ -7,12 +7,16 @@ on:
       - "protocol/ethereum/**"
       - "test/**"
       - "foundry.toml"
+      - "tools/eas/**"
+      - "package.json"
       - ".github/workflows/ethereum-contracts.yml"
   pull_request:
     paths:
       - "protocol/ethereum/**"
       - "test/**"
       - "foundry.toml"
+      - "tools/eas/**"
+      - "package.json"
       - ".github/workflows/ethereum-contracts.yml"
   workflow_dispatch:
 
