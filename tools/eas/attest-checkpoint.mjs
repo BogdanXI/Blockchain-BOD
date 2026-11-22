@@ -1,0 +1,127 @@
+import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { readFile } from "node:fs/promises";
+import { ethers } from "ethers";
+import { EAS, NO_EXPIRATION, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
+import { BOD_EAS_SCHEMA, EAS_DEPLOYMENTS } from "./schema.mjs";
+
+function canonical(value) {
+  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map(k => `${JSON.stringify(k)}:${canonical(value[k])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function sha256Hex(value) {
+  return "0x" + createHash("sha256").update(value).digest("hex");
+}
+
+const [checkpointPath] = process.argv.slice(2);
+if (!checkpointPath) {
+  throw new Error("Usage: npm run eas:attest-checkpoint -- checkpoint.json");
+}
+
+const rpcUrl = process.env.ETHEREUM_SEPOLIA_RPC_URL;
+const privateKey = process.env.ETHEREUM_SEPOLIA_PRIVATE_KEY;
+const schemaUID = process.env.BOD_EAS_SCHEMA_UID;
+if (!rpcUrl || !privateKey || !schemaUID) {
+  throw new Error("Set ETHEREUM_SEPOLIA_RPC_URL, ETHEREUM_SEPOLIA_PRIVATE_KEY and BOD_EAS_SCHEMA_UID.");
+}
+
+const provider = new ethers.JsonRpcProvider(rpcUrl);
+const network = await provider.getNetwork();
+if (network.chainId !== 11155111n) {
+  throw new Error(`Refusing attestation on chainId ${network.chainId}; expected Ethereum Sepolia (11155111).`);
+}
+
+const checkpoint = JSON.parse(await readFile(checkpointPath, "utf8"));
+if (
+  checkpoint?.schema !== "bod-portable-checkpoint-v0.1" ||
+  !checkpoint.snapshot?.state_root ||
+  !checkpoint.envelope?.project_id ||
+  !checkpoint.checkpoint_id
+) {
+  throw new Error("Input is not a valid BOD portable checkpoint v0.1.");
+}
+
+const sequenceText = process.env.BOD_EAS_SEQUENCE ?? "0";
+if (!/^(0|[1-9][0-9]*)$/.test(sequenceText)) {
+  throw new Error("BOD_EAS_SEQUENCE must be a non-negative integer.");
+}
+const sequence = BigInt(sequenceText);
+if (sequence > (1n << 64n) - 1n) throw new Error("BOD_EAS_SEQUENCE exceeds uint64.");
+
+const parentUID = process.env.BOD_EAS_PARENT_UID ?? ethers.ZeroHash;
+if (!/^0x[0-9a-fA-F]{64}$/.test(parentUID)) {
+  throw new Error("BOD_EAS_PARENT_UID must be a bytes32 EAS attestation UID.");
+}
+if ((sequence === 0n) !== (parentUID === ethers.ZeroHash)) {
+  throw new Error("Genesis requires sequence 0 and zero parent UID; later checkpoints require a parent UID and sequence > 0.");
+}
+
+const gitCommitText = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
+const projectId = ethers.keccak256(ethers.toUtf8Bytes(checkpoint.envelope.project_id));
+const gitCommit = sha256Hex(gitCommitText);
+const stateRoot = "0x" + checkpoint.snapshot.state_root;
+const manifestHash = sha256Hex(canonical(checkpoint));
+const evidenceRoot = sha256Hex(canonical(checkpoint.envelope.evidence));
+const checkpointId = ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(
+  ["bytes32", "uint256", "bytes32", "bytes32", "bytes32", "bytes32", "bytes32", "uint64"],
+  [
+    ethers.id("BOD_EAS_CHECKPOINT_V1"),
+    network.chainId,
+    projectId,
+    gitCommit,
+    stateRoot,
+    manifestHash,
+    evidenceRoot,
+    sequence,
+  ],
+));
+
+const signer = new ethers.Wallet(privateKey, provider);
+const easDeployment = EAS_DEPLOYMENTS[Number(network.chainId)];
+const eas = new EAS(easDeployment.eas);
+eas.connect(signer);
+
+const encoder = new SchemaEncoder(BOD_EAS_SCHEMA);
+const encodedData = encoder.encodeData([
+  { name: "projectId", value: projectId, type: "bytes32" },
+  { name: "checkpointId", value: checkpointId, type: "bytes32" },
+  { name: "gitCommit", value: gitCommit, type: "bytes32" },
+  { name: "stateRoot", value: stateRoot, type: "bytes32" },
+  { name: "manifestHash", value: manifestHash, type: "bytes32" },
+  { name: "evidenceRoot", value: evidenceRoot, type: "bytes32" },
+  { name: "sequence", value: sequence, type: "uint64" },
+]);
+
+const transaction = await eas.attest({
+  schema: schemaUID,
+  data: {
+    recipient: ethers.ZeroAddress,
+    expirationTime: NO_EXPIRATION,
+    revocable: false,
+    refUID: parentUID,
+    data: encodedData,
+  },
+});
+const attestationUID = await transaction.wait();
+
+process.stdout.write(JSON.stringify({
+  status: "EAS_ATTESTATION_CREATED",
+  network: easDeployment.name,
+  chainId: network.chainId.toString(),
+  eas: easDeployment.eas,
+  schemaUID,
+  attestationUID,
+  parentUID,
+  sequence: sequence.toString(),
+  projectId,
+  checkpointId,
+  gitCommit,
+  stateRoot,
+  manifestHash,
+  evidenceRoot,
+  transaction: transaction.tx?.hash ?? null,
+}, null, 2) + "\n");
