@@ -66,7 +66,7 @@ jobs:
         with:
           node-version: "20"
       - name: Install pinned EAS SDK dependencies
-        run: npm install --ignore-scripts --no-package-lock --no-audit --no-fund
+        run: npm install --ignore-scripts --no-audit --no-fund
       - name: Check EAS integration scripts
         run: |
           node --check tools/eas/schema.mjs
