@@ -80,7 +80,7 @@ export BOD_EAS_SEQUENCE="1"
 npm run eas:attest-checkpoint -- checkpoint.json
 ```
 
-The client refuses to send transactions unless the RPC reports Ethereum Sepolia chain ID 11155111. It does not automatically deploy contracts or use mainnet.
+Before sending, the client requires a clean Git working tree and runs the independent BOD portable-checkpoint verifier. For child attestations it reads the parent from EAS and checks its schema, project ID, revocation/expiration status and sequence. The client refuses to send transactions unless the RPC reports Ethereum Sepolia chain ID 11155111. It does not automatically deploy contracts or use mainnet.
 
 ## Verification model
 
