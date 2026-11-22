@@ -35,6 +35,12 @@ if (network.chainId !== 11155111n) {
   throw new Error(`Refusing attestation on chainId ${network.chainId}; expected Ethereum Sepolia (11155111).`);
 }
 
+const gitStatus = execFileSync("git", ["status", "--porcelain"], { encoding: "utf8" }).trim();
+if (gitStatus) {
+  throw new Error("Refusing to attest a dirty checkout. Commit the project state, then capture the checkpoint from that clean commit.");
+}
+execFileSync("python3", ["scripts/independent_verify.py", checkpointPath], { stdio: "inherit" });
+
 const checkpoint = JSON.parse(await readFile(checkpointPath, "utf8"));
 if (
   checkpoint?.schema !== "bod-portable-checkpoint-v0.1" ||
@@ -84,6 +90,23 @@ const signer = new ethers.Wallet(privateKey, provider);
 const easDeployment = EAS_DEPLOYMENTS[Number(network.chainId)];
 const eas = new EAS(easDeployment.eas);
 eas.connect(signer);
+
+if (sequence > 0n) {
+  const parent = await eas.getAttestation(parentUID);
+  if (parent.uid === ethers.ZeroHash) throw new Error("Parent EAS attestation does not exist.");
+  if (parent.schema.toLowerCase() !== schemaUID.toLowerCase()) throw new Error("Parent attestation uses a different schema.");
+  if (BigInt(parent.revocationTime) !== 0n) throw new Error("Parent attestation has been revoked.");
+  if (BigInt(parent.expirationTime) !== 0n && BigInt(parent.expirationTime) <= BigInt(Math.floor(Date.now() / 1000))) {
+    throw new Error("Parent attestation has expired.");
+  }
+  const parentValues = ethers.AbiCoder.defaultAbiCoder().decode(
+    ["bytes32", "bytes32", "bytes32", "bytes32", "bytes32", "bytes32", "uint64"],
+    parent.data
+  );
+  if (parentValues[0].toLowerCase() !== projectId.toLowerCase()) throw new Error("Parent attestation belongs to a different project.");
+  if (BigInt(parentValues[6]) + 1n !== sequence) throw new Error("BOD_EAS_SEQUENCE is not the parent's sequence plus one.");
+  if (sequence === 1n && parent.refUID !== ethers.ZeroHash) throw new Error("Sequence-0 parent must be the genesis attestation.");
+}
 
 const encoder = new SchemaEncoder(BOD_EAS_SCHEMA);
 const encodedData = encoder.encodeData([
