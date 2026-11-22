@@ -6,7 +6,7 @@
 - Added regression coverage for executable-bit changes, symlink mode, invalid modes and legacy snapshot verification.
 - Extended the EAS schema to carry both the EAS-context checkpoint identifier and the portable BOD checkpoint identifier. The client now checks that the supplied checkpoint matches the current clean repository snapshot before submitting an attestation.
 - Updated public documentation, quickstart commands, grant status, roadmap and zero-cost test status to reflect the current implementation and known limitations.
-- Local validation: Python tests, Ruff, public-surface validation, CLI smoke test, recovery experiment, EAS SDK schema-encoding smoke test and npm production dependency audit passed. Foundry is unavailable in the local workstation environment; remote CI for the final commit remains to be checked.
+- Local validation: Python tests, Ruff, public-surface validation, CLI smoke test, recovery experiment, EAS SDK schema-encoding smoke test and npm production dependency audit passed. Foundry is unavailable in the local workstation environment; GitHub Actions run 45046532252 passed all five jobs on commit 3b34baf8e76edbb332fd0b356e005d782de43fcd.
 - No EAS schema registration, wallet signing, Sepolia deployment, mainnet transaction or paid test service was used.
 
 ## 2026-11-22 — Verified evidence bundle extraction

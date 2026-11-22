@@ -52,7 +52,7 @@ These results do not constitute:
 - independent user adoption or product-market fit;
 - an independently reproduced multi-project benchmark.
 
-The latest local code changes require a new remote CI run on the exact final commit. Foundry is not installed in the current workstation environment; the Solidity test job is configured in GitHub Actions and must be checked on the current head.
+GitHub Actions run [45046532252](https://github.com/BogdanXI/Blockchain-BOD/actions/runs/45046532252) passed on commit 3b34baf8e76edbb332fd0b356e005d782de43fcd across Python 3.11, 3.12, 3.13, Foundry Solidity tests and EAS tooling. Foundry is not installed locally, but the remote Solidity job passed. Any subsequent source or workflow changes require another run.
 
 ## 4. Recommended grant framing
 
