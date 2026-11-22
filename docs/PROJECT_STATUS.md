@@ -10,7 +10,7 @@
 
 - deterministic repository snapshots;
 - versioned evidence envelopes and predecessor-linked history;
-- independent verification and portable checkpoint recovery;
+- independent verification and portable checkpoint recovery, including normalized-path checks and symlink-target hashing;
 - Python CLI and regression suite;
 - a permissionless, append-only Ethereum checkpoint registry;
 - Foundry tests for checkpoint creation, lineage validation, duplicate rejection and fork visibility;
