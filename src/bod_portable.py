@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import base64
+import binascii
 import hashlib
 import json
 import os
@@ -10,14 +12,24 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 try:
-    from bod_evidence_envelope import EvidenceEnvelopeError, EvidenceEnvelopeV0_1, verify_lineage_graph
+    from bod_evidence_envelope import (
+        EvidenceEnvelopeError,
+        EvidenceEnvelopeV0_1,
+        verify_lineage_graph,
+    )
 except ImportError:
-    from src.bod_evidence_envelope import EvidenceEnvelopeError, EvidenceEnvelopeV0_1, verify_lineage_graph
+    from src.bod_evidence_envelope import (
+        EvidenceEnvelopeError,
+        EvidenceEnvelopeV0_1,
+        verify_lineage_graph,
+    )
 
 SNAPSHOT_SCHEMA = "bod-repository-snapshot-v0.1"
 PORTABLE_SCHEMA = "bod-portable-checkpoint-v0.1"
+BUNDLE_SCHEMA = "bod-evidence-bundle-v0.1"
 SNAPSHOT_DOMAIN = b"BOD-REPOSITORY-SNAPSHOT-V0.1\0"
 PORTABLE_DOMAIN = b"BOD-PORTABLE-CHECKPOINT-V0.1\0"
+BUNDLE_DOMAIN = b"BOD-EVIDENCE-BUNDLE-V0.1\0"
 
 
 def canonical_json(value: Any) -> bytes:
@@ -143,3 +155,125 @@ def verify_portable_chain(values: list[dict[str, Any]]) -> None:
     graph = verify_portable_graph(values)
     if graph["fork_points"]:
         raise EvidenceEnvelopeError("portable checkpoint chain contains a fork; verify it as a graph")
+
+
+def create_evidence_bundle(
+    *, checkpoint: dict[str, Any], payloads: dict[str, bytes]
+) -> dict[str, Any]:
+    """Create a self-contained bundle for every payload referenced by a checkpoint.
+
+    Keys are lowercase SHA-256 hex digests (without the sha256 prefix).
+    Repository source files are deliberately not included by this format.
+    """
+    _, envelope = parse_portable(checkpoint)
+    references = {item.digest: item for item in envelope.evidence}
+    if len(references) != len(envelope.evidence):
+        raise EvidenceEnvelopeError("one digest cannot have multiple evidence reference descriptors")
+    if set(payloads) != set(references):
+        missing = sorted(set(references) - set(payloads))
+        extra = sorted(set(payloads) - set(references))
+        raise EvidenceEnvelopeError(
+            f"payload set must exactly match checkpoint evidence (missing={missing}, extra={extra})"
+        )
+
+    objects = []
+    for digest in sorted(references):
+        payload = payloads[digest]
+        if not isinstance(payload, bytes):
+            raise EvidenceEnvelopeError("evidence payloads must be bytes")
+        if sha256_bytes(payload) != digest:
+            raise EvidenceEnvelopeError(f"evidence payload digest mismatch: {digest}")
+        objects.append({
+            "digest": f"sha256:{digest}",
+            "media_type": references[digest].media_type,
+            "size": len(payload),
+            "data_base64": base64.b64encode(payload).decode("ascii"),
+        })
+
+    document = {
+        "schema": BUNDLE_SCHEMA,
+        "checkpoint": checkpoint,
+        "objects": objects,
+    }
+    bundle_id = sha256_bytes(BUNDLE_DOMAIN + canonical_json(document))
+    return {**document, "bundle_id": bundle_id}
+
+
+def verify_evidence_bundle(value: Any) -> dict[str, Any]:
+    """Verify bundle integrity and completeness; does not assert evidence truth."""
+    if not isinstance(value, dict) or set(value) != {
+        "schema", "checkpoint", "objects", "bundle_id"
+    }:
+        raise EvidenceEnvelopeError("invalid evidence bundle")
+    if value["schema"] != BUNDLE_SCHEMA:
+        raise EvidenceEnvelopeError("unsupported evidence bundle schema")
+    bundle_id = value["bundle_id"]
+    if not isinstance(bundle_id, str) or not re.fullmatch(r"[0-9a-f]{64}", bundle_id):
+        raise EvidenceEnvelopeError("invalid bundle_id")
+    durable = {
+        "schema": value["schema"],
+        "checkpoint": value["checkpoint"],
+        "objects": value["objects"],
+    }
+    expected_bundle_id = sha256_bytes(BUNDLE_DOMAIN + canonical_json(durable))
+    if bundle_id != expected_bundle_id:
+        raise EvidenceEnvelopeError("bundle_id mismatch")
+
+    _, envelope = parse_portable(value["checkpoint"])
+    references = {item.digest: item for item in envelope.evidence}
+    if len(references) != len(envelope.evidence):
+        raise EvidenceEnvelopeError("one digest cannot have multiple evidence reference descriptors")
+    objects = value["objects"]
+    if not isinstance(objects, list):
+        raise EvidenceEnvelopeError("bundle objects must be a list")
+
+    observed: dict[str, bytes] = {}
+    previous_digest: str | None = None
+    for item in objects:
+        if not isinstance(item, dict) or set(item) != {
+            "digest", "media_type", "size", "data_base64"
+        }:
+            raise EvidenceEnvelopeError("invalid evidence object")
+        digest_value = item["digest"]
+        if not isinstance(digest_value, str) or not digest_value.startswith("sha256:"):
+            raise EvidenceEnvelopeError("invalid evidence object digest")
+        digest = digest_value[7:]
+        if not re.fullmatch(r"[0-9a-f]{64}", digest):
+            raise EvidenceEnvelopeError("invalid evidence object digest")
+        if previous_digest is not None and digest <= previous_digest:
+            raise EvidenceEnvelopeError("evidence objects must be unique and sorted")
+        previous_digest = digest
+        if digest not in references:
+            raise EvidenceEnvelopeError("bundle contains an unreferenced evidence object")
+        if item["media_type"] != references[digest].media_type:
+            raise EvidenceEnvelopeError("evidence object media_type does not match reference")
+        if type(item["size"]) is not int or item["size"] < 0:
+            raise EvidenceEnvelopeError("invalid evidence object size")
+        encoded = item["data_base64"]
+        if not isinstance(encoded, str):
+            raise EvidenceEnvelopeError("evidence object data must be base64 text")
+        try:
+            payload = base64.b64decode(encoded, validate=True)
+        except (binascii.Error, ValueError) as exc:
+            raise EvidenceEnvelopeError("invalid evidence object base64") from exc
+        if len(payload) != item["size"]:
+            raise EvidenceEnvelopeError("evidence object size mismatch")
+        if sha256_bytes(payload) != digest:
+            raise EvidenceEnvelopeError("evidence object digest mismatch")
+        observed[digest] = payload
+
+    if set(observed) != set(references):
+        missing = sorted(set(references) - set(observed))
+        raise EvidenceEnvelopeError(f"bundle is not self-contained; missing evidence payloads: {missing}")
+
+    return {
+        "bundle_id": bundle_id,
+        "checkpoint_id": value["checkpoint"]["checkpoint_id"],
+        "project_id": envelope.project_id,
+        "evidence_objects": len(observed),
+        "payload_bytes": sum(len(payload) for payload in observed.values()),
+        "payloads_complete": True,
+        "semantic_truth": "NOT_ASSERTED",
+        "bundle_authenticity": "NOT_ASSERTED",
+        "repository_source": "NOT_INCLUDED",
+    }

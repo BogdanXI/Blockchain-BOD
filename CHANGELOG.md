@@ -1,9 +1,18 @@
+## 2026-11-22 — Evidence continuity and recovery
+
+- Added experimental Evidence Bundle v0.1 to package every raw evidence payload referenced by one portable checkpoint.
+- Added strict bundle commitment, payload digest, size, media-type and completeness verification.
+- Added a separate independent bundle verifier and CLI commands to create and verify bundles.
+- Documented explicit trust boundaries: payload integrity is checked, semantic truth and format-specific signatures are not asserted, and repository source is not included.
+- Added regression coverage for successful bundle round trips, missing payloads, tampering and independent verification.
+
 ## 2026-11-22 — Ethereum ecosystem track
 
 - Repositioned the public product around Ethereum-anchored software-state continuity and supply-chain evidence interoperability.
 - Added a permissionless append-only Ethereum checkpoint registry with explicit predecessor and sequence validation.
 - Added Foundry tests for genesis, parent validation, duplicate rejection, project isolation and observable forks.
-- Added Ethereum integration, threat-model, market-hypothesis and roadmap documentation.\n- Added an EAS SDK integration path for non-revocable checkpoint attestations with predecessor references and parent checks.
+- Added Ethereum integration, threat-model, market-hypothesis and roadmap documentation.
+- Added an EAS SDK integration path for non-revocable checkpoint attestations with predecessor references and parent checks.
 - Added Ethereum Mainnet and Sepolia fee-policy descriptors using live base-fee inputs rather than a stale hard-coded floor.
 - Retained the Arbitrum implementation as a legacy experimental adapter; no mainnet deployment or security audit is claimed.
 

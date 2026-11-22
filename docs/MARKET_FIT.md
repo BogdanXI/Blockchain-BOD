@@ -22,6 +22,12 @@ Ethereum can provide a public, independently queryable timestamped commitment fo
 
 BOD should integrate with established provenance and attestation systems, including SLSA/in-toto, Sigstore/Rekor, SPDX/CycloneDX and EAS. A proprietary registry alone is not a defensible market advantage.
 
+## Direct competitor review
+
+The direct product set includes Chainloop, Kosli, Archivista and GUAC—not only standards such as SLSA and Sigstore. These projects already cover substantial parts of evidence collection, immutable event recording, attestation storage, graph queries, policy enforcement and export. BOD must not position those capabilities as missing from the market.
+
+The current product hypothesis is narrower: a deterministic predecessor-linked record of successive evidence states, with a self-contained package of referenced payloads and an independent clean-room verifier. This remains unvalidated. The required head-to-head test and documented competitor boundaries are in [Competitive landscape](COMPETITIVE_LANDSCAPE.md).
+
 ## Competitive baseline
 
 The comparison must include Git tags and signed commits, SLSA/in-toto provenance, Sigstore and Rekor transparency, GitHub artifact attestations, SPDX/CycloneDX SBOM workflows, and EAS for Ethereum ecosystem attestations.

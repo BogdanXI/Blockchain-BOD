@@ -7,9 +7,18 @@ import pytest
 
 from bod_evidence_envelope import EvidenceEnvelopeError, create_evidence_envelope
 from bod_portable import (
-    SNAPSHOT_DOMAIN, SNAPSHOT_SCHEMA, canonical_json, create_portable_checkpoint,
-    parse_portable, repository_snapshot, sha256_bytes, verify_portable_chain,
-    verify_portable_graph, verify_snapshot,
+    SNAPSHOT_DOMAIN,
+    SNAPSHOT_SCHEMA,
+    canonical_json,
+    create_evidence_bundle,
+    create_portable_checkpoint,
+    parse_portable,
+    repository_snapshot,
+    sha256_bytes,
+    verify_evidence_bundle,
+    verify_portable_chain,
+    verify_portable_graph,
+    verify_snapshot,
 )
 
 
@@ -152,3 +161,105 @@ def test_portable_graph_verifies_forks_and_independent_cli(tmp_path):
     )
     assert cli.returncode == 0, cli.stdout + cli.stderr
     assert json.loads(cli.stdout)["canonical_head"] is None
+
+
+def test_self_contained_evidence_bundle_round_trip_and_tamper_detection(tmp_path):
+    import hashlib
+
+    from bod_evidence_envelope import EvidenceReferenceV0_1
+
+    payload = b'{"predicateType":"https://slsa.dev/provenance/v1","subject":[]}'
+    digest = hashlib.sha256(payload).hexdigest()
+    snapshot = _synthetic_snapshot("bundle-state")
+    envelope = create_evidence_envelope(
+        project_id="bundle-project", protocol_version="0.1",
+        state_root=snapshot["state_root"], predecessor_state_root=None,
+        transition_id="release-1",
+        evidence=[EvidenceReferenceV0_1(
+            evidence_type="slsa-provenance",
+            digest=digest,
+            media_type="application/vnd.in-toto+json",
+        )],
+        capture_boundary="test",
+    )
+    checkpoint = create_portable_checkpoint(snapshot=snapshot, envelope=envelope)
+    bundle = create_evidence_bundle(checkpoint=checkpoint, payloads={digest: payload})
+    result = verify_evidence_bundle(bundle)
+    assert result["payloads_complete"] is True
+    assert result["evidence_objects"] == 1
+    assert result["payload_bytes"] == len(payload)
+    assert result["semantic_truth"] == "NOT_ASSERTED"
+    assert result["bundle_authenticity"] == "NOT_ASSERTED"
+
+    tampered = json.loads(json.dumps(bundle))
+    tampered["objects"][0]["data_base64"] = "eA=="
+    # Recompute outer commitment to exercise payload-level digest validation.
+    from bod_portable import BUNDLE_DOMAIN
+    tampered["bundle_id"] = sha256_bytes(BUNDLE_DOMAIN + canonical_json({
+        "schema": tampered["schema"],
+        "checkpoint": tampered["checkpoint"],
+        "objects": tampered["objects"],
+    }))
+    with pytest.raises(EvidenceEnvelopeError, match="size mismatch|digest mismatch"):
+        verify_evidence_bundle(tampered)
+
+
+def test_self_contained_evidence_bundle_requires_every_referenced_payload():
+    from bod_evidence_envelope import EvidenceReferenceV0_1
+    payload = b"missing evidence"
+    digest = sha256_bytes(payload)
+    snapshot = _synthetic_snapshot("missing-payload")
+    envelope = create_evidence_envelope(
+        project_id="bundle-project", protocol_version="0.1",
+        state_root=snapshot["state_root"], predecessor_state_root=None,
+        transition_id="release-1",
+        evidence=[EvidenceReferenceV0_1(
+            evidence_type="test-report", digest=digest, media_type="text/plain",
+        )],
+        capture_boundary="test",
+    )
+    checkpoint = create_portable_checkpoint(snapshot=snapshot, envelope=envelope)
+    with pytest.raises(EvidenceEnvelopeError, match="payload set must exactly match"):
+        create_evidence_bundle(checkpoint=checkpoint, payloads={})
+
+
+def test_bundle_cli_round_trip(tmp_path):
+    import hashlib
+
+    from bod_evidence_envelope import EvidenceReferenceV0_1
+    payload = b"fixture evidence"
+    digest = hashlib.sha256(payload).hexdigest()
+    payload_path = tmp_path / "evidence.json"
+    payload_path.write_bytes(payload)
+    snapshot = _synthetic_snapshot("bundle-cli")
+    envelope = create_evidence_envelope(
+        project_id="bundle-cli", protocol_version="0.1",
+        state_root=snapshot["state_root"], predecessor_state_root=None,
+        transition_id="release-1",
+        evidence=[EvidenceReferenceV0_1(
+            evidence_type="test-fixture", digest=digest, media_type="application/json",
+        )],
+        capture_boundary="test",
+    )
+    checkpoint_path = tmp_path / "checkpoint.json"
+    checkpoint_path.write_text(json.dumps(create_portable_checkpoint(snapshot=snapshot, envelope=envelope)))
+    bundle_path = tmp_path / "bundle.json"
+    create = subprocess.run(
+        [sys.executable, "-m", "src.bod_cli", "bundle-create", str(checkpoint_path),
+         "--payload", f"{digest}={payload_path}", "--out", str(bundle_path)],
+        capture_output=True, text=True, check=False,
+    )
+    assert create.returncode == 0, create.stdout + create.stderr
+    verify = subprocess.run(
+        [sys.executable, "-m", "src.bod_cli", "bundle-verify", str(bundle_path)],
+        capture_output=True, text=True, check=False,
+    )
+    assert verify.returncode == 0, verify.stdout + verify.stderr
+    assert json.loads(verify.stdout)["status"] == "VALID_SELF_CONTAINED_BUNDLE"
+
+    independent = subprocess.run(
+        [sys.executable, "scripts/independent_verify.py", str(bundle_path)],
+        capture_output=True, text=True, check=False,
+    )
+    assert independent.returncode == 0, independent.stdout + independent.stderr
+    assert json.loads(independent.stdout)["status"] == "VALID_SELF_CONTAINED_BUNDLE"

@@ -7,11 +7,41 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from bod_evidence_envelope import EvidenceEnvelopeError, EvidenceEnvelopeV0_1, EvidenceReferenceV0_1, create_evidence_envelope, verify_chain, verify_lineage_graph
-    from bod_portable import create_portable_checkpoint, parse_portable, repository_snapshot, verify_portable_chain, verify_portable_graph
+    from bod_evidence_envelope import (
+        EvidenceEnvelopeError,
+        EvidenceEnvelopeV0_1,
+        EvidenceReferenceV0_1,
+        create_evidence_envelope,
+        verify_chain,
+        verify_lineage_graph,
+    )
+    from bod_portable import (
+        create_evidence_bundle,
+        create_portable_checkpoint,
+        parse_portable,
+        repository_snapshot,
+        verify_evidence_bundle,
+        verify_portable_chain,
+        verify_portable_graph,
+    )
 except ImportError:
-    from src.bod_evidence_envelope import EvidenceEnvelopeError, EvidenceEnvelopeV0_1, EvidenceReferenceV0_1, create_evidence_envelope, verify_chain, verify_lineage_graph
-    from src.bod_portable import create_portable_checkpoint, parse_portable, repository_snapshot, verify_portable_chain, verify_portable_graph
+    from src.bod_evidence_envelope import (
+        EvidenceEnvelopeError,
+        EvidenceEnvelopeV0_1,
+        EvidenceReferenceV0_1,
+        create_evidence_envelope,
+        verify_chain,
+        verify_lineage_graph,
+    )
+    from src.bod_portable import (
+        create_evidence_bundle,
+        create_portable_checkpoint,
+        parse_portable,
+        repository_snapshot,
+        verify_evidence_bundle,
+        verify_portable_chain,
+        verify_portable_graph,
+    )
 
 
 def load(path: str | Path) -> Any:
@@ -125,6 +155,36 @@ def cmd_verify(args) -> int:
         return 1
 
 
+def cmd_bundle_create(args) -> int:
+    checkpoint = parse_checkpoints(load(args.checkpoint))
+    if len(checkpoint) != 1:
+        raise EvidenceEnvelopeError("bundle-create requires exactly one checkpoint")
+    payloads = {}
+    for assignment in args.payload or []:
+        if "=" not in assignment:
+            raise EvidenceEnvelopeError("payload must use DIGEST=PATH")
+        digest, filename = assignment.split("=", 1)
+        if digest in payloads:
+            raise EvidenceEnvelopeError(f"duplicate payload digest: {digest}")
+        payloads[digest] = Path(filename).read_bytes()
+    bundle = create_evidence_bundle(checkpoint=checkpoint[0], payloads=payloads)
+    if args.out:
+        save(args.out, bundle)
+    print(json.dumps({
+        "status": "BUNDLE_CREATED",
+        "bundle_id": bundle["bundle_id"],
+        "evidence_objects": len(bundle["objects"]),
+        "output": args.out,
+    }, indent=2))
+    return 0
+
+
+def cmd_bundle_verify(args) -> int:
+    result = verify_evidence_bundle(load(args.file))
+    print(json.dumps({"status": "VALID_SELF_CONTAINED_BUNDLE", **result}, indent=2))
+    return 0
+
+
 def cmd_recover(args) -> int:
     try:
         checkpoints = parse_checkpoints(load(args.file))
@@ -195,6 +255,16 @@ def main() -> int:
     x.add_argument("--chain", action="store_true")
     x.add_argument("--graph", action="store_true", help="verify all branches without selecting a canonical head")
     x.set_defaults(func=cmd_verify)
+
+    x = sub.add_parser("bundle-create", help="package all referenced evidence payloads with one checkpoint")
+    x.add_argument("checkpoint")
+    x.add_argument("--payload", action="append", metavar="SHA256=PATH", help="repeat once for each evidence digest")
+    x.add_argument("--out", required=True)
+    x.set_defaults(func=cmd_bundle_create)
+
+    x = sub.add_parser("bundle-verify", help="verify a self-contained evidence bundle")
+    x.add_argument("file")
+    x.set_defaults(func=cmd_bundle_verify)
 
     x = sub.add_parser("recover")
     x.add_argument("file")

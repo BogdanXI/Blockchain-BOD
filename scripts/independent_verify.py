@@ -6,6 +6,8 @@ This verifier intentionally has no import dependency on the BOD implementation.
 
 from __future__ import annotations
 
+import base64
+import binascii
 import hashlib
 import json
 import re
@@ -15,9 +17,11 @@ from pathlib import Path, PurePosixPath
 ENVELOPE_SCHEMA = "bod-evidence-envelope-v0.1"
 SNAPSHOT_SCHEMA = "bod-repository-snapshot-v0.1"
 PORTABLE_SCHEMA = "bod-portable-checkpoint-v0.1"
+BUNDLE_SCHEMA = "bod-evidence-bundle-v0.1"
 ENVELOPE_DOMAIN = b"BOD-EVIDENCE-ENVELOPE-V0.1\0"
 SNAPSHOT_DOMAIN = b"BOD-REPOSITORY-SNAPSHOT-V0.1\0"
 PORTABLE_DOMAIN = b"BOD-PORTABLE-CHECKPOINT-V0.1\0"
+BUNDLE_DOMAIN = b"BOD-EVIDENCE-BUNDLE-V0.1\0"
 HEX = re.compile(r"^[0-9a-f]{64}$")
 
 
@@ -91,7 +95,7 @@ def verify_envelope(document):
     if predecessor is not None and (not isinstance(predecessor, str) or not HEX.fullmatch(predecessor)):
         raise ValueError("invalid predecessor_state_root")
     if not isinstance(document["evidence"], list):
-        raise ValueError("invalid evidence")
+        raise TypeError("invalid evidence")
 
     allowed = {"evidence_type", "digest", "media_type", "uri", "issuer"}
     required_evidence = {"evidence_type", "digest", "media_type"}
@@ -181,12 +185,80 @@ def verify_chain(documents, allow_forks=False):
         raise ValueError("disconnected component or cycle")
 
 
+
+def verify_bundle(document):
+    required = {"schema", "checkpoint", "objects", "bundle_id"}
+    if not isinstance(document, dict) or set(document) != required:
+        raise ValueError("invalid evidence bundle")
+    if document["schema"] != BUNDLE_SCHEMA:
+        raise ValueError("unsupported evidence bundle")
+    bundle_id = document["bundle_id"]
+    if not isinstance(bundle_id, str) or not HEX.fullmatch(bundle_id):
+        raise ValueError("invalid bundle_id")
+    durable = {
+        "schema": document["schema"],
+        "checkpoint": document["checkpoint"],
+        "objects": document["objects"],
+    }
+    if sha(BUNDLE_DOMAIN + canonical(durable)) != bundle_id:
+        raise ValueError("bundle_id mismatch")
+
+    verify_portable(document["checkpoint"])
+    evidence = document["checkpoint"]["envelope"]["evidence"]
+    references = {}
+    for item in evidence:
+        digest = item["digest"][7:]
+        if digest in references:
+            raise ValueError("one digest has multiple evidence reference descriptors")
+        references[digest] = item
+    if not isinstance(document["objects"], list):
+        raise TypeError("bundle objects must be a list")
+
+    observed = set()
+    previous_digest = None
+    for item in document["objects"]:
+        if not isinstance(item, dict) or set(item) != {"digest", "media_type", "size", "data_base64"}:
+            raise ValueError("invalid evidence object")
+        digest_value = item["digest"]
+        if not isinstance(digest_value, str) or not digest_value.startswith("sha256:"):
+            raise ValueError("invalid evidence object digest")
+        digest = digest_value[7:]
+        if not HEX.fullmatch(digest):
+            raise ValueError("invalid evidence object digest")
+        if previous_digest is not None and digest <= previous_digest:
+            raise ValueError("evidence objects must be unique and sorted")
+        previous_digest = digest
+        if digest not in references:
+            raise ValueError("unreferenced evidence object")
+        if item["media_type"] != references[digest]["media_type"]:
+            raise ValueError("evidence media type mismatch")
+        if type(item["size"]) is not int or item["size"] < 0:
+            raise ValueError("invalid evidence object size")
+        try:
+            payload = base64.b64decode(item["data_base64"], validate=True)
+        except (binascii.Error, ValueError, TypeError) as exc:
+            raise ValueError("invalid evidence object base64") from exc
+        if len(payload) != item["size"]:
+            raise ValueError("evidence object size mismatch")
+        if sha(payload) != digest:
+            raise ValueError("evidence object digest mismatch")
+        observed.add(digest)
+    if observed != set(references):
+        raise ValueError("bundle is not self-contained; missing evidence payloads")
+
+
 def main():
     if len(sys.argv) not in (2, 3):
         print("usage: independent_verify.py FILE [--chain|--graph]", file=sys.stderr)
         return 2
     try:
         value = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+        if isinstance(value, dict) and value.get("schema") == BUNDLE_SCHEMA:
+            if len(sys.argv) != 2:
+                raise ValueError("bundle verification does not accept chain flags")
+            verify_bundle(value)
+            print(json.dumps({"status": "VALID_SELF_CONTAINED_BUNDLE"}, indent=2))
+            return 0
         if isinstance(value, dict) and "checkpoints" in value:
             value = value["checkpoints"]
         if sys.argv[-1] == "--chain":
@@ -201,7 +273,7 @@ def main():
             verify_envelope(value)
         print(json.dumps({"status": "VALID_INTEGRITY"}, indent=2))
         return 0
-    except (OSError, json.JSONDecodeError, ValueError) as exc:
+    except (OSError, json.JSONDecodeError, TypeError, ValueError) as exc:
         print(json.dumps({"status": "INVALID", "reason": str(exc)}, indent=2))
         return 1
 

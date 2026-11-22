@@ -9,9 +9,11 @@
 ## Implemented and reviewable
 
 - deterministic repository snapshots;
+- experimental self-contained evidence bundles that package every referenced evidence payload with a checkpoint and support independent integrity/completeness verification;
 - versioned evidence envelopes and predecessor-linked history;
 - independent verification and portable checkpoint recovery, including normalized-path checks and symlink-target hashing;
 - branch-aware lineage graph verification that reports fork points and heads without selecting a canonical head;
+- synthetic offline recovery experiment that removes the original evidence store, independently verifies a self-contained bundle in a fresh process and rejects payload tampering;
 - Python CLI and regression suite;
 - a permissionless, append-only Ethereum checkpoint registry;
 - Foundry tests for checkpoint creation, lineage validation, duplicate rejection and fork visibility;
@@ -39,7 +41,7 @@ The earlier BOD token/economic experiments are not part of the active Ethereum p
 - No production-ready BOD blockchain or native consensus mechanism.
 - No production token launch or final tokenomics.
 - No audited or production-secure smart contract.
-- No proof that referenced evidence is truthful or available.
+- No proof that referenced evidence is truthful; payload availability is guaranteed only for evidence bytes included in a successfully verified Evidence Bundle, not by a checkpoint alone.
 - No claim that an on-chain checkpoint makes a software release safe or canonical.
 - No demonstrated market demand or paying customer.
 
@@ -53,4 +55,4 @@ The earlier BOD token/economic experiments are not part of the active Ethereum p
 6. Compare BOD with Git + SLSA/in-toto + Sigstore/EAS using reproducible release-recovery experiments.
 7. Interview independent maintainers and security/release teams; publish positive and negative findings.
 
-See [Ethereum integration](ETHEREUM_INTEGRATION.md), [Roadmap](ROADMAP.md), [Threat model](THREAT_MODEL_v0.1.md), [CROPS alignment](CROPS_COMPLIANCE.md), [Privacy Model](PRIVACY_MODEL.md), and [Reproducibility](REPRODUCIBILITY.md).
+See [Evidence Bundle v0.1](EVIDENCE_BUNDLE_v0.1.md), [Ethereum integration](ETHEREUM_INTEGRATION.md), [Roadmap](ROADMAP.md), [Threat model](THREAT_MODEL_v0.1.md), [CROPS alignment](CROPS_COMPLIANCE.md), [Privacy Model](PRIVACY_MODEL.md), and [Reproducibility](REPRODUCIBILITY.md).

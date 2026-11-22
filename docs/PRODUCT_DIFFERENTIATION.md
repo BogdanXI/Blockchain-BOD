@@ -7,7 +7,7 @@
 
 BOD is designed to preserve a **portable, predecessor-linked history of release-evidence states** across repositories, CI systems, evidence formats and operators.
 
-A BOD checkpoint commits to a deterministic project snapshot and an evidence set. A later checkpoint can reference its predecessor. The verifier can reconstruct and check the relationship from exported data without requiring a BOD-hosted service. The Ethereum registry is an optional external witness for compact commitments; it is not required for local verification and does not decide which fork is canonical.
+A BOD checkpoint commits to a deterministic project snapshot and an evidence set. A later checkpoint can reference its predecessor. The verifier can reconstruct and check the relationship from exported data without requiring a BOD-hosted service. The experimental Evidence Bundle v0.1 can additionally carry the raw bytes of every referenced evidence payload, so those payloads remain inspectable without the original evidence store. The Ethereum registry is an optional external witness for compact commitments; it is not required for local verification and does not decide which fork is canonical.
 
 The intended benefit is not another signature, SBOM, provenance statement or transparency log. It is a continuity and recovery layer that lets an independent party ask:
 
@@ -28,6 +28,12 @@ The intended benefit is not another signature, SBOM, provenance statement or tra
 | Ethereum Attestation Service | General-purpose on-chain/off-chain attestations | Use EAS as an optional attestation transport for checkpoint claims | Live testnet interoperability, schema lifecycle and independent verification |
 
 These systems solve important problems already. BOD should integrate with them rather than imply that they lack provenance, signatures, timestamps or append-only records.
+
+## Direct competitors and substitutes
+
+The closest overlaps are not only standards. Chainloop and Kosli already provide SDLC evidence collection/storage and immutable delivery histories; Archivista stores signed in-toto attestations in a queryable graph and supports export; GUAC ingests SBOM/SLSA/in-toto metadata into a graph. These capabilities materially narrow BOD's novelty claim.
+
+The current BOD hypothesis is therefore limited to deterministic predecessor-linked state snapshots plus self-contained packaging of referenced payloads and independent clean-room verification. Even this is not yet proven unique. See the [competitive landscape and required head-to-head test](COMPETITIVE_LANDSCAPE.md).
 
 ## What is potentially distinctive
 
@@ -55,7 +61,7 @@ Not yet demonstrated:
 
 - end-to-end ingestion and policy verification of SLSA/in-toto, SPDX/CycloneDX and Sigstore evidence from independent systems;
 - a live Sepolia deployment and EAS schema/attestation round trip;
-- recovery after removing access to the original repository/CI/storage provider;
+- recovery after removing access to a real external CI/storage provider using independent pilots and third-party evidence;
 - comparative results against Git + SLSA/in-toto + Sigstore/GitHub attestations without BOD;
 - adoption or validation by independent Ethereum maintainers;
 - an independent security review.
