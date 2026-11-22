@@ -15,7 +15,9 @@
 - a permissionless, append-only Ethereum checkpoint registry;
 - Foundry tests for checkpoint creation, lineage validation, duplicate rejection and fork visibility;
 - CI coverage for Python and Solidity;
-- EAS SDK schema-registration and linked-checkpoint scripts with parent-attestation checks (source implemented; no live schema registration or attestation claimed).\n- Initial CROPS alignment, privacy, grant-readiness and reproducibility policies.
+- CI-generated Python/npm SBOMs with GitHub artifact attestations and verification steps;
+- EAS SDK schema-registration and linked-checkpoint scripts with parent-attestation checks (source implemented; no live schema registration or attestation claimed).
+- Initial CROPS alignment, privacy, grant-readiness and reproducibility policies.
 
 ## Ethereum integration boundary
 
@@ -50,4 +52,4 @@ The earlier BOD token/economic experiments are not part of the active Ethereum p
 6. Compare BOD with Git + SLSA/in-toto + Sigstore/EAS using reproducible release-recovery experiments.
 7. Interview independent maintainers and security/release teams; publish positive and negative findings.
 
-See [Ethereum integration](ETHEREUM_INTEGRATION.md), [Roadmap](ROADMAP.md), [Threat model](THREAT_MODEL_v0.1.md), [CROPS alignment](CROPS_COMPLIANCE.md), [Privacy Model](PRIVACY_MODEL.md), [Grant Readiness](GRANT_READINESS.md), and [Reproducibility](REPRODUCIBILITY.md).
+See [Ethereum integration](ETHEREUM_INTEGRATION.md), [Roadmap](ROADMAP.md), [Threat model](THREAT_MODEL_v0.1.md), [CROPS alignment](CROPS_COMPLIANCE.md), [Privacy Model](PRIVACY_MODEL.md), and [Reproducibility](REPRODUCIBILITY.md).
