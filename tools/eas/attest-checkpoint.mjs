@@ -2,7 +2,9 @@ import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { ethers } from "ethers";
-import { EAS, NO_EXPIRATION, SchemaEncoder, SchemaRegistry } from "@ethereum-attestation-service/eas-sdk";
+import { createRequire } from "node:module";
+const require = createRequire(import.meta.url);
+const { EAS, NO_EXPIRATION, SchemaEncoder, SchemaRegistry } = require("@ethereum-attestation-service/eas-sdk");
 import { BOD_EAS_SCHEMA, EAS_DEPLOYMENTS } from "./schema.mjs";
 
 function canonical(value) {

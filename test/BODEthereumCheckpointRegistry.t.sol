@@ -106,4 +106,41 @@ contract BODEthereumCheckpointRegistryTest {
         );
         require(!success, "zero evidence root accepted");
     }
+
+    function testFuzzAnchoredCheckpointRoundTrips(bytes32 seed) public {
+        BODEthereumCheckpointRegistry.CheckpointInput memory input = _genesis(
+            keccak256(abi.encode(seed, "project"))
+        );
+        input.gitCommit = keccak256(abi.encode(seed, "git"));
+        input.stateRoot = keccak256(abi.encode(seed, "state"));
+        input.manifestHash = keccak256(abi.encode(seed, "manifest"));
+        input.evidenceRoot = keccak256(abi.encode(seed, "evidence"));
+
+        bytes32 checkpointId = registry.anchor(input);
+        BODEthereumCheckpointRegistry.Checkpoint memory stored = registry.getCheckpoint(checkpointId);
+
+        require(stored.projectId == input.projectId, "project commitment changed");
+        require(stored.gitCommit == input.gitCommit, "git commitment changed");
+        require(stored.stateRoot == input.stateRoot, "state commitment changed");
+        require(stored.manifestHash == input.manifestHash, "manifest commitment changed");
+        require(stored.evidenceRoot == input.evidenceRoot, "evidence commitment changed");
+        require(stored.previousCheckpointId == bytes32(0), "genesis parent changed");
+        require(stored.sequence == 0, "genesis sequence changed");
+        require(registry.checkpointExists(checkpointId), "checkpoint existence not recorded");
+    }
+
+    function testFuzzChildRequiresExactParentSequence(uint64 proposedSequence) public {
+        bytes32 projectId = keccak256("fuzz-project");
+        bytes32 parentId = registry.anchor(_genesis(projectId));
+        BODEthereumCheckpointRegistry.CheckpointInput memory child = _genesis(projectId);
+        child.gitCommit = keccak256(abi.encode(proposedSequence, "child-git"));
+        child.stateRoot = keccak256(abi.encode(proposedSequence, "child-state"));
+        child.previousCheckpointId = parentId;
+        child.sequence = proposedSequence;
+
+        (bool success,) = address(registry).call(
+            abi.encodeCall(BODEthereumCheckpointRegistry.anchor, (child))
+        );
+        require(success == (proposedSequence == 1), "parent sequence invariant violated");
+    }
 }

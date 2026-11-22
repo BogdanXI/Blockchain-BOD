@@ -40,10 +40,12 @@ Before registering a schema, search the EAS schema explorer for an existing comp
 
 ## Setup
 
-Node.js 20+ is required.
+Node.js 20+ is required. Install the exact dependency tree from the committed lockfile, then run the local SDK smoke test:
 
 ```bash
-npm install --ignore-scripts --no-package-lock --no-audit --no-fund
+npm ci --ignore-scripts --no-audit --no-fund
+npm audit --omit=dev
+node tools/eas/smoke-test.mjs
 ```
 
 Create a dedicated Ethereum Sepolia wallet. Never use a production key. Set the following variables in your local shell:

@@ -10,4 +10,8 @@ build/
 coverage.xml
 htmlcov/
 .DS_Store
-\n# Node.js and Foundry build artifacts\nnode_modules/\nout/\ncache/\nbroadcast/\n
+# Node.js and Foundry build artifacts
+node_modules/
+out/
+cache/
+broadcast/

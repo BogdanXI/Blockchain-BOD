@@ -1,5 +1,7 @@
 import { ethers } from "ethers";
-import { SchemaRegistry } from "@ethereum-attestation-service/eas-sdk";
+import { createRequire } from "node:module";
+const require = createRequire(import.meta.url);
+const { SchemaRegistry } = require("@ethereum-attestation-service/eas-sdk");
 import { BOD_EAS_SCHEMA, EAS_DEPLOYMENTS } from "./schema.mjs";
 
 const rpcUrl = process.env.ETHEREUM_SEPOLIA_RPC_URL;

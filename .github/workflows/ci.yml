@@ -66,10 +66,13 @@ jobs:
         with:
           node-version: "20"
       - name: Install pinned EAS SDK dependencies
-        run: npm install --ignore-scripts --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Audit production dependencies
+        run: npm audit --omit=dev
       - name: Check EAS integration scripts
         run: |
           node --check tools/eas/schema.mjs
           node --check tools/eas/register-schema.mjs
           node --check tools/eas/attest-checkpoint.mjs
+          node tools/eas/smoke-test.mjs
           node --input-type=module -e "import { BOD_EAS_SCHEMA, EAS_DEPLOYMENTS } from './tools/eas/schema.mjs'; if (!BOD_EAS_SCHEMA.includes('bytes32 checkpointId') || EAS_DEPLOYMENTS[11155111].eas.length !== 42) process.exit(1)"
