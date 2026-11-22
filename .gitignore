@@ -10,3 +10,4 @@ build/
 coverage.xml
 htmlcov/
 .DS_Store
+\n# Node.js and Foundry build artifacts\nnode_modules/\nout/\ncache/\nbroadcast/\n
