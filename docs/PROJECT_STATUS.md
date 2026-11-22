@@ -28,7 +28,7 @@ Tests are evidence for the behaviors they exercise. They are not an external sec
 - No production token launch is claimed.
 - Cryptographic integrity does not prove semantic truth.
 - The repository does not guarantee availability of referenced evidence.
-- EVM or Arbitrum inclusion does not by itself make a BOD transition valid or canonical.
+- Ethereum inclusion does not by itself make a BOD transition valid or canonical.
 - Economic assumptions and fee targets remain experimental until measured and independently reviewed.
 
 ## Current open question

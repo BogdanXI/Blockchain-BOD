@@ -31,17 +31,15 @@ Compare recovery from BOD checkpoints with a baseline using Git and existing pro
 
 Gate: an independent reviewer can reproduce the experiment.
 
-## 4. Arbitrum testnet integration
+## 4. Optional Ethereum L1 checkpoint witness
 
-**Status: experimental.**
+**Status: not deployed; separate from the chain-independent core.**
 
-- Treat EVM anchoring as optional infrastructure, not BOD consensus.
-- Complete the test-only custom gas-token creation path before L3 genesis.
-- Measure execution and parent-chain data-posting costs separately.
-- Test bridge and fee-pricer configuration.
-- Keep production token decisions behind separate review gates.
+- Keep the core usable without a wallet, ETH, RPC endpoint or hosted service.
+- Treat Ethereum L1 anchoring as an optional external witness, not as consensus or proof of semantic truth.
+- Require independent contract review and reproducible testnet verification before any deployment.
 
-Gate: deterministic integration tests, testnet evidence, and a documented cost model. Testnet success is not production readiness.
+Gate: reviewed contract, local tests, reproducible deployment rehearsal and independently verifiable checkpoint evidence.
 
 ## 5. Canonicality review
 

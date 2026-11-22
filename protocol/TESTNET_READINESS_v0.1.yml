@@ -1,0 +1,18 @@
+schema_version: 1
+status: ethereum_track_preparation
+network:
+  profile: ethereum-sepolia-checkpoint-witness
+  chain_id: 11155111
+  role: optional_integration_testnet
+  native_bod_network: false
+  production: false
+network_scope:
+  policy: ethereum_l1_only
+  l2_adapters: out_of_scope
+launch_gate:
+  decision: blocked
+  prohibited_now:
+    - ethereum_mainnet_deployment
+    - production_network_claims
+native_bod_network:
+  status: not_ready

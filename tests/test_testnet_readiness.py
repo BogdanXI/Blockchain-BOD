@@ -29,12 +29,15 @@ def test_unissued_capacity_is_not_an_account_balance():
     assert genesis["founder_preallocation"] == 5_000_000
 
 
-def test_testnet_readiness_does_not_claim_native_bod_launch():
+def test_ethereum_is_optional_and_not_a_production_or_native_network():
     doc = yaml.safe_load(READINESS.read_text(encoding="utf-8"))
 
-    assert doc["network"]["chain_id"] == 421614
+    assert doc["network"]["profile"] == "ethereum-sepolia-checkpoint-witness"
+    assert doc["network"]["chain_id"] == 11155111
     assert doc["network"]["native_bod_network"] is False
     assert doc["network"]["production"] is False
+    assert doc["network_scope"]["policy"] == "ethereum_l1_only"
+    assert doc["network_scope"]["l2_adapters"] == "out_of_scope"
     assert doc["launch_gate"]["decision"] == "blocked"
-    assert "mainnet_deployment" in doc["launch_gate"]["prohibited_now"]
+    assert "ethereum_mainnet_deployment" in doc["launch_gate"]["prohibited_now"]
     assert doc["native_bod_network"]["status"] == "not_ready"
