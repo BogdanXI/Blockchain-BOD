@@ -35,9 +35,17 @@ for integration checks that cannot be established by local tests.
 - Use a public/free RPC endpoint or a self-hosted node. Do not use a metered
   paid endpoint, paid API key, paid explorer, or service requiring a payment
   card.
-- Prefer endpoints that do not require an account. If a provider requires an
-  account, verify that the selected plan is genuinely free and has no paid
-  commitment.
+- No-key Sepolia RPC candidates, both probed from the project workstation on
+  2026-11-22 and both returning chain ID 11155111:
+  - 1RPC: https://public.1rpc.io/sepolia
+  - PublicNode: https://ethereum-sepolia-rpc.publicnode.com
+- These are shared public endpoints without a project SLA; they may rate-limit
+  or become unavailable. Switch between the listed free endpoints or defer
+  the live test. Never switch to a paid endpoint.
+- For a new disposable test wallet with no mainnet balance, the pk910 Sepolia
+  PoW faucet is a no-account option: https://sepolia-faucet.pk910.de/ . It
+  exchanges browser compute work for test ETH; it is not mining real ETH.
+  Faucet availability and payout depend on its reserve and current rules.
 - Keep requests low-volume and cache read-only results where practical.
 - If free faucet or RPC access is temporarily unavailable, defer the live
   test; do not pay to unblock it.
@@ -62,6 +70,19 @@ operator explicitly authorizes the test transaction.
 
 The live EAS test is not considered complete until the transactions and
 independent read-back verification have actually succeeded.
+
+Example no-key RPC probe (expected chain ID: `0xaa36a7`):
+
+```sh
+curl -fsS -H 'content-type: application/json' \
+  --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
+  https://public.1rpc.io/sepolia
+```
+
+Set `ETHEREUM_SEPOLIA_RPC_URL` to one of the free endpoints only in a local
+ignored environment file. Set `ETHEREUM_SEPOLIA_PRIVATE_KEY` only for a
+separate disposable test wallet. The scripts refuse any chain ID other than
+Sepolia; never use a mainnet key.
 
 ## Cost guardrails
 
