@@ -27,6 +27,9 @@ surfaces:
   ethereum_contract_tests:
     status: implemented_ci_verified_on_pull_request
     reference: test/BODEthereumCheckpointRegistry.t.sol
+  eas_sdk_integration:
+    status: source_implemented_ci_syntax_checked_schema_not_registered
+    reference: tools/eas/attest-checkpoint.mjs
   arbitrum_adapter:
     status: legacy_experimental
     reference: protocol/arbitrum/BODProtocolAdapterV0_1.sol
