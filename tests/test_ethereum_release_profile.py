@@ -50,6 +50,8 @@ def test_profile_json_schema_is_valid_json_and_has_draft_2020_12() -> None:
     assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
     assert schema["properties"]["release"]["$ref"] == "#/$defs/release"
     assert "contractBuild" in schema["$defs"]
+    assert "finality" in schema["$defs"]["deployment"]["required"]
+    assert "match_type" in schema["$defs"]["deployment"]["properties"]["source_verification"]["oneOf"][1]["required"]
     for name, definition in schema["$defs"].items():
         for ref in _local_refs(definition):
             assert ref.startswith("#/$defs/") and ref[8:] in schema["$defs"], (name, ref)
@@ -104,6 +106,7 @@ def test_contract_deployment_rejects_wrong_address_width() -> None:
         "block_number": 1,
         "contract_address": "0x" + "d" * 39,
         "runtime_bytecode_digest": digest,
+        "finality": {"status": "NOT_CHECKED", "observed_at": None, "source": None},
     }
     with pytest.raises(ReleaseProfileError, match="20-byte 0x address"):
         validate_release_profile(profile)
@@ -170,11 +173,50 @@ def test_valid_contract_deployment_profile_is_accepted() -> None:
         "block_number": 123,
         "contract_address": "0x" + "d" * 40,
         "runtime_bytecode_digest": digest,
+        "finality": {"status": "FINALIZED", "observed_at": "2026-11-22T12:00:00Z", "source": "https://ethereum.org/developers/docs/nodes-and-clients/"},
         "source_verification": {
             "provider": "Sourcify",
             "reference": "https://repo.sourcify.dev/contracts/full_match/1/0x" + "d" * 40 + "/",
+            "match_type": "exact_match",
         },
     }
     result = validate_release_profile(profile)
     assert result["status"] == "VALID_PROFILE_STRUCTURE"
     assert result["deployment_present"] is True
+
+
+def test_contract_profile_rejects_unknown_sourcify_match_classification() -> None:
+    profile = load_fixture()
+    profile["project"]["kind"] = "smart-contract"
+    profile["release"]["kind"] = "contract-deployment"
+    digest = "a" * 64
+    profile["build"] = {
+        "builder_id": "https://example.org/build", "provenance_digest": digest,
+        "compiler": {"name": "solc", "version": "0.8.30", "settings_digest": digest, "input_digest": digest, "bytecode_digest": digest, "abi_digest": digest},
+    }
+    profile["deployment"] = {
+        "chain_id": 1, "transaction_hash": "0x" + "b" * 64, "block_hash": "0x" + "c" * 64,
+        "block_number": 1, "contract_address": "0x" + "d" * 40, "runtime_bytecode_digest": digest,
+        "finality": {"status": "NOT_CHECKED", "observed_at": None, "source": None},
+        "source_verification": {"provider": "Sourcify", "reference": "https://repo.sourcify.dev/", "match_type": []},
+    }
+    with pytest.raises(ReleaseProfileError, match="match_type is unsupported"):
+        validate_release_profile(profile)
+
+
+def test_contract_deployment_requires_explicit_finality_observation() -> None:
+    profile = load_fixture()
+    profile["project"]["kind"] = "smart-contract"
+    profile["release"]["kind"] = "contract-deployment"
+    digest = "a" * 64
+    profile["build"] = {
+        "builder_id": "https://example.org/build", "provenance_digest": digest,
+        "compiler": {"name": "solc", "version": "0.8.30", "settings_digest": digest, "input_digest": digest, "bytecode_digest": digest, "abi_digest": digest},
+    }
+    profile["deployment"] = {
+        "chain_id": 1, "transaction_hash": "0x" + "b" * 64, "block_hash": "0x" + "c" * 64,
+        "block_number": 1, "contract_address": "0x" + "d" * 40, "runtime_bytecode_digest": digest,
+        "finality": {"status": "FINALIZED", "observed_at": "2026-11-22T12:00:00", "source": "https://example.org/rpc"},
+    }
+    with pytest.raises(ReleaseProfileError, match="must include a timezone"):
+        validate_release_profile(profile)

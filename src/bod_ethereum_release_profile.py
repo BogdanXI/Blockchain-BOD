@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from datetime import datetime
 from typing import Any
 from urllib.parse import urlsplit
 
@@ -120,7 +121,7 @@ def validate_release_profile(value: Any) -> dict[str, Any]:
             raise ReleaseProfileError("contract deployment/upgrade requires compiler build evidence")
         deployment = _object(
             deployment, "deployment",
-            {"chain_id", "transaction_hash", "block_hash", "block_number", "contract_address", "runtime_bytecode_digest"},
+            {"chain_id", "transaction_hash", "block_hash", "block_number", "contract_address", "runtime_bytecode_digest", "finality"},
             {"source_verification"},
         )
         if type(deployment["chain_id"]) is not int or deployment["chain_id"] < 1:
@@ -134,11 +135,30 @@ def validate_release_profile(value: Any) -> dict[str, Any]:
         if not isinstance(deployment["contract_address"], str) or not _ADDRESS.fullmatch(deployment["contract_address"]):
             raise ReleaseProfileError("deployment.contract_address must be a 20-byte 0x address")
         _digest(deployment["runtime_bytecode_digest"], "deployment.runtime_bytecode_digest")
+        finality = _object(deployment["finality"], "deployment.finality", {"status", "observed_at", "source"})
+        finality_statuses = {"NOT_CHECKED", "SAFE", "FINALIZED", "REORGED", "UNKNOWN"}
+        if not isinstance(finality["status"], str) or finality["status"] not in finality_statuses:
+            raise ReleaseProfileError("deployment.finality.status is unsupported")
+        observed_at = finality["observed_at"]
+        finality_source = finality["source"]
+        if finality["status"] in {"SAFE", "FINALIZED", "REORGED"}:
+            _string(observed_at, "deployment.finality.observed_at", 64)
+            try:
+                parsed_time = datetime.fromisoformat(observed_at.replace("Z", "+00:00"))
+            except ValueError as exc:
+                raise ReleaseProfileError("deployment.finality.observed_at must be RFC 3339 date-time") from exc
+            if parsed_time.tzinfo is None:
+                raise ReleaseProfileError("deployment.finality.observed_at must include a timezone")
+            _uri(finality_source, "deployment.finality.source")
+        elif observed_at is not None or finality_source is not None:
+            raise ReleaseProfileError("unchecked or unknown finality must use null observed_at and source")
         source_verification = deployment.get("source_verification")
         if source_verification is not None:
-            source_verification = _object(source_verification, "deployment.source_verification", {"provider", "reference"})
+            source_verification = _object(source_verification, "deployment.source_verification", {"provider", "reference", "match_type"})
             _string(source_verification["provider"], "deployment.source_verification.provider", 128)
             _uri(source_verification["reference"], "deployment.source_verification.reference")
+            if not isinstance(source_verification["match_type"], str) or source_verification["match_type"] not in {"exact_match", "match"}:
+                raise ReleaseProfileError("deployment.source_verification.match_type is unsupported")
     elif deployment is not None:
         raise ReleaseProfileError("deployment data is only valid for contract-deployment or contract-upgrade releases")
 

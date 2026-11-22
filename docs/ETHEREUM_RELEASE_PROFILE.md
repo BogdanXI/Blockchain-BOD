@@ -45,8 +45,8 @@ The profile groups evidence into the following domains.
 | Tests | Unit, integration, fuzz, invariant and regression test reports | Test runner, report format and CI identity |
 | Security analysis | Static analysis, formal verification, vulnerability scan and audit report references | Each tool's verifier and reviewer policy |
 | SBOM | SPDX or CycloneDX document | SPDX/CycloneDX validators and policy |
-| Contract verification | Sourcify reference, verified source metadata, runtime bytecode digest | Sourcify or another source/bytecode verifier |
-| Deployment | Chain ID, transaction hash, block hash/number, contract address and runtime code digest | Ethereum node/provider and independent chain read |
+| Contract verification | Sourcify reference, exact-match versus match classification, verified source metadata, runtime bytecode digest | Sourcify or another source/bytecode verifier |
+| Deployment | Chain ID, transaction hash, block hash/number, contract address, runtime code digest and explicit finality observation | Ethereum node/provider and independent chain read |
 | Upgrade | Previous deployment, proxy/implementation relation, upgrade transaction and successor release | Chain state, deployment tooling and project-specific policy |
 | Witness | BOD registry checkpoint and/or EAS attestation UID | Contract readback and EAS verification |
 
@@ -120,7 +120,8 @@ The Reth fixture is a real public release reference populated from the documente
 - Hashes are not anonymization; predictable values may be guessed or correlated.
 - Chain ID is mandatory for deployment records.
 - Block hash and transaction hash should be retained so reorg-sensitive observations can be rechecked.
-- A receipt is not finality; the consumer must apply an explicit finality policy.
+- A receipt is not finality; the profile requires a finality status, observation time and source for contract deployment records. The consumer must still apply its own explicit finality policy.
+- Sourcify source verification must preserve its match classification. An exact metadata match is stronger than a bytecode match without exact metadata correspondence; neither is a formal security proof.
 
 ## 6. Relationship to existing standards and tools
 
@@ -190,4 +191,4 @@ A comparative baseline must use the project's existing Git, CI, provenance, sign
 4. Add native-verifier orchestration and a complete contract fixture.
 5. Compare with existing tools before describing the profile as differentiated.
 
-The v0.1 data shape and structural validator are implemented as an experiment, not standardized. Do not represent the profile as a stable standard, complete integration, independently reviewed format or deployed Ethereum workflow.
+The v0.1 data shape and structural validator are implemented as an experiment, not standardized. Contract deployment records now carry a finality observation and preserve Sourcify match classification (`exact_match` or `match`). Do not represent the profile as a stable standard, complete integration, independently reviewed format or deployed Ethereum workflow.

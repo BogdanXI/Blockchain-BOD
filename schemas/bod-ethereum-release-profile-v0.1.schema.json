@@ -298,7 +298,8 @@
         "block_hash",
         "block_number",
         "contract_address",
-        "runtime_bytecode_digest"
+        "runtime_bytecode_digest",
+        "finality"
       ],
       "properties": {
         "chain_id": {
@@ -334,7 +335,8 @@
               "additionalProperties": false,
               "required": [
                 "provider",
-                "reference"
+                "reference",
+                "match_type"
               ],
               "properties": {
                 "provider": {
@@ -343,6 +345,79 @@
                 },
                 "reference": {
                   "$ref": "#/$defs/uri"
+                },
+                "match_type": {
+                  "enum": [
+                    "exact_match",
+                    "match"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "finality": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "observed_at",
+            "source"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "NOT_CHECKED",
+                "SAFE",
+                "FINALIZED",
+                "REORGED",
+                "UNKNOWN"
+              ]
+            },
+            "observed_at": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              ]
+            },
+            "source": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "$ref": "#/$defs/uri"
+                }
+              ]
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "SAFE",
+                      "FINALIZED",
+                      "REORGED"
+                    ]
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "observed_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "source": {
+                    "$ref": "#/$defs/uri"
+                  }
                 }
               }
             }

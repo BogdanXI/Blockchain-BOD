@@ -54,7 +54,8 @@ An experimental v0.1 profile now has a versioned [JSON Schema](../schemas/bod-et
 - static-analysis and formal-verification reports where available;
 - audit reports and remediation references;
 - Sourcify verification references or equivalent source/bytecode correspondence evidence;
-- deployment transaction, chain ID and contract address;
+- deployment transaction, chain ID, contract address and explicit finality observation;
+- Sourcify exact-match versus non-exact match classification, without treating source verification as a security audit;
 - upgrade predecessor and successor references, including explicit missing-evidence gaps.
 
 The profile references existing evidence formats and external records. It will not claim that a digest proves a report is correct, that source code is safe, or that an on-chain record establishes semantic truth.

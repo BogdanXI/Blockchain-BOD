@@ -3,6 +3,7 @@
 - Published a versioned JSON Schema for Ethereum client releases and smart-contract deployment/upgrade records.
 - Added a dependency-free structural validator and the `bod profile-validate` CLI command, with explicit non-claims for cryptographic verification, chain-state verification and semantic truth.
 - Added a real Reth v2.11.0 release fixture using recorded source and binary identities; missing SLSA provenance and unproven binary-to-source correspondence remain explicit gaps.
+- Strengthened contract deployment records to require a chain-finality status and observation source/time, and preserved Sourcify exact-match versus non-exact-match classification.
 - Added regression tests for profile structure, invalid digests, invalid URIs, contract-specific requirements, deployment address width, predecessor consistency and CLI behavior.
 - Updated quickstart, project status and grant documents to distinguish implemented profile structure from unimplemented native verification and smart-contract deployment workflows.
 
