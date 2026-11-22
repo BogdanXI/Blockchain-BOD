@@ -142,3 +142,73 @@ This is not a comprehensive performance benchmark. It shows that ordinary archiv
 - The GitHub CLI used local bundle and trusted-root inputs, but the host network was not disabled at the operating-system level.
 - Neither this test nor a passing signature proves that the SBOM is complete, accurate or semantically true.
 - BOD bundle IDs remain unkeyed commitments, not signatures.
+
+## Ethereum execution-client release recovery: Reth v2.11.0 — 2026-11-22
+
+This test used a real public Ethereum execution-client release, rather than BOD's own CI artifact.
+
+### Official release and source identity
+
+- Project: [Paradigm Reth](https://github.com/paradigmxyz/reth).
+- Release: [v2.11.0](https://github.com/paradigmxyz/reth/releases/tag/v2.11.0), published 2026-11-11.
+- Source commit: `b9abbcc1b982755baa9021e6874e2e58936ca65f`.
+- GitHub API reports the source commit signature as verified.
+- GitHub source tree: `036143b1efd61b83c6aebf49907181da2d90f290`.
+- Reconstructed source archive produced the exact same Git tree SHA.
+- BOD snapshot covered 1,932 tracked files and reproduced state root `363131f7c702a845e861e6265f826c3985ddaeabc8418cdddad038b552167d30`.
+
+### Release signature verification
+
+The Linux x86-64 release archive was downloaded together with its detached `.asc` signature. The official Reth binary installation documentation publishes the release signing key fingerprint `50FB 7CC5 5B2E 8AFA 59FE 03B7 AA5E D56A 7FBF 253E` and provides the corresponding public key.
+
+Before packaging, GPG reported a valid detached signature for the 54,478,574-byte release archive. The exact binary SHA-256 was:
+
+`3b4dc68d56c0690801b91f5c5aabc6014b40ac4da2ed6d8ee6209a170f6a8e11`
+
+The GPG key was imported into a temporary isolated keyring from the official Reth documentation. GPG marked the key's owner trust as unknown; the full fingerprint matched the fingerprint published by Reth. This is not a Web of Trust certification or an independent identity audit.
+
+### BOD package and recovery
+
+The BOD checkpoint bound the Reth source snapshot to five payloads:
+
+1. release binary archive;
+2. detached PGP signature;
+3. official release signing public key;
+4. GitHub release metadata;
+5. GitHub source-commit metadata.
+
+Results:
+
+- Checkpoint ID: `6f08071bfe4dc1dfc6bd30e754f7dd941eba23bb3829c5d92071e33a1952e01d`.
+- Evidence Bundle ID: `85c47e980ca69ae18a0225e58fd316dc8e503075dc887ff39dff16bc63a631df`.
+- 5 evidence objects; 54,534,832 payload bytes.
+- BOD bundle verification: `VALID_SELF_CONTAINED_BUNDLE`.
+- Independent verifier: `VALID_SELF_CONTAINED_BUNDLE`.
+- Original local copies of the five evidence payloads were deleted after packaging.
+- `bod bundle-extract` recovered all five payloads into a new directory.
+- A fresh isolated GPG keyring imported the recovered public key and verified the recovered release archive against the recovered detached signature. GPG returned exit code 0, `GOODSIG` and `VALIDSIG` with the published Reth key fingerprint.
+- The same delete-and-recover test using a conventional `tar.gz` archive also passed checksums and GPG verification.
+
+### Size comparison
+
+| Representation | Bytes |
+|---|---:|
+| BOD JSON bundle | 73,088,674 |
+| Gzip-compressed BOD JSON bundle | 54,944,529 |
+| Ordinary `tar.gz` with the same checkpoint and payloads | 54,374,546 |
+
+The compressed BOD bundle was 569,983 bytes (about 1.05%) larger than the ordinary archive in this sample. The uncompressed JSON representation was about 34% larger. This is a useful large-payload test, but it does not show a storage advantage over standard archives.
+
+### Limits and interpretation
+
+- This verifies the release archive's detached PGP signature under the key published by Reth; it does not prove that the binary was built from the recorded source commit.
+- No SLSA provenance for this binary was verified in this test. The source commit's GitHub signature and the binary's PGP signature are distinct claims.
+- The BOD checkpoint and bundle IDs are unkeyed commitments, not signatures or trusted timestamps.
+- A conventional archive recovered the same payloads and supported the same GPG verification.
+- Attempting to execute the recovered `reth --version` binary on this workstation terminated with SIGILL (exit 132). The binary's runtime compatibility was therefore not established; no Ethereum node was started and no network or chain interaction occurred.
+- The test demonstrates a BOD recovery workflow on one real Ethereum client release. It is not evidence of demand from the Reth team, a pilot, production readiness or superiority over existing systems.
+
+Primary references:
+- Reth release: https://github.com/paradigmxyz/reth/releases/tag/v2.11.0
+- Reth official binary and signing-key documentation: https://reth.rs/installation/binaries/
+- Reth source commit: https://github.com/paradigmxyz/reth/commit/b9abbcc1b982755baa9021e6874e2e58936ca65f

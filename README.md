@@ -166,7 +166,7 @@ Details: [Ethereum integration](docs/ETHEREUM_INTEGRATION.md) · [EAS integratio
 
 **Status: experimental public engineering prototype — not production-secure.**
 
-The current evidence supports a working local prototype and one real GitHub Actions/Sigstore recovery scenario. It does not yet support claims of production readiness, market demand, paying customers, broad interoperability or superiority over existing products. The next validation gate is a reproducible comparative benchmark and independent operator feedback.
+The current evidence supports a working local prototype, a GitHub Actions/Sigstore recovery scenario and a recovery test using a real Reth v2.11.0 release asset. These tests do not yet support claims of production readiness, market demand, paying customers, broad interoperability or superiority over existing products. The next validation gate is a reproducible comparative benchmark and independent operator feedback.
 
 Review the [threat model](docs/THREAT_MODEL_v0.1.md), [privacy model](docs/PRIVACY_MODEL.md), [security policy](SECURITY.md), [reproducibility policy](docs/REPRODUCIBILITY.md), and [roadmap](docs/ROADMAP.md) before using the prototype with sensitive or production data.
 
