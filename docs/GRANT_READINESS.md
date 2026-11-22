@@ -19,7 +19,7 @@ ESP describes support for open-source, non-commercial public goods that strength
 | Technical approach | Working Python prototype, portable bundles, independent verifier, Solidity registry source and tests | Promising, but protocol and contract review remain incomplete |
 | Ecosystem impact | Potential release-evidence continuity for Ethereum software and smart-contract teams | Plausible; user value has not been independently demonstrated |
 | Open source | MIT-licensed public repository, public specifications and tests | Strong structural fit |
-| Budget | Local-first test plan; no paid RPC, token or hosted service requirement | Cost-conscious; grant budget not yet costed |
+| Budget | Local-first test plan; no paid RPC, token or hosted service requirement | Cost-conscious; grant budget not yet costed. ESP says it generally expects flexibility below standard market rates for non-dilutive support |
 | Experience | Public code, test suite and bounded recovery experiments | Evidence of implementation; contributor capacity and relevant track record need to be presented accurately |
 | Alignment | Optional Ethereum L1 registry and EAS integration | Moderate; generic supply-chain tooling alone is not sufficient evidence of Ethereum-specific impact |
 
@@ -27,9 +27,9 @@ ESP describes support for open-source, non-commercial public goods that strength
 
 | Workstream | Current state | Gap before a strong application |
 |---|---|---|
-| Core continuity | Implemented prototype | Snapshot v0.2 mode semantics and legacy v0.1 verification implemented locally; fresh remote CI still pending |
+| Core continuity | Implemented prototype; snapshot v0.2 and legacy v0.1 verification pass | Repeat across independent projects and baseline toolchains |
 | Evidence portability | One GitHub/Sigstore scenario and one Reth release recovery scenario documented | Repeat across independent projects and baseline toolchains |
-| Ethereum contract | Solidity source and Foundry tests | Fresh CI evidence, independent review, threat analysis and deployment rehearsal |
+| Ethereum contract | Solidity source and Foundry tests; remote CI passed on current reviewed branch | Independent review, deeper threat analysis and deployment rehearsal |
 | EAS | SDK scripts and local smoke checks | Schema not registered; no live attestation; issuer policy needs independent review |
 | Smart-contract release profile | Proposed in the technical brief | Implement a complete public fixture including build, test, audit, bytecode and upgrade evidence |
 | Interoperability | Structural inspection and delegated Sigstore verification | Broader real fixtures and format-specific verifiers |
@@ -52,7 +52,7 @@ These results do not constitute:
 - independent user adoption or product-market fit;
 - an independently reproduced multi-project benchmark.
 
-GitHub Actions run [45046532252](https://github.com/BogdanXI/Blockchain-BOD/actions/runs/45046532252) passed on commit 3b34baf8e76edbb332fd0b356e005d782de43fcd across Python 3.11, 3.12, 3.13, Foundry Solidity tests and EAS tooling. Foundry is not installed locally, but the remote Solidity job passed. Any subsequent source or workflow changes require another run.
+GitHub Actions run [45046678505](https://github.com/BogdanXI/Blockchain-BOD/actions/runs/45046678505) passed on commit cac8ce81546e895d76fcba743525f773735132d4 across Python 3.11, 3.12, 3.13, Foundry Solidity tests and EAS tooling. Foundry is not installed locally, but the remote Solidity job passed. Any subsequent source or workflow changes require another run.
 
 ## 4. Recommended grant framing
 

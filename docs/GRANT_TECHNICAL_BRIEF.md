@@ -214,7 +214,7 @@ The proposal does not include token issuance, token incentives, paid RPC subscri
 
 ## 10. Fit with Ethereum Foundation ESP
 
-ESP describes its scope as open-source, non-commercial work that strengthens Ethereum and supports builders, aligned with CROPS: Censorship Resistance, Open Source, Privacy and Security. Its published selection criteria include technical approach, ecosystem impact, open source, budget, experience and alignment.
+ESP describes its scope as open-source, non-commercial work that strengthens Ethereum and supports builders, aligned with CROPS: Censorship Resistance, Open Source, Privacy and Security. Its published selection criteria include technical approach, ecosystem impact, open source, budget, experience and alignment. ESP describes budget review as cost-effectiveness and appropriate allocation, and says it generally expects some flexibility below standard market rates because the support is non-dilutive.
 
 BOD's strongest potential fit is builder tooling and security infrastructure for Ethereum release evidence. The application should not be framed as a generic blockchain, token, or commercial SaaS request.
 
