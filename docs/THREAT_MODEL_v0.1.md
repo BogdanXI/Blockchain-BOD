@@ -12,7 +12,7 @@ A successful BOD verification may establish that:
 
 It does **not** establish that evidence is truthful, builds are secure, referenced artifacts remain available, publishers are authorized, source code is correct, or an Ethereum transaction makes a BOD transition valid or canonical.
 
-## Adversaries
+## Privacy and data disclosure\n\nHashes and fixed-size commitments are not anonymization. Predictable values may be guessed, and public metadata can be correlated with repositories, organizations, wallet activity or release timing. The current public-surface scanner covers selected high-confidence credential patterns and private path names only; it is not comprehensive DLP. Operators must review checkpoint contents before publication and keep source, evidence payloads, secrets and personal data off-chain. See [Privacy Model](PRIVACY_MODEL.md).\n\n## Adversaries
 
 ### Evidence fabricator
 
@@ -50,7 +50,7 @@ One implementation may accept an invalid envelope. BOD publishes an independent 
 
 Repository capture hashes a tracked symlink's link target rather than dereferencing the target and reading arbitrary external file contents. Snapshot verification rejects absolute paths, traversal components, non-normalized paths, duplicate/unsorted entries and invalid size/digest types. These checks reduce path confusion and accidental data capture; they do not replace OS sandboxing or a review of the capture boundary.
 
-## Ethereum contract boundaries
+## Data availability and exit paths\n\nA commitment proves a relationship to bytes only when those bytes can be obtained. Ethereum, EAS and a digest do not guarantee artifact availability. A production workflow must provide independently controlled artifact locations, retrieval checks and a documented recovery path if a repository host, CI provider, indexer or RPC endpoint disappears. These capabilities are not yet demonstrated end-to-end.\n\n## Ethereum contract boundaries
 
 - Permissionless publication is not repository authorization.
 - Append-only storage is not canonical branch selection.
