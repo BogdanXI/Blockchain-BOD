@@ -48,10 +48,16 @@ def _ceil_div(a: int, b: int) -> int:
     return (a + b - 1) // b
 
 
-def quote_network_fee_v0_1(*, policy: NetworkFeePolicyV0_1, gas_estimate: int, latest_base_fee_wei: int) -> NetworkFeeQuoteV0_1:
+def quote_network_fee_v0_1(
+    *, policy: NetworkFeePolicyV0_1, gas_estimate: int, latest_base_fee_wei: int
+) -> NetworkFeeQuoteV0_1:
     if not isinstance(gas_estimate, int) or isinstance(gas_estimate, bool) or gas_estimate <= 0:
         raise NetworkFeeError("gas_estimate must be a positive integer")
-    if not isinstance(latest_base_fee_wei, int) or isinstance(latest_base_fee_wei, bool) or latest_base_fee_wei < 0:
+    if (
+        not isinstance(latest_base_fee_wei, int)
+        or isinstance(latest_base_fee_wei, bool)
+        or latest_base_fee_wei < 0
+    ):
         raise NetworkFeeError("latest_base_fee_wei must be a non-negative integer")
     base = max(latest_base_fee_wei, policy.gas_price_floor_wei)
     max_fee = _ceil_div(base * (BPS + policy.base_fee_boost_bps), BPS) + policy.priority_fee_wei
@@ -72,5 +78,15 @@ def quote_network_fee_v0_1(*, policy: NetworkFeePolicyV0_1, gas_estimate: int, l
     )
 
 
+# Ethereum floors are intentionally zero: base fee and priority fee must be
+# obtained from current RPC observations, not a stale network-wide constant.
+ETHEREUM_MAINNET_FEE_POLICY = NetworkFeePolicyV0_1(
+    "Ethereum Mainnet", 1, "ETH", 0, priority_fee_wei=0
+)
+ETHEREUM_SEPOLIA_FEE_POLICY = NetworkFeePolicyV0_1(
+    "Ethereum Sepolia", 11155111, "ETH", 0, priority_fee_wei=0
+)
+
+# Legacy policies retained for reproducibility of the original Arbitrum experiments.
 ARBITRUM_SEPOLIA_FEE_POLICY = NetworkFeePolicyV0_1("Arbitrum Sepolia", 421614, "ETH", 200_000_000)
 ARBITRUM_ONE_FEE_POLICY = NetworkFeePolicyV0_1("Arbitrum One", 42161, "ETH", 20_000_000)

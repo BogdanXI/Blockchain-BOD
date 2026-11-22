@@ -1,0 +1,31 @@
+name: Ethereum contracts
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "protocol/ethereum/**"
+      - "test/**"
+      - "foundry.toml"
+      - ".github/workflows/ethereum-contracts.yml"
+  pull_request:
+    paths:
+      - "protocol/ethereum/**"
+      - "test/**"
+      - "foundry.toml"
+      - ".github/workflows/ethereum-contracts.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  foundry:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - name: Run Solidity tests
+        run: forge test -vvv

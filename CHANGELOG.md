@@ -1,3 +1,12 @@
+## 2026-11-22 — Ethereum ecosystem track
+
+- Repositioned the public product around Ethereum-anchored software-state continuity and supply-chain evidence interoperability.
+- Added a permissionless append-only Ethereum checkpoint registry with explicit predecessor and sequence validation.
+- Added Foundry tests for genesis, parent validation, duplicate rejection, project isolation and observable forks.
+- Added Ethereum integration, threat-model, market-hypothesis and roadmap documentation.
+- Added Ethereum Mainnet and Sepolia fee-policy descriptors using live base-fee inputs rather than a stale hard-coded floor.
+- Retained the Arbitrum implementation as a legacy experimental adapter; no mainnet deployment or security audit is claimed.
+
 ## 2026-10-09 — External review readiness
 
 - Clarified that BOD is an experimental continuity prototype and does not claim a production network or solved native consensus.
