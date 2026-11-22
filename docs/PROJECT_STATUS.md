@@ -26,6 +26,10 @@ The Ethereum contract is source code with local tests. It has not been deployed 
 
 The previous Arbitrum Sepolia adapter, browser bridge and workflows remain as historical experimental work. They are not the primary product narrative or deployment target. No Arbitrum One or Ethereum mainnet deployment is claimed.
 
+## Legacy research boundary
+
+The earlier BOD token/economic experiments are not part of the active Ethereum product. The legacy Python simulator and token-policy YAML contain unreconciled supply parameters; they are explicitly archived and must not be presented as final tokenomics. The Arbitrum adapter and browser bridge remain historical experimental components. See [Legacy components](LEGACY_COMPONENTS.md) and [economics archive note](../economics/README.md).
+
 ## Explicit non-claims
 
 - No production-ready BOD blockchain or native consensus mechanism.

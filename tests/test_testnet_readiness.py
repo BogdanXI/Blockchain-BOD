@@ -7,34 +7,24 @@ POLICY = ROOT / "protocol" / "genesis" / "BOD_TOKEN_POLICY_v0.1.yml"
 READINESS = ROOT / "protocol" / "TESTNET_READINESS_v0.1.yml"
 
 
-def test_candidate_supply_and_founder_boundary_match_policy():
+def test_historical_token_policy_remains_an_unapproved_candidate():
     doc = yaml.safe_load(POLICY.read_text(encoding="utf-8"))
-    genesis = doc["genesis"]
-
+    assert doc["status"] == "candidate_not_final"
     assert doc["token"]["max_supply"] == 100_000_000
-    assert genesis["minted_supply"] == 25_000_000
-    assert genesis["founder_preallocation"] == 5_000_000
-    assert genesis["founder_preallocation_share_bps"] == 500
-    assert genesis["initial_circulation_allocation"] == 20_000_000
-    assert genesis["founder_preallocation"] + genesis["initial_circulation_allocation"] == genesis["minted_supply"]
+    assert doc["genesis"]["minted_supply"] == 25_000_000
+    assert doc["genesis"]["founder_preallocation"] == 5_000_000
+    assert doc["genesis"]["unissued_issuance_capacity"] == 75_000_000
 
 
-def test_unissued_capacity_is_not_an_account_balance():
-    doc = yaml.safe_load(POLICY.read_text(encoding="utf-8"))
-    genesis = doc["genesis"]
-
-    assert genesis["unissued_issuance_capacity"] == 75_000_000
-    assert genesis["minted_supply"] + genesis["unissued_issuance_capacity"] == 100_000_000
-    assert genesis["issuance_capacity_is_not_an_account_balance"] is True
-    assert genesis["founder_preallocation"] == 5_000_000
-
-
-def test_testnet_readiness_does_not_claim_native_bod_launch():
+def test_ethereum_is_the_primary_testnet_target_and_not_deployed():
     doc = yaml.safe_load(READINESS.read_text(encoding="utf-8"))
-
-    assert doc["network"]["chain_id"] == 421614
-    assert doc["network"]["native_bod_network"] is False
+    assert doc["network"]["profile"] == "ethereum-sepolia-checkpoint-registry"
+    assert doc["network"]["chain_id"] == 11155111
     assert doc["network"]["production"] is False
+    assert doc["legacy_network"]["chain_id"] == 421614
+    assert doc["legacy_network"]["status"] == "legacy_experimental"
+    assert doc["surfaces"]["ethereum_sepolia_deployment"]["status"] == "not_deployed"
+    assert doc["surfaces"]["arbitrum_sepolia_live_evidence"]["status"] == "not_independently_recorded_in_public_repository"
     assert doc["launch_gate"]["decision"] == "blocked"
-    assert "mainnet_deployment" in doc["launch_gate"]["prohibited_now"]
+    assert "ethereum_mainnet_deployment" in doc["launch_gate"]["prohibited_now"]
     assert doc["native_bod_network"]["status"] == "not_ready"
