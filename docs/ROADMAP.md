@@ -27,15 +27,16 @@ Gate: Foundry tests, independent contract review, deployment rehearsal on Sepoli
 
 ## 3. Supply-chain evidence integration
 
-**Status: planned.**
+**Status: partially implemented.**
 
+- EAS SDK schema-registration and linked-attestation scripts are present; no live schema registration is claimed.
 - ingest SLSA/in-toto provenance references;
 - ingest SPDX/CycloneDX SBOM digests;
 - bind Sigstore/Rekor and/or EAS attestation references;
 - publish an end-to-end example from a real GitHub Actions build;
 - define privacy and retention boundaries.
 
-Gate: an independent maintainer can reproduce the release record and verify it without BOD-hosted services.
+Gate: an independent maintainer can reproduce the release record, verify EAS lineage and validate referenced evidence without BOD-hosted services.
 
 ## 4. Product-value experiment
 
