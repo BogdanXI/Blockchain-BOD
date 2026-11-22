@@ -56,3 +56,50 @@ def test_cli_rejects_mutation(tmp_path):
         capture_output=True, text=True, check=False,
     )
     assert verify.returncode != 0
+
+
+def test_snapshot_rejects_unsafe_paths_and_noncanonical_entries():
+    snapshot = repository_snapshot(Path("."))
+    unsafe = json.loads(json.dumps(snapshot))
+    unsafe["files"][0]["path"] = "../outside"
+    with pytest.raises(EvidenceEnvelopeError):
+        parse_portable({
+            "schema": "bod-portable-checkpoint-v0.1",
+            "snapshot": unsafe,
+            "envelope": {},
+            "checkpoint_id": "0" * 64,
+        })
+
+    boolean_size = json.loads(json.dumps(snapshot))
+    boolean_size["files"][0]["size"] = True
+    with pytest.raises(EvidenceEnvelopeError):
+        verify_snapshot(boolean_size)
+
+    unsorted = json.loads(json.dumps(snapshot))
+    unsorted["files"] = list(reversed(unsorted["files"]))
+    with pytest.raises(EvidenceEnvelopeError):
+        verify_snapshot(unsorted)
+
+
+def test_snapshot_hashes_symlink_target_not_external_file_contents(tmp_path):
+    import hashlib
+    import os
+
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    external_file = tmp_path / "outside.txt"
+    external_file.write_text("external payload must not be read", encoding="utf-8")
+    link = repository / "linked.txt"
+    link.symlink_to(external_file)
+
+    subprocess.run(["git", "-C", str(repository), "init"], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(repository), "add", "--", "linked.txt"], check=True, capture_output=True)
+
+    snapshot = repository_snapshot(repository)
+    entry = snapshot["files"][0]
+    link_target = os.fsencode(os.readlink(link))
+
+    assert entry["path"] == "linked.txt"
+    assert entry["sha256"] == hashlib.sha256(link_target).hexdigest()
+    assert entry["size"] == len(link_target)
+    assert entry["sha256"] != hashlib.sha256(external_file.read_bytes()).hexdigest()
