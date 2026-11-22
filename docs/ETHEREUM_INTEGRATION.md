@@ -43,7 +43,7 @@ BOD should compose existing standards rather than invent another attestation for
 - Sigstore/Rekor for signing and transparency;
 - Ethereum Attestation Service (EAS) where an on-chain/off-chain attestation schema and issuer model are useful.
 
-A proposed EAS schema can reference projectId, checkpointId, gitCommit, stateRoot, manifestHash, evidenceRoot, previousCheckpointId and sequence. Schema registration and attestation issuance are **not implemented** in this branch and must not be described as completed.
+The executable EAS SDK clients are present in tools/eas. They support Sepolia schema registration and checkpoint attestations using the shared schema. This repository has not registered the schema or submitted a live attestation; the integration is therefore source-implemented but not live-validated. The current schema carries projectId, checkpointId, gitCommit, stateRoot, manifestHash, evidenceRoot and sequence; the predecessor is linked through EAS refUID. See [EAS Integration](EAS_INTEGRATION.md).
 
 ## Local verification
 
@@ -86,4 +86,4 @@ Never commit private keys, seed phrases, RPC credentials or signed transaction p
 - Permissionless publication allows spam and competing branches.
 - The contract does not authenticate repository ownership.
 - The contract does not prove the source/build/evidence is correct.
-- No formal verification or external audit has been completed.
+- No formal verification or external audit has been completed. No fuzz/invariant campaign or independently reviewed security report is currently claimed.
