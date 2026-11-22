@@ -24,7 +24,11 @@ def test_ethereum_is_the_primary_testnet_target_and_not_deployed():
     assert doc["network_scope"]["policy"] == "ethereum_l1_only"
     assert doc["network_scope"]["l2_adapters"] == "out_of_scope"
     assert doc["surfaces"]["ethereum_sepolia_deployment"]["status"] == "not_deployed"
-    assert doc["surfaces"]["eas_sdk_integration"]["status"] == "source_implemented_ci_syntax_checked_not_live_validated_schema_not_registered"
+    assert doc["surfaces"]["eas_sdk_integration"]["status"] == "source_implemented_ci_verified_not_live_validated_schema_not_registered"
+    assert doc["surfaces"]["ethereum_contract_tests"]["status"] == "implemented_ci_verified_not_deployed"
+    assert "deterministic_state_machine" not in doc["surfaces"]
+    assert doc["historical_research"]["task_to_settlement_protocol"]["status"] == "archived_experimental_not_active"
+    assert doc["historical_research"]["token_policy"]["status"] == "archived_experimental_not_active"
     assert doc["launch_gate"]["decision"] == "blocked"
     assert "ethereum_mainnet_deployment" in doc["launch_gate"]["prohibited_now"]
     assert doc["native_bod_network"]["status"] == "not_ready"

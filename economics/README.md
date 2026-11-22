@@ -4,7 +4,7 @@
 
 The current Ethereum product is an ETH-gas-paid, tokenless checkpoint registry. It has no BOD ERC-20, token issuance, staking, rewards, treasury, verifier economics or token-based fee requirement.
 
-The repository retains earlier BOD token and economic experiments for research traceability. They are not final policy and must not be used in a grant application, deployment, investor presentation or production implementation as approved economics.
+The repository retains earlier BOD token and economic experiments for research traceability. Related source modules and tests remain in the repository but are excluded from the active Python wheel. They are not final policy and must not be used in a grant application, deployment, investor presentation or production implementation as approved economics.
 
 ## Known reconciliation issue
 

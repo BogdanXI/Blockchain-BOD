@@ -49,7 +49,7 @@ Ethereum is an optional external witness. Local capture, portable bundle verific
 
 ## Legacy research boundary
 
-Historical token and economic experiments remain in the repository for traceability. They are not active product requirements, grant deliverables, deployment policy or approved monetary policy. See [Legacy Components](LEGACY_COMPONENTS.md) and [Economics archive](../economics/README.md).
+Historical task/settlement, token and economic experiments remain in the source tree for traceability. They are not active product requirements, grant deliverables, deployment policy or approved monetary policy, and are excluded from the installed Python wheel. See [Legacy Components](LEGACY_COMPONENTS.md) and [Economics archive](../economics/README.md).
 
 ## Explicit non-claims
 

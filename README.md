@@ -172,7 +172,7 @@ Review the [threat model](docs/THREAT_MODEL_v0.1.md), [privacy model](docs/PRIVA
 
 ## Repository map
 
-- `src/` — reference implementation and CLI.
+- `src/` — active reference implementation and CLI. Historical task/economics modules remain for traceability but are excluded from the installed wheel; see [legacy components](docs/LEGACY_COMPONENTS.md).
 - `protocol/` — versioned protocol and Ethereum contract specifications.
 - `test/` and `tests/` — Solidity and Python regression tests.
 - `tools/eas/` — EAS client scripts; no live schema registration is claimed.
