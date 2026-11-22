@@ -77,6 +77,13 @@ bod capture . --project my-project --out checkpoint.json
 python scripts/independent_verify.py checkpoint.json
 ```
 
+For a collection of portable checkpoints that includes multiple branches, verify the complete graph without choosing a canonical head:
+
+```bash
+bod verify checkpoints.json --portable --graph
+python scripts/independent_verify.py checkpoints.json --graph
+```
+
 Run the Python checks:
 
 ```bash

@@ -11,6 +11,7 @@
 - deterministic repository snapshots;
 - versioned evidence envelopes and predecessor-linked history;
 - independent verification and portable checkpoint recovery, including normalized-path checks and symlink-target hashing;
+- branch-aware lineage graph verification that reports fork points and heads without selecting a canonical head;
 - Python CLI and regression suite;
 - a permissionless, append-only Ethereum checkpoint registry;
 - Foundry tests for checkpoint creation, lineage validation, duplicate rejection and fork visibility;

@@ -9,6 +9,7 @@ from src.bod_evidence_envelope import (
     EvidenceReferenceV0_1,
     create_evidence_envelope,
     verify_chain,
+    verify_lineage_graph,
 )
 
 
@@ -127,3 +128,31 @@ def test_unsupported_or_mutated_documents_are_rejected(document):
     envelope = _envelope(ROOT_A, None, "genesis")
     with pytest.raises(EvidenceEnvelopeError):
         EvidenceEnvelopeV0_1.from_document(document(envelope))
+
+
+def test_lineage_graph_accepts_forks_and_reports_all_heads_without_canonical_choice():
+    genesis = _envelope(ROOT_A, None, "genesis")
+    branch_b = _envelope(ROOT_B, ROOT_A, "branch-b")
+    branch_c = _envelope(ROOT_C, ROOT_A, "branch-c")
+
+    graph = verify_lineage_graph([branch_c, genesis, branch_b])
+
+    assert graph["project_id"] == "project-A"
+    assert graph["genesis_state_root"] == ROOT_A
+    assert graph["fork_points"] == (ROOT_A,)
+    assert graph["heads"] == tuple(sorted((ROOT_B, ROOT_C)))
+    assert len(graph["edges"]) == 2
+    with pytest.raises(EvidenceEnvelopeError, match="verify it as a lineage graph"):
+        verify_chain([genesis, branch_b, branch_c])
+
+
+def test_lineage_graph_rejects_disconnected_cycles_and_missing_parents():
+    genesis = _envelope(ROOT_A, None, "genesis")
+    cycle_b = _envelope(ROOT_B, ROOT_C, "cycle-b")
+    cycle_c = _envelope(ROOT_C, ROOT_B, "cycle-c")
+    with pytest.raises(EvidenceEnvelopeError, match="disconnected component or cycle"):
+        verify_lineage_graph([genesis, cycle_b, cycle_c])
+
+    missing = _envelope(ROOT_C, "44" * 32, "missing-parent")
+    with pytest.raises(EvidenceEnvelopeError, match="missing predecessor"):
+        verify_lineage_graph([genesis, missing])

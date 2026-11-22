@@ -7,11 +7,11 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from bod_evidence_envelope import EvidenceEnvelopeError, EvidenceEnvelopeV0_1, EvidenceReferenceV0_1, create_evidence_envelope, verify_chain
-    from bod_portable import create_portable_checkpoint, parse_portable, repository_snapshot, verify_portable_chain
+    from bod_evidence_envelope import EvidenceEnvelopeError, EvidenceEnvelopeV0_1, EvidenceReferenceV0_1, create_evidence_envelope, verify_chain, verify_lineage_graph
+    from bod_portable import create_portable_checkpoint, parse_portable, repository_snapshot, verify_portable_chain, verify_portable_graph
 except ImportError:
-    from src.bod_evidence_envelope import EvidenceEnvelopeError, EvidenceEnvelopeV0_1, EvidenceReferenceV0_1, create_evidence_envelope, verify_chain
-    from src.bod_portable import create_portable_checkpoint, parse_portable, repository_snapshot, verify_portable_chain
+    from src.bod_evidence_envelope import EvidenceEnvelopeError, EvidenceEnvelopeV0_1, EvidenceReferenceV0_1, create_evidence_envelope, verify_chain, verify_lineage_graph
+    from src.bod_portable import create_portable_checkpoint, parse_portable, repository_snapshot, verify_portable_chain, verify_portable_graph
 
 
 def load(path: str | Path) -> Any:
@@ -102,15 +102,23 @@ def cmd_verify(args) -> int:
         value = load(args.file)
         if args.portable:
             checkpoints = parse_checkpoints(value)
-            verify_portable_chain(checkpoints)
-            commitments = [parse_portable(x)[1].commitment() for x in checkpoints]
-            print(json.dumps({"status": "VALID_INTEGRITY", "portable_checkpoints": len(checkpoints), "envelope_commitments": commitments, "recovery": "VERIFIABLE"}, indent=2))
+            if args.graph:
+                graph = verify_portable_graph(checkpoints)
+                print(json.dumps({"status": "VALID_INTEGRITY", "portable_checkpoints": len(checkpoints), "lineage_graph": graph, "canonical_head": None}, indent=2))
+            else:
+                verify_portable_chain(checkpoints)
+                commitments = [parse_portable(x)[1].commitment() for x in checkpoints]
+                print(json.dumps({"status": "VALID_INTEGRITY", "portable_checkpoints": len(checkpoints), "envelope_commitments": commitments, "recovery": "VERIFIABLE"}, indent=2))
         else:
             envs = parse_envelopes(value)
-            if not args.chain and len(envs) != 1:
-                raise EvidenceEnvelopeError("verify without --chain requires exactly one envelope")
-            verify_chain(envs)
-            print(json.dumps({"status": "VALID_INTEGRITY", "envelopes": len(envs), "commitments": [e.commitment() for e in envs]}, indent=2))
+            if args.graph:
+                graph = verify_lineage_graph(envs)
+                print(json.dumps({"status": "VALID_INTEGRITY", "envelopes": len(envs), "lineage_graph": graph, "canonical_head": None}, indent=2))
+            else:
+                if not args.chain and len(envs) != 1:
+                    raise EvidenceEnvelopeError("verify without --chain requires exactly one envelope")
+                verify_chain(envs)
+                print(json.dumps({"status": "VALID_INTEGRITY", "envelopes": len(envs), "commitments": [e.commitment() for e in envs]}, indent=2))
         return 0
     except (EvidenceEnvelopeError, OSError, json.JSONDecodeError) as exc:
         print(json.dumps({"status": "INVALID", "reason": str(exc)}, indent=2))
@@ -185,6 +193,7 @@ def main() -> int:
     x.add_argument("file")
     x.add_argument("--portable", action="store_true")
     x.add_argument("--chain", action="store_true")
+    x.add_argument("--graph", action="store_true", help="verify all branches without selecting a canonical head")
     x.set_defaults(func=cmd_verify)
 
     x = sub.add_parser("recover")

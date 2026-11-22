@@ -10,9 +10,9 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 try:
-    from bod_evidence_envelope import EvidenceEnvelopeError, EvidenceEnvelopeV0_1, verify_chain
+    from bod_evidence_envelope import EvidenceEnvelopeError, EvidenceEnvelopeV0_1, verify_lineage_graph
 except ImportError:
-    from src.bod_evidence_envelope import EvidenceEnvelopeError, EvidenceEnvelopeV0_1, verify_chain
+    from src.bod_evidence_envelope import EvidenceEnvelopeError, EvidenceEnvelopeV0_1, verify_lineage_graph
 
 SNAPSHOT_SCHEMA = "bod-repository-snapshot-v0.1"
 PORTABLE_SCHEMA = "bod-portable-checkpoint-v0.1"
@@ -124,13 +124,22 @@ def parse_portable(value: Any) -> tuple[dict[str, Any], EvidenceEnvelopeV0_1]:
     return value["snapshot"], envelope
 
 
-def verify_portable_chain(values: list[dict[str, Any]]) -> None:
+def verify_portable_graph(values: list[dict[str, Any]]) -> dict[str, Any]:
+    """Verify portable checkpoints as a branching graph without choosing a head."""
     if not values:
-        raise EvidenceEnvelopeError("portable checkpoint chain is empty")
-    parsed = [parse_portable(v) for v in values]
+        raise EvidenceEnvelopeError("portable checkpoint graph is empty")
+    parsed = [parse_portable(value) for value in values]
     snapshots = [item[0] for item in parsed]
     envelopes = [item[1] for item in parsed]
-    verify_chain(envelopes)
+    graph = verify_lineage_graph(envelopes)
     roots = [snapshot["state_root"] for snapshot in snapshots]
     if roots != [envelope.state_root for envelope in envelopes] or len(set(roots)) != len(roots):
         raise EvidenceEnvelopeError("portable checkpoint state roots are inconsistent")
+    return graph
+
+
+def verify_portable_chain(values: list[dict[str, Any]]) -> None:
+    """Verify a single linear portable checkpoint chain."""
+    graph = verify_portable_graph(values)
+    if graph["fork_points"]:
+        raise EvidenceEnvelopeError("portable checkpoint chain contains a fork; verify it as a graph")

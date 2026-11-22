@@ -6,7 +6,11 @@ from pathlib import Path
 import pytest
 
 from bod_evidence_envelope import EvidenceEnvelopeError, create_evidence_envelope
-from bod_portable import create_portable_checkpoint, parse_portable, repository_snapshot, verify_snapshot
+from bod_portable import (
+    SNAPSHOT_DOMAIN, SNAPSHOT_SCHEMA, canonical_json, create_portable_checkpoint,
+    parse_portable, repository_snapshot, sha256_bytes, verify_portable_chain,
+    verify_portable_graph, verify_snapshot,
+)
 
 
 def test_capture_verify_recover_cli(tmp_path):
@@ -98,3 +102,53 @@ def test_snapshot_hashes_symlink_target_not_external_file_contents(tmp_path):
     assert entry["sha256"] == hashlib.sha256(link_target).hexdigest()
     assert entry["size"] == len(link_target)
     assert entry["sha256"] != hashlib.sha256(external_file.read_bytes()).hexdigest()
+
+
+def _synthetic_snapshot(label: str) -> dict:
+    files = [{"path": "state.txt", "sha256": sha256_bytes(label.encode()), "size": len(label)}]
+    durable = {"schema": SNAPSHOT_SCHEMA, "files": files}
+    return {**durable, "state_root": sha256_bytes(SNAPSHOT_DOMAIN + canonical_json(durable))}
+
+
+def test_portable_graph_verifies_forks_and_independent_cli(tmp_path):
+    from bod_evidence_envelope import create_evidence_envelope
+
+    snapshots = [_synthetic_snapshot(name) for name in ("genesis", "branch-b", "branch-c")]
+    genesis = create_evidence_envelope(
+        project_id="graph-project", protocol_version="0.1", state_root=snapshots[0]["state_root"],
+        predecessor_state_root=None, transition_id="genesis", evidence=(), capture_boundary="test",
+    )
+    children = [
+        create_evidence_envelope(
+            project_id="graph-project", protocol_version="0.1", state_root=snapshot["state_root"],
+            predecessor_state_root=snapshots[0]["state_root"], transition_id=f"branch-{index}",
+            evidence=(), capture_boundary="test",
+        )
+        for index, snapshot in enumerate(snapshots[1:], start=1)
+    ]
+    checkpoints = [
+        create_portable_checkpoint(snapshot=snapshot, envelope=envelope)
+        for snapshot, envelope in [(snapshots[0], genesis), *zip(snapshots[1:], children)]
+    ]
+
+    graph = verify_portable_graph(checkpoints)
+    assert graph["fork_points"] == (snapshots[0]["state_root"],)
+    assert set(graph["heads"]) == {snapshot["state_root"] for snapshot in snapshots[1:]}
+    with pytest.raises(EvidenceEnvelopeError, match="verify it as a graph"):
+        verify_portable_chain(checkpoints)
+
+    artifact = tmp_path / "forked-checkpoints.json"
+    artifact.write_text(json.dumps({"checkpoints": checkpoints}), encoding="utf-8")
+    independent = subprocess.run(
+        [sys.executable, "scripts/independent_verify.py", str(artifact), "--graph"],
+        capture_output=True, text=True, check=False,
+    )
+    assert independent.returncode == 0, independent.stdout + independent.stderr
+    assert json.loads(independent.stdout)["status"] == "VALID_INTEGRITY"
+
+    cli = subprocess.run(
+        [sys.executable, "-m", "src.bod_cli", "verify", str(artifact), "--portable", "--graph"],
+        capture_output=True, text=True, check=False,
+    )
+    assert cli.returncode == 0, cli.stdout + cli.stderr
+    assert json.loads(cli.stdout)["canonical_head"] is None

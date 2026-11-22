@@ -46,6 +46,7 @@ Implemented in the current public branch:
 
 - deterministic portable checkpoint and snapshot verification;
 - predecessor-linked checkpoint semantics in the Ethereum registry source;
+- branch-aware lineage graph verification in the Python library, CLI and independent verifier;
 - local Foundry tests, including fuzz tests;
 - EAS SDK client scripts and CI syntax/smoke checks;
 - CI-generated SBOMs and GitHub artifact attestations for build outputs.

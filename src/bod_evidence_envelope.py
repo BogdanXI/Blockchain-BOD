@@ -206,41 +206,65 @@ def verify_lineage(previous: EvidenceEnvelopeV0_1, current: EvidenceEnvelopeV0_1
         raise EvidenceEnvelopeError("state root was replayed")
 
 
-def verify_chain(envelopes: Iterable[EvidenceEnvelopeV0_1]) -> None:
+def verify_lineage_graph(envelopes: Iterable[EvidenceEnvelopeV0_1]) -> dict[str, Any]:
+    """Verify a complete project lineage graph without choosing a canonical head.
+
+    Multiple children of one predecessor are valid branches. The returned
+    metadata identifies fork points and branch heads but does not rank them.
+    """
     items = tuple(envelopes)
     if not items:
-        raise EvidenceEnvelopeError("evidence chain is empty")
+        raise EvidenceEnvelopeError("evidence graph is empty")
     if any(item.envelope_id != item.commitment() for item in items):
-        raise EvidenceEnvelopeError("chain contains an invalid envelope commitment")
+        raise EvidenceEnvelopeError("graph contains an invalid envelope commitment")
     projects = {item.project_id for item in items}
     if len(projects) != 1:
-        raise EvidenceEnvelopeError("chain contains multiple projects")
+        raise EvidenceEnvelopeError("graph contains multiple projects")
     if len({item.state_root for item in items}) != len(items):
-        raise EvidenceEnvelopeError("chain contains duplicate state roots")
+        raise EvidenceEnvelopeError("graph contains duplicate state roots")
+
     genesis = [item for item in items if item.predecessor_state_root is None]
     if len(genesis) != 1:
-        raise EvidenceEnvelopeError("chain must contain exactly one genesis envelope")
+        raise EvidenceEnvelopeError("graph must contain exactly one genesis envelope")
 
     by_state = {item.state_root: item for item in items}
-    successors: dict[str, int] = {}
+    children: dict[str, list[str]] = {root: [] for root in by_state}
     for item in items:
-        if item.predecessor_state_root is None:
+        parent_root = item.predecessor_state_root
+        if parent_root is None:
             continue
-        predecessor = by_state.get(item.predecessor_state_root)
-        if predecessor is None:
-            raise EvidenceEnvelopeError("chain contains a missing predecessor")
-        verify_lineage(predecessor, item)
-        successors[item.predecessor_state_root] = successors.get(item.predecessor_state_root, 0) + 1
-    if any(count > 1 for count in successors.values()):
-        raise EvidenceEnvelopeError("chain contains a fork")
+        parent = by_state.get(parent_root)
+        if parent is None:
+            raise EvidenceEnvelopeError("graph contains a missing predecessor")
+        verify_lineage(parent, item)
+        children[parent_root].append(item.state_root)
 
     visited: set[str] = set()
-    current = genesis[0]
-    while True:
-        visited.add(current.state_root)
-        next_items = [item for item in items if item.predecessor_state_root == current.state_root]
-        if not next_items:
-            break
-        current = next_items[0]
+    pending = [genesis[0].state_root]
+    while pending:
+        state_root = pending.pop()
+        if state_root in visited:
+            continue
+        visited.add(state_root)
+        pending.extend(children[state_root])
     if visited != set(by_state):
-        raise EvidenceEnvelopeError("chain contains a disconnected component")
+        raise EvidenceEnvelopeError("graph contains a disconnected component or cycle")
+
+    fork_points = tuple(sorted(root for root, descendants in children.items() if len(descendants) > 1))
+    heads = tuple(sorted(root for root, descendants in children.items() if not descendants))
+    edges = tuple(sorted((parent, child) for parent, descendants in children.items() for child in descendants))
+    return {
+        "project_id": next(iter(projects)),
+        "genesis_state_root": genesis[0].state_root,
+        "state_roots": tuple(sorted(by_state)),
+        "edges": edges,
+        "fork_points": fork_points,
+        "heads": heads,
+    }
+
+
+def verify_chain(envelopes: Iterable[EvidenceEnvelopeV0_1]) -> None:
+    """Verify a single linear lineage; use verify_lineage_graph for branches."""
+    graph = verify_lineage_graph(envelopes)
+    if graph["fork_points"]:
+        raise EvidenceEnvelopeError("chain contains a fork; verify it as a lineage graph")

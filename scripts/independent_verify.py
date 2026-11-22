@@ -137,7 +137,7 @@ def verify_portable(document):
         raise ValueError("snapshot/envelope state root mismatch")
 
 
-def verify_chain(documents):
+def verify_chain(documents, allow_forks=False):
     if not documents:
         raise ValueError("empty checkpoint chain")
     for document in documents:
@@ -161,25 +161,29 @@ def verify_chain(documents):
         if parent not in by_root:
             raise ValueError("missing predecessor")
         successor_count[parent] = successor_count.get(parent, 0) + 1
-    if any(count > 1 for count in successor_count.values()):
-        raise ValueError("fork")
+    if any(count > 1 for count in successor_count.values()) and not allow_forks:
+        raise ValueError("fork; use --graph to verify all branches")
+    children_by_root = {root: [] for root in by_root}
+    for envelope in envelopes:
+        parent = envelope["predecessor_state_root"]
+        if parent is not None:
+            children_by_root[parent].append(envelope)
     visited = set()
-    current = genesis[0]
-    while True:
-        if current["state_root"] in visited:
-            raise ValueError("cycle")
-        visited.add(current["state_root"])
-        children = [e for e in envelopes if e["predecessor_state_root"] == current["state_root"]]
-        if not children:
-            break
-        current = children[0]
+    pending = [genesis[0]]
+    while pending:
+        current = pending.pop()
+        root = current["state_root"]
+        if root in visited:
+            continue
+        visited.add(root)
+        pending.extend(children_by_root[root])
     if visited != set(by_root):
-        raise ValueError("disconnected component")
+        raise ValueError("disconnected component or cycle")
 
 
 def main():
     if len(sys.argv) not in (2, 3):
-        print("usage: independent_verify.py FILE [--chain]", file=sys.stderr)
+        print("usage: independent_verify.py FILE [--chain|--graph]", file=sys.stderr)
         return 2
     try:
         value = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
@@ -187,6 +191,8 @@ def main():
             value = value["checkpoints"]
         if sys.argv[-1] == "--chain":
             verify_chain(value if isinstance(value, list) else [value])
+        elif sys.argv[-1] == "--graph":
+            verify_chain(value if isinstance(value, list) else [value], allow_forks=True)
         elif isinstance(value, list):
             raise ValueError("list requires --chain")
         elif "schema" in value and value["schema"] == PORTABLE_SCHEMA:
