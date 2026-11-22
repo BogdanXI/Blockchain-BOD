@@ -4,8 +4,6 @@ This branch provides a reproducible remote execution path for the BOD developmen
 
 ## Purpose
 
-The local Arbitrum Nitro testnode is treated as disposable compute. The reproducible source of truth is GitHub:
-
 1. BOD branch and tests;
 2. pinned Nitro testnode commit;
 3. bootstrap script;

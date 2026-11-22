@@ -14,15 +14,9 @@ Blockchain-BOD itself is the first controlled workload.
 
 Path:
 
-`Git commit -> deterministic snapshot -> stateRoot -> Arbitrum Sepolia checkpoint -> recovery/verification`
-
-The Arbitrum checkpoint is an external commitment/timestamp layer. It is not BOD consensus and does not prove semantic correctness.
-
 ## Zero-click operation after bootstrap
 
 The intended runtime is:
-
-`git push -> GitHub Actions -> snapshot -> technical signer/relayer -> Arbitrum Sepolia`
 
 MetaMask is not required for every checkpoint. A one-time operator/bootstrap step is separated from the recurring automation path.
 
