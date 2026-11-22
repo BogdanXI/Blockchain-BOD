@@ -65,13 +65,13 @@ launch_gate:
   reasons:
     - ethereum_contract_requires_independent_security_review
     - ethereum_sepolia_deployment_and_reproducible_verification_not_completed
-    - supply_chain_and_EAS_integrations_not_implemented
+    - EAS_live_testnet_flow_not_validated\n    - SLSA_SBOM_and_Sigstore_product_integrations_not_implemented\n    - reproducible_dependency_lockfiles_and_release_provenance_incomplete
     - product_value_and_market_demand_not_validated
     - native_consensus_and_p2p_are_out_of_current_scope
   allowed_now:
     - run_python_regression_and_independent_verification
     - run_foundry_ethereum_contract_tests
-    - conduct_independent_design_and_security_review
+    - conduct_independent_design_and_security_review\n    - review_CROPS_and_privacy_documents
     - prepare_a_sepolia_rehearsal_after_review
   prohibited_now:
     - ethereum_mainnet_deployment
