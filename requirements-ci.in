@@ -4,3 +4,4 @@ ruff==0.17.6
 setuptools==84.2.1
 
 pip-audit==2.10.1
+typing_extensions>=4.6,<5
