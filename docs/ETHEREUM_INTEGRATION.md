@@ -28,7 +28,7 @@ The contract checks that a non-genesis checkpoint references an existing parent 
 
 The registry is an append-only evidence log, not an access-control system. Any account may publish a commitment. The publisher address is recorded, but the contract does not claim that the publisher is authorized to speak for a repository.
 
-Repository authorization belongs in signed provenance/attestations and consumer policy. A future integration may verify EAS attestations or signed release statements. Do not infer publisher identity from an arbitrary transaction.
+Repository authorization belongs in signed provenance/attestations and consumer policy. The EAS SDK integration is now provided separately: it records attester identity and predecessor references using a non-revocable BOD schema. The registry remains optional; see [EAS Integration](EAS_INTEGRATION.md). Do not infer repository authorization from an arbitrary transaction.
 
 ## No token or fee layer
 
