@@ -6,7 +6,7 @@
 
 [![CI](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml/badge.svg)](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml) [![License](https://img.shields.io/badge/license-MIT-111827.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-3.11%2B-111827.svg)](pyproject.toml) [![Status: Experimental](https://img.shields.io/badge/status-experimental-orange.svg)](docs/PROJECT_STATUS.md)
 
-[Quickstart](docs/GETTING_STARTED.md) · [Ethereum integration](docs/ETHEREUM_INTEGRATION.md) · [EAS integration](docs/EAS_INTEGRATION.md) · [Market hypothesis](docs/MARKET_FIT.md) · [Threat model](docs/THREAT_MODEL_v0.1.md) · [CROPS alignment](docs/CROPS_COMPLIANCE.md) · [Privacy model](docs/PRIVACY_MODEL.md) · [Grant readiness](docs/GRANT_READINESS.md) · [Reproducibility](docs/REPRODUCIBILITY.md) · [Roadmap](docs/ROADMAP.md)
+[Quickstart](docs/GETTING_STARTED.md) · [Ethereum integration](docs/ETHEREUM_INTEGRATION.md) · [EAS integration](docs/EAS_INTEGRATION.md) · [Market hypothesis](docs/MARKET_FIT.md) · [Threat model](docs/THREAT_MODEL_v0.1.md) · [CROPS alignment](docs/CROPS_COMPLIANCE.md) · [Privacy model](docs/PRIVACY_MODEL.md) · [Grant readiness](docs/GRANT_READINESS.md) · [Zero-Cost Testing Plan](docs/TESTING_WITH_ZERO_COST.md) · [Reproducibility](docs/REPRODUCIBILITY.md) · [Roadmap](docs/ROADMAP.md)
 
 ---
 

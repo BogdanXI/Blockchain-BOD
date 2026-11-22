@@ -49,7 +49,11 @@ surfaces:
 operator_requirements:
   funded_test_wallet: required_only_for_future_sepolia_deployment
   private_key_storage: local_environment_or_protected_ci_only
-  rpc_endpoint: operator_supplied_ethereum_sepolia_rpc
+  rpc_endpoint: free_public_or_self_hosted_ethereum_sepolia_rpc_only
+  paid_rpc_or_api_plan: prohibited
+  test_eth_source: public_faucet_only
+  maximum_test_budget_usd: 0
+  mainnet_funds: prohibited
   production_credentials: prohibited
 
 native_bod_network:
