@@ -1,4 +1,4 @@
-name: BOD Sepolia Bootstrap Anchor
+name: BOD Arbitrum Sepolia Bootstrap Anchor (legacy)
 
 on:
   push:

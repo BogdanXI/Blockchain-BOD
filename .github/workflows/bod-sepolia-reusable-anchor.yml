@@ -1,4 +1,4 @@
-name: BOD Arbitrum Sepolia Reusable Anchor
+name: BOD Arbitrum Sepolia Reusable Anchor (legacy)
 
 on:
   workflow_call:

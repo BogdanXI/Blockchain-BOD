@@ -1,4 +1,4 @@
-name: BOD Sepolia Anchor
+name: BOD Arbitrum Sepolia Anchor (legacy)
 
 on:
   workflow_dispatch:

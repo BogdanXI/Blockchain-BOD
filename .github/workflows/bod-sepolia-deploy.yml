@@ -1,4 +1,4 @@
-name: Deploy BOD Sepolia Registry
+name: Deploy BOD Arbitrum Sepolia Registry (legacy)
 
 on:
   workflow_dispatch:

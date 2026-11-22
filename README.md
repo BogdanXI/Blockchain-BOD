@@ -73,8 +73,8 @@ bod demo
 Capture and verify a local repository snapshot:
 
 ```bash
-bod snapshot . --out snapshot.json
-python scripts/independent_verify.py snapshot.json
+bod capture . --project my-project --out checkpoint.json
+python scripts/independent_verify.py checkpoint.json
 ```
 
 Run the Python checks:
