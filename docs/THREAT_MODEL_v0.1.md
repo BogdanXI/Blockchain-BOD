@@ -4,87 +4,64 @@
 
 BOD proves only predicates that its verifier actually checks.
 
-A successful BOD verification means:
+A successful BOD verification may establish that:
+1. canonical envelope bytes match their commitment;
+2. declared state roots and evidence digests are bound to that envelope;
+3. predecessor relationships are valid for the supplied history;
+4. a published Ethereum checkpoint matches the supplied commitments and can be read from the selected chain history.
 
-1. the envelope bytes are canonical and its commitment matches;
-2. the declared state root and evidence digests are bound to that envelope;
-3. the predecessor relationship is valid for the supplied history;
-4. the selected verification policy accepts the referenced evidence metadata.
-
-It does **not** mean:
-
-- the underlying evidence is truthful;
-- the build was secure merely because it has provenance;
-- the referenced URI is still available;
-- the issuer is trustworthy unless the verifier policy says so;
-- the source code is functionally correct;
-- a blockchain transaction makes an invalid envelope valid;
-- a local anchor is independent evidence.
+It does **not** establish that evidence is truthful, builds are secure, referenced artifacts remain available, publishers are authorized, source code is correct, or an Ethereum transaction makes a BOD transition valid or canonical.
 
 ## Adversaries
 
-### A1 — evidence fabricator
+### Evidence fabricator
 
-Can create false reports, logs or attestations.
+Can create false reports, logs or attestations. BOD can bind the resulting bytes but cannot determine whether the producer lied. Consumers must verify upstream signatures, identities and policies.
 
-**BOD response:** detects later mutation of the referenced bytes when those bytes are available, but cannot determine whether the original producer lied. Trust policy and upstream attestation verification are required.
+### Evidence mutator
 
-### A2 — evidence mutator
+Changes an evidence file after capture. A digest mismatch should cause verification failure when the bytes are available.
 
-Changes an evidence file after capture.
+### History rewriter
 
-**BOD response:** digest mismatch causes verification failure.
+Removes predecessors, injects forks, replays roots or crosses project boundaries. The local verifier checks supplied lineage; the Ethereum registry checks parent existence, project identity and sequence. Forks are allowed and deliberately visible.
 
-### A3 — history rewriter
+### Compromised CI/runtime
 
-Removes a predecessor, injects a fork, replays a state root or crosses project boundaries.
+Controls the machine that produced evidence. BOD preserves the declared evidence and lineage but does not turn a compromised builder into a trustworthy builder.
 
-**BOD response:** chain verification fails closed on gaps, forks, duplicate roots, disconnected components and project mismatch.
+### Malicious publisher
 
-### A4 — compromised CI/runtime
+Publishes arbitrary commitments or competing branches. The Ethereum registry is permissionless and records the sender, but does not authenticate repository ownership. Consumers must verify signed provenance or an independent authorization policy.
 
-Controls the machine that produced the evidence.
+### RPC/indexer compromise
 
-**BOD response:** BOD preserves the declared evidence and its lineage but does not turn a compromised builder into a trustworthy builder. Consumers must verify builder identity and provenance policy independently.
+Returns incomplete or misleading chain data. Critical verification must use independent RPC providers, check chain ID, transaction receipt, contract address and event/storage data, and apply a documented finality threshold.
 
-### A5 — anchor compromise
+### Chain reorganization
 
-Controls one external anchor provider or RPC endpoint.
+A recent checkpoint may be removed by a reorg. A receipt is not finality. Clients must wait for an appropriate confirmation/finality condition and retain the block hash and transaction receipt.
 
-**BOD response:** an anchor is an external witness, not validity. Verification must independently check the anchor and may use multiple providers. A failed or unavailable anchor must not silently become VALID.
+### Verifier bug
 
-### A6 — BOD verifier bug
+One implementation may accept an invalid envelope. BOD publishes an independent verifier; cross-implementation vectors and external review remain required.
 
-A verifier implementation accepts an invalid envelope.
+## Ethereum contract boundaries
 
-**BOD response:** the project publishes a second independent verifier and cross-implementation test vectors. The canonical format is deliberately small so independent implementations are practical.
-
-### A7 — BOD service disappears
-
-The original BOD service is unavailable.
-
-**BOD response:** exported envelopes, evidence and anchor receipts remain self-contained. Verification must not require a BOD SaaS endpoint.
-
-## Trust layers
-
-CONTENT INTEGRITY -> LINEAGE -> EVIDENCE TRUST -> EVIDENCE SEMANTICS -> EXTERNAL WITNESSES
-
-Each layer is independent. Passing a lower layer never upgrades a higher layer automatically.
+- Permissionless publication is not repository authorization.
+- Append-only storage is not canonical branch selection.
+- The contract stores commitments, not source or evidence payloads.
+- Block timestamps are approximate.
+- No owner, upgrade key, ERC-20, custody or settlement authority exists in the Ethereum registry.
+- No formal verification or external smart-contract audit has been completed.
 
 ## Required verifier result
 
-The verifier MUST distinguish:
+The verifier must distinguish:
+- integrity validity;
+- policy acceptance;
+- semantic truth (not asserted);
+- evidence availability (unknown unless retrieval was performed);
+- chain inclusion and finality status.
 
-- `VALID_INTEGRITY`;
-- `INVALID`;
-- `semantic_truth = NOT_ASSERTED`;
-- `availability = UNKNOWN` unless evidence retrieval was actually performed;
-- policy acceptance separately from cryptographic validity.
-
-This prevents the product from converting "hash matched" into "the claim was true."
-
-## Residual risks
-
-BOD does not eliminate malicious or compromised evidence producers, malicious builders, unavailable evidence, weak trust policies, semantic errors in tests or SBOMs, compromised upstream signing infrastructure, or chain/anchor failure.
-
-The correct mitigation is layered verification, not a stronger marketing claim.
+Passing a lower trust layer never upgrades a higher layer automatically.

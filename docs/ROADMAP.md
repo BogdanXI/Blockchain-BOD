@@ -1,67 +1,78 @@
-# Public Roadmap
+# Public roadmap
 
-The project advances by evidence, not dates. This roadmap describes plans, not guarantees.
+The project advances by reproducible evidence, not promotional dates. The Ethereum track replaces Arbitrum as the primary chain-integration target; it does not imply a new BOD chain.
 
 ## 1. Portable continuity core
 
 **Status: implemented; regression-gated.**
 
-- Deterministic repository snapshots.
-- Versioned evidence envelopes and predecessor links.
-- Independent verification and portable checkpoints.
-- Fresh-process recovery and tamper-rejection tests.
+- deterministic repository snapshots;
+- versioned evidence envelopes and predecessor links;
+- independent verification;
+- portable checkpoints and fresh-process recovery.
 
-Gate: implementation, tests, independent verifier, and passing CI for the reviewed commit.
+Gate: clean-checkout reproduction and passing CI for the reviewed commit.
 
-## 2. Independent review
+## 2. Ethereum checkpoint registry
 
-**Status: in progress.**
+**Status: implemented in source; testnet deployment not started.**
 
-- Document trust assumptions and known limits.
-- Reproduce verification from a clean checkout.
-- Invite external technical review and track findings.
+- permissionless append-only checkpoint records;
+- parent-project and sequence validation;
+- no mutable canonical-head pointer;
+- explicit fork visibility;
+- no token, custody, owner or upgrade authority.
 
-Gate: current CI green and review findings triaged.
+Gate: Foundry tests, independent contract review, deployment rehearsal on Sepolia, verified source/bytecode and a public verification procedure.
 
-## 3. Product-value experiment
+## 3. Supply-chain evidence integration
 
 **Status: planned.**
 
-Compare recovery from BOD checkpoints with a baseline using Git and existing provenance tools. Measure recovery correctness, missing context, time to resume, and verification failures. Publish reproducible methods and privacy-safe results, including negative results.
+- ingest SLSA/in-toto provenance references;
+- ingest SPDX/CycloneDX SBOM digests;
+- bind Sigstore/Rekor and/or EAS attestation references;
+- publish an end-to-end example from a real GitHub Actions build;
+- define privacy and retention boundaries.
 
-Gate: an independent reviewer can reproduce the experiment.
+Gate: an independent maintainer can reproduce the release record and verify it without BOD-hosted services.
 
-## 4. Arbitrum testnet integration
+## 4. Product-value experiment
 
-**Status: experimental.**
+**Status: planned.**
 
-- Treat EVM anchoring as optional infrastructure, not BOD consensus.
-- Complete the test-only custom gas-token creation path before L3 genesis.
-- Measure execution and parent-chain data-posting costs separately.
-- Test bridge and fee-pricer configuration.
-- Keep production token decisions behind separate review gates.
+Compare BOD with a baseline built from Git, SLSA/in-toto and Sigstore/EAS. Measure time to reconstruct a release, missing context, integrity failures, operator steps, gas cost and recovery correctness. Publish methodology, datasets and negative results.
 
-Gate: deterministic integration tests, testnet evidence, and a documented cost model. Testnet success is not production readiness.
+Gate: at least two independent project maintainers reproduce the experiment.
 
-## 5. Canonicality review
+## 5. Independent security review
 
-**Status: blocking for production claims.**
+**Status: required before public testnet promotion.**
 
-Specify transition authority and conflict handling; distinguish validity, acceptance, and canonicality; obtain independent review; resolve critical findings with evidence.
+Review contract invariants, chain reorg/finality assumptions, checkpoint identity, event indexing, off-chain evidence availability, key management and CI workflow permissions.
 
-## 6. Production decision
+Gate: findings published, critical/high issues resolved, and regression tests added.
+
+## 6. Ethereum Sepolia pilot
+
+**Status: blocked pending review.**
+
+- deploy the registry to chain ID 11155111;
+- anchor synthetic and then public-safe release checkpoints;
+- verify reads through independent RPC providers and a block explorer;
+- publish reproducible gas and cost observations.
+
+Gate: independently reproducible transaction, deployed bytecode, source verification and checkpoint reconstruction.
+
+## 7. Mainnet decision
 
 **Status: not started.**
 
-Requires a clear user value proposition, security and operational review, recovery and availability expectations, measured sustainable costs, key-management procedures, and relevant legal review.
+Requires demonstrated user value, independent security review, operational monitoring, reorg/finality policy, incident response, privacy review and measured sustainable cost. Mainnet deployment is not a current milestone promise.
 
 ## Explicit non-goals
 
-- Hashes do not prove semantic truth.
-- A testnet adapter does not implement native BOD consensus.
-- Experimental economic values are not final monetary policy.
-- No production token or network is claimed.
-
-## Contribute
-
-Submit reproducible counterexamples, missing invariants, security concerns, or comparisons with existing tools. See [Contributing](../CONTRIBUTING.md) and [Security](../SECURITY.md).
+- creating a competing Ethereum L2;
+- issuing a BOD token to make the product work;
+- replacing Git, SLSA, in-toto, Sigstore, SPDX, CycloneDX or EAS;
+- treating an anchor as proof of semantic truth or canonicality.

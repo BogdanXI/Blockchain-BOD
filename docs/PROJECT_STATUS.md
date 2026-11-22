@@ -1,48 +1,48 @@
-# Project Status
+# Project status
 
 **Release status:** experimental public engineering prototype  
 **Protocol version:** v0.1  
-**License:** MIT
+**License:** MIT  
+**Primary chain integration target:** Ethereum  
+**Ethereum deployment status:** not deployed / not audited
 
-## What can be evaluated
+## Implemented and reviewable
 
-The public repository contains a local continuity workflow:
+- deterministic repository snapshots;
+- versioned evidence envelopes and predecessor-linked history;
+- independent verification and portable checkpoint recovery;
+- Python CLI and regression suite;
+- a permissionless, append-only Ethereum checkpoint registry;
+- Foundry tests for checkpoint creation, lineage validation, duplicate rejection and fork visibility;
+- CI coverage for Python and Solidity.
 
-1. Capture a deterministic repository snapshot.
-2. Bind its state root to a versioned evidence envelope.
-3. Verify the envelope and predecessor-linked history.
-4. Export a portable checkpoint.
-5. Verify and recover the checkpoint in a fresh process.
+## Ethereum integration boundary
 
-Start with [Getting Started](GETTING_STARTED.md). The reference implementation, CLI, independent verifier, tests, and CI workflow are part of this repository.
+The Ethereum contract records compact commitments and predecessor references. It does not store evidence payloads, determine semantic truth, select a canonical branch, execute software, verify SLSA attestations, or implement BOD consensus.
 
-## Verification record
+The Ethereum contract is source code with local tests. It has not been deployed to Sepolia or Ethereum mainnet. A passing local test suite is not a security audit.
 
-A prior public CI run passed for commit [316f261](https://github.com/BogdanXI/Blockchain-BOD/commit/316f26115c9d8578276f1553f3dce876c8b5ed34). Check the live [CI workflow](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml) before relying on that result; a historical pass does not establish the current branch status.
+## Legacy Arbitrum work
 
-Tests are evidence for the behaviors they exercise. They are not an external security audit or proof of production readiness.
+The previous Arbitrum Sepolia adapter, browser bridge and workflows remain as historical experimental work. They are not the primary product narrative or deployment target. No Arbitrum One or Ethereum mainnet deployment is claimed.
 
-## What is not claimed
+## Explicit non-claims
 
-- No production-ready BOD blockchain or native consensus mechanism is claimed.
-- No production token launch is claimed.
-- Cryptographic integrity does not prove semantic truth.
-- The repository does not guarantee availability of referenced evidence.
-- EVM or Arbitrum inclusion does not by itself make a BOD transition valid or canonical.
-- Economic assumptions and fee targets remain experimental until measured and independently reviewed.
+- No production-ready BOD blockchain or native consensus mechanism.
+- No production token launch or final tokenomics.
+- No audited or production-secure smart contract.
+- No proof that referenced evidence is truthful or available.
+- No claim that an on-chain checkpoint makes a software release safe or canonical.
+- No demonstrated market demand or paying customer.
 
-## Current open question
+## Current validation gates
 
-Does portable, independently verifiable continuity materially improve a real engineering workflow compared with Git and established provenance/signing tools? This requires independent users and reproducible comparisons, not marketing claims.
+1. Run Python tests and independent verification from a clean checkout.
+2. Run Foundry tests and review Solidity compiler output.
+3. Obtain independent smart-contract and protocol review.
+4. Deploy only to Ethereum Sepolia after review and verify contract bytecode and transactions independently.
+5. Integrate a real CI provenance/SBOM/attestation workflow.
+6. Compare BOD with Git + SLSA/in-toto + Sigstore/EAS using reproducible release-recovery experiments.
+7. Interview independent maintainers and security/release teams; publish positive and negative findings.
 
-Technical limitations are documented in the [Threat Model](THREAT_MODEL_v0.1.md). Planned validation gates are in the [Roadmap](ROADMAP.md).
-
-## How to review
-
-1. Follow [Getting Started](GETTING_STARTED.md).
-2. Run `python -m pytest -q`.
-3. Inspect the latest public CI result.
-4. Review [Why BOD Exists](WHY_BOD_v0.1.md) and the [Threat Model](THREAT_MODEL_v0.1.md).
-5. Report a reproducible counterexample, missing invariant, or comparison through the [issue tracker](https://github.com/BogdanXI/Blockchain-BOD/issues).
-
-Feedback that disproves the product hypothesis or exposes a verification boundary is useful.
+See [Ethereum integration](ETHEREUM_INTEGRATION.md), [Roadmap](ROADMAP.md), and [Threat model](THREAT_MODEL_v0.1.md).
