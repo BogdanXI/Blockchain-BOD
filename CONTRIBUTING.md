@@ -16,10 +16,10 @@ BOD is an experimental public engineering project. Contributions should be focus
 Requirements: Python 3.11 or newer.
 
 ```bash
-python -m pip install --editable ".[test,lint]"
-python scripts/validate_public_surface.py
+python3 -m pip install --editable ".[test,lint]"
+python3 scripts/validate_public_surface.py
 ruff check --select E4,E7,E9,F src scripts tests
-python -m pytest -q
+python3 -m pytest -q
 forge test
 ```
 

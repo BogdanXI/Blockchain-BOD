@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "blockchain-bod"
 version = "0.1.0"
-description = "Ethereum-anchored, independently verifiable continuity for software release evidence"
+description = "Portable, independently verifiable continuity for software release evidence, with optional Ethereum witnesses"
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [{name = "BogdanXI"}]

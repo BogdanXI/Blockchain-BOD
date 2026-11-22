@@ -31,7 +31,7 @@ Source: [Official EAS contract deployments](https://docs.attest.org/docs/quick--
 The exact schema string is stored in `tools/eas/schema.mjs`:
 
 ```text
-bytes32 projectId, bytes32 checkpointId, bytes32 gitCommit, bytes32 stateRoot, bytes32 manifestHash, bytes32 evidenceRoot, uint64 sequence
+bytes32 projectId, bytes32 checkpointId, bytes32 portableCheckpointId, bytes32 gitCommit, bytes32 stateRoot, bytes32 manifestHash, bytes32 evidenceRoot, uint64 sequence
 ```
 
 The schema is non-revocable. The parent relationship is represented by EAS `refUID`, not by placing a mutable pointer in the BOD data.
@@ -82,7 +82,7 @@ export BOD_EAS_SEQUENCE="1"
 npm run eas:attest-checkpoint -- checkpoint.json
 ```
 
-Before sending, the client requires a clean Git working tree and runs the independent BOD portable-checkpoint verifier. For child attestations it reads the parent from EAS and checks its schema, project ID, revocation/expiration status and sequence. The client refuses to send transactions unless the RPC reports Ethereum Sepolia chain ID 11155111. It does not automatically deploy contracts or use mainnet.
+Before sending, the client requires a clean Git working tree, runs the independent BOD portable-checkpoint verifier, and recomputes the current repository snapshot to ensure that it matches the supplied checkpoint. This prevents accidentally attesting a stale checkpoint from a different clean commit. The schema records both an EAS-context checkpoint identifier and the portable BOD checkpoint identifier. For child attestations it reads the parent from EAS and checks its schema, project ID, both checkpoint identifiers, revocation/expiration status and sequence. The client refuses to send transactions unless the RPC reports Ethereum Sepolia chain ID 11155111. It does not automatically deploy contracts or use mainnet.
 
 ## Verification model
 
@@ -102,6 +102,6 @@ The EAS UID and transaction hash are external locators, not substitutes for BOD 
 - The EAS schema is not yet registered by this repository.
 - The scripts have not been used to submit a live attestation.
 - EAS issuer identity is not automatically repository authorization.
-- The sample client derives the Git commit digest from the current checkout's HEAD; the checkpoint must be captured from the same commit context.
+- The sample client derives the Git commit digest from the current checkout's HEAD and checks the current repository snapshot against the supplied checkpoint. The checkpoint must be captured from the same clean commit context.
 - EAS references do not guarantee availability of the portable checkpoint or evidence payloads.
 - Mainnet use requires independent review, a project-specific issuer policy and cost analysis.

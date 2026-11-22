@@ -46,9 +46,9 @@ A recent checkpoint may be removed by a reorg. A receipt is not finality. Client
 
 One implementation may accept an invalid envelope. BOD publishes an independent verifier; cross-implementation vectors and external review remain required.
 
-### Path and symlink abuse
+### Path, mode and symlink abuse
 
-Repository capture hashes a tracked symlink's link target rather than dereferencing the target and reading arbitrary external file contents. Snapshot verification rejects absolute paths, traversal components, non-normalized paths, duplicate/unsorted entries and invalid size/digest types. These checks reduce path confusion and accidental data capture; they do not replace OS sandboxing or a review of the capture boundary.
+Repository capture hashes a tracked symlink's link target rather than dereferencing the target and reading arbitrary external file contents. Snapshot v0.2 records Git-compatible file modes (`100644`, `100755`, `120000`) so an executable-bit change alters the state root. Snapshot verification rejects absolute paths, traversal components, non-normalized paths, duplicate/unsorted entries, invalid modes and invalid size/digest types. Snapshot v0.1 remains readable but cannot prove that an executable-bit distinction was captured. These checks reduce path confusion and accidental data capture; they do not replace OS sandboxing or a review of the capture boundary.
 
 ## Data availability and exit paths\n\nA commitment proves a relationship to bytes only when those bytes can be obtained. Ethereum, EAS and a digest do not guarantee artifact availability. A production workflow must provide independently controlled artifact locations, retrieval checks and a documented recovery path if a repository host, CI provider, indexer or RPC endpoint disappears. These capabilities are not yet demonstrated end-to-end.\n\n## Ethereum contract boundaries
 

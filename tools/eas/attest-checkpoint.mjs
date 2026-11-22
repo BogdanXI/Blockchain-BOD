@@ -47,11 +47,19 @@ execFileSync("python3", ["scripts/independent_verify.py", checkpointPath], { std
 const checkpoint = JSON.parse(await readFile(checkpointPath, "utf8"));
 if (
   checkpoint?.schema !== "bod-portable-checkpoint-v0.1" ||
-  !checkpoint.snapshot?.state_root ||
+  !/^([0-9a-f]{64})$/.test(checkpoint.snapshot?.state_root ?? "") ||
   !checkpoint.envelope?.project_id ||
-  !checkpoint.checkpoint_id
+  !/^([0-9a-f]{64})$/.test(checkpoint.checkpoint_id ?? "")
 ) {
   throw new Error("Input is not a valid BOD portable checkpoint v0.1.");
+}
+
+const currentSnapshot = JSON.parse(execFileSync("python3", [
+  "-c",
+  "import json; from pathlib import Path; from src.bod_portable import repository_snapshot; print(json.dumps(repository_snapshot(Path('.'))))",
+], { encoding: "utf8" }));
+if (currentSnapshot.state_root !== checkpoint.snapshot.state_root) {
+  throw new Error("Checkpoint snapshot does not match the current clean Git working tree.");
 }
 
 const sequenceText = process.env.BOD_EAS_SEQUENCE ?? "0";
@@ -115,13 +123,31 @@ if (sequence > 0n) {
     throw new Error("Parent attestation has expired.");
   }
   const parentValues = ethers.AbiCoder.defaultAbiCoder().decode(
-    ["bytes32", "bytes32", "bytes32", "bytes32", "bytes32", "bytes32", "uint64"],
+    ["bytes32", "bytes32", "bytes32", "bytes32", "bytes32", "bytes32", "bytes32", "uint64"],
     parent.data
   );
   if (parentValues[0].toLowerCase() !== projectId.toLowerCase()) throw new Error("Parent attestation belongs to a different project.");
   if (parentValues[1] === ethers.ZeroHash) throw new Error("Parent checkpoint ID is empty.");
-  const parentSequence = BigInt(parentValues[6]);
+  if (parentValues[2] === ethers.ZeroHash) throw new Error("Parent portable checkpoint ID is empty.");
+  const parentSequence = BigInt(parentValues[7]);
   if (parentSequence + 1n !== sequence) throw new Error("BOD_EAS_SEQUENCE is not the parent's sequence plus one.");
+  const expectedParentCheckpointId = ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(
+    ["bytes32", "uint256", "bytes32", "bytes32", "bytes32", "bytes32", "bytes32", "uint64", "bytes32"],
+    [
+      ethers.id("BOD_EAS_CHECKPOINT_V1"),
+      network.chainId,
+      parentValues[0],
+      parentValues[3],
+      parentValues[4],
+      parentValues[5],
+      parentValues[6],
+      parentSequence,
+      parent.refUID,
+    ],
+  ));
+  if (parentValues[1].toLowerCase() !== expectedParentCheckpointId.toLowerCase()) {
+    throw new Error("Parent EAS checkpoint identifier does not match its attested fields.");
+  }
   if ((parentSequence === 0n) !== (parent.refUID === ethers.ZeroHash)) {
     throw new Error("Parent refUID does not match its genesis/child sequence.");
   }
@@ -131,6 +157,7 @@ const encoder = new SchemaEncoder(BOD_EAS_SCHEMA);
 const encodedData = encoder.encodeData([
   { name: "projectId", value: projectId, type: "bytes32" },
   { name: "checkpointId", value: checkpointId, type: "bytes32" },
+  { name: "portableCheckpointId", value: "0x" + checkpoint.checkpoint_id, type: "bytes32" },
   { name: "gitCommit", value: gitCommit, type: "bytes32" },
   { name: "stateRoot", value: stateRoot, type: "bytes32" },
   { name: "manifestHash", value: manifestHash, type: "bytes32" },
@@ -161,6 +188,7 @@ process.stdout.write(JSON.stringify({
   sequence: sequence.toString(),
   projectId,
   checkpointId,
+  portableCheckpointId: "0x" + checkpoint.checkpoint_id,
   gitCommit,
   stateRoot,
   manifestHash,

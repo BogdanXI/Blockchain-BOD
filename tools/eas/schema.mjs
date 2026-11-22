@@ -1,7 +1,7 @@
 // Shared EAS schema for BOD release-continuity attestations.
 // Register this exact schema string on each target chain; schema UIDs are chain-specific.
 export const BOD_EAS_SCHEMA =
-  "bytes32 projectId, bytes32 checkpointId, bytes32 gitCommit, bytes32 stateRoot, bytes32 manifestHash, bytes32 evidenceRoot, uint64 sequence";
+  "bytes32 projectId, bytes32 checkpointId, bytes32 portableCheckpointId, bytes32 gitCommit, bytes32 stateRoot, bytes32 manifestHash, bytes32 evidenceRoot, uint64 sequence";
 
 export const EAS_DEPLOYMENTS = {
   1: {

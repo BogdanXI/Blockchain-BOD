@@ -1,3 +1,14 @@
+## 2026-11-22 — Ethereum grant-readiness and protocol hardening
+
+- Added a grant technical brief scoped to portable release-evidence continuity for Ethereum software and smart-contract upgrades, with measurable milestones, acceptance criteria, evaluation metrics and explicit non-goals.
+- Added an ESP readiness assessment that records the current absence of active Wishlist items, RFPs and open rounds, and separates demonstrated engineering evidence from unvalidated demand and future work.
+- Versioned repository snapshots to v0.2 and committed Git-compatible file modes (`100644`, `100755`, `120000`) so executable-bit changes alter the state root; retained v0.1 snapshot verification compatibility in both verifiers.
+- Added regression coverage for executable-bit changes, symlink mode, invalid modes and legacy snapshot verification.
+- Extended the EAS schema to carry both the EAS-context checkpoint identifier and the portable BOD checkpoint identifier. The client now checks that the supplied checkpoint matches the current clean repository snapshot before submitting an attestation.
+- Updated public documentation, quickstart commands, grant status, roadmap and zero-cost test status to reflect the current implementation and known limitations.
+- Local validation: Python tests, Ruff, public-surface validation, CLI smoke test, recovery experiment, EAS SDK schema-encoding smoke test and npm production dependency audit passed. Foundry is unavailable in the local workstation environment; remote CI for the final commit remains to be checked.
+- No EAS schema registration, wallet signing, Sepolia deployment, mainnet transaction or paid test service was used.
+
 ## 2026-11-22 — Verified evidence bundle extraction
 
 - Added `bod bundle-extract` to verify a self-contained Evidence Bundle before extracting its evidence payloads.
@@ -27,8 +38,6 @@
 - Added a separate independent bundle verifier and CLI commands to create and verify bundles.
 - Documented explicit trust boundaries: payload integrity is checked, semantic truth and format-specific signatures are not asserted, and repository source is not included.
 - Added regression coverage for successful bundle round trips, missing payloads, tampering and independent verification.
-
-## 2026-11-22 — Ethereum ecosystem track
 
 ## 2026-10-09 — External review readiness
 

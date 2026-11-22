@@ -6,7 +6,7 @@ The project advances by reproducible evidence, not promotional dates. The active
 
 **Status: implemented; regression-gated.**
 
-- deterministic repository snapshots;
+- deterministic repository snapshots (v0.2 commits to Git-compatible file modes; v0.1 remains readable);
 - versioned evidence envelopes and predecessor links;
 - independent verification;
 - portable checkpoints and fresh-process recovery.
@@ -34,7 +34,8 @@ Gate: Foundry tests, independent contract review, deployment rehearsal on Sepoli
 - ingest SPDX/CycloneDX SBOM digests;
 - bind Sigstore/Rekor and/or EAS attestation references;
 - publish an end-to-end example from a real GitHub Actions build;
-- define privacy and retention boundaries.
+- define privacy and retention boundaries;
+- specify and implement the proposed [Ethereum release evidence profile](ETHEREUM_RELEASE_PROFILE.md), linking source, compiler inputs, test/security evidence, bytecode correspondence and deployment lineage.
 
 Gate: an independent maintainer can reproduce the release record, verify EAS lineage and validate referenced evidence without BOD-hosted services.
 

@@ -29,12 +29,13 @@ def synthetic_snapshot(index: int) -> dict:
         "path": "state.txt",
         "sha256": hashlib.sha256(f"state-{index}".encode()).hexdigest(),
         "size": len(f"state-{index}"),
+        "mode": 0o100644,
     }
-    durable = {"schema": "bod-repository-snapshot-v0.1", "files": [entry]}
+    durable = {"schema": "bod-repository-snapshot-v0.2", "files": [entry]}
     return {
         **durable,
         "state_root": sha256_bytes(
-            b"BOD-REPOSITORY-SNAPSHOT-V0.1\0" + canonical_json(durable)
+            b"BOD-REPOSITORY-SNAPSHOT-V0.2\0" + canonical_json(durable)
         ),
     }
 

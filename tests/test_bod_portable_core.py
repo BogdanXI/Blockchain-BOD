@@ -7,6 +7,8 @@ import pytest
 
 from bod_evidence_envelope import EvidenceEnvelopeError, create_evidence_envelope
 from bod_portable import (
+    LEGACY_SNAPSHOT_DOMAIN,
+    LEGACY_SNAPSHOT_SCHEMA,
     SNAPSHOT_DOMAIN,
     SNAPSHOT_SCHEMA,
     canonical_json,
@@ -111,11 +113,74 @@ def test_snapshot_hashes_symlink_target_not_external_file_contents(tmp_path):
     assert entry["path"] == "linked.txt"
     assert entry["sha256"] == hashlib.sha256(link_target).hexdigest()
     assert entry["size"] == len(link_target)
+    assert entry["mode"] == 0o120000
     assert entry["sha256"] != hashlib.sha256(external_file.read_bytes()).hexdigest()
 
 
+def test_snapshot_commits_to_executable_bit(tmp_path):
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    script = repository / "run.sh"
+    script.write_text("#!/bin/sh\necho BOD\n", encoding="utf-8")
+    subprocess.run(["git", "-C", str(repository), "init"], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(repository), "add", "--", "run.sh"], check=True, capture_output=True)
+
+    before = repository_snapshot(repository)
+    assert before["files"][0]["mode"] == 0o100644
+    script.chmod(0o645)  # Git ignores group/other execute bits when deriving 100644/100755.
+    group_other_executable = repository_snapshot(repository)
+    assert group_other_executable["state_root"] == before["state_root"]
+    script.chmod(0o755)
+    after = repository_snapshot(repository)
+
+    assert after["files"][0]["mode"] == 0o100755
+    assert before["state_root"] != after["state_root"]
+    verify_snapshot(before)
+    verify_snapshot(after)
+
+
+def test_snapshot_rejects_invalid_git_file_mode():
+    snapshot = repository_snapshot(Path("."))
+    invalid = json.loads(json.dumps(snapshot))
+    invalid["files"][0]["mode"] = True
+    with pytest.raises(EvidenceEnvelopeError, match="file mode"):
+        verify_snapshot(invalid)
+
+
+def test_snapshot_v0_1_remains_verifiable():
+    files = [{"path": "legacy.txt", "sha256": sha256_bytes(b"legacy"), "size": 6}]
+    durable = {"schema": LEGACY_SNAPSHOT_SCHEMA, "files": files}
+    legacy = {
+        **durable,
+        "state_root": sha256_bytes(LEGACY_SNAPSHOT_DOMAIN + canonical_json(durable)),
+    }
+    verify_snapshot(legacy)
+
+
+def test_independent_verifier_accepts_legacy_snapshot_checkpoint(tmp_path):
+    files = [{"path": "legacy.txt", "sha256": sha256_bytes(b"legacy"), "size": 6}]
+    durable = {"schema": LEGACY_SNAPSHOT_SCHEMA, "files": files}
+    legacy = {
+        **durable,
+        "state_root": sha256_bytes(LEGACY_SNAPSHOT_DOMAIN + canonical_json(durable)),
+    }
+    envelope = create_evidence_envelope(
+        project_id="legacy-project", protocol_version="0.1", state_root=legacy["state_root"],
+        predecessor_state_root=None, transition_id="legacy-genesis", evidence=(), capture_boundary="legacy-fixture",
+    )
+    checkpoint = create_portable_checkpoint(snapshot=legacy, envelope=envelope)
+    artifact = tmp_path / "legacy-checkpoint.json"
+    artifact.write_text(json.dumps(checkpoint), encoding="utf-8")
+    result = subprocess.run(
+        [sys.executable, "scripts/independent_verify.py", str(artifact)],
+        capture_output=True, text=True, check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert json.loads(result.stdout)["status"] == "VALID_INTEGRITY"
+
+
 def _synthetic_snapshot(label: str) -> dict:
-    files = [{"path": "state.txt", "sha256": sha256_bytes(label.encode()), "size": len(label)}]
+    files = [{"path": "state.txt", "sha256": sha256_bytes(label.encode()), "size": len(label), "mode": 0o100644}]
     durable = {"schema": SNAPSHOT_SCHEMA, "files": files}
     return {**durable, "state_root": sha256_bytes(SNAPSHOT_DOMAIN + canonical_json(durable))}
 

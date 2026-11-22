@@ -17,6 +17,7 @@ const encoder = new SchemaEncoder(BOD_EAS_SCHEMA);
 const encoded = encoder.encodeData([
   { name: "projectId", value: ethers.ZeroHash, type: "bytes32" },
   { name: "checkpointId", value: ethers.ZeroHash, type: "bytes32" },
+  { name: "portableCheckpointId", value: ethers.ZeroHash, type: "bytes32" },
   { name: "gitCommit", value: ethers.ZeroHash, type: "bytes32" },
   { name: "stateRoot", value: ethers.ZeroHash, type: "bytes32" },
   { name: "manifestHash", value: ethers.ZeroHash, type: "bytes32" },
@@ -24,8 +25,8 @@ const encoded = encoder.encodeData([
   { name: "sequence", value: 0, type: "uint64" },
 ]);
 
-if (!/^0x[0-9a-f]+$/i.test(encoded) || encoded.length !== 2 + 7 * 64) {
-  throw new Error("EAS schema encoding did not produce the expected seven-word payload.");
+if (!/^0x[0-9a-f]+$/i.test(encoded) || encoded.length !== 2 + 8 * 64) {
+  throw new Error("EAS schema encoding did not produce the expected eight-word payload.");
 }
 if (EAS_DEPLOYMENTS[11155111]?.name !== "Ethereum Sepolia") {
   throw new Error("Ethereum Sepolia deployment configuration is missing.");

@@ -4,7 +4,7 @@
 
 ## Purpose
 
-A portable checkpoint records a deterministic repository-state commitment and references external evidence by SHA-256 digest. A checkpoint alone does not contain the bytes of those external evidence documents.
+A portable checkpoint records a deterministic repository-state commitment and references external evidence by SHA-256 digest. Current repository captures use snapshot schema v0.2, which commits to file content digests, sizes and Git-compatible file modes. Snapshot v0.1 checkpoints remain verifiable for backwards compatibility. A checkpoint alone does not contain the bytes of those external evidence documents.
 
 The Evidence Bundle format closes that specific availability gap: it packages one portable checkpoint together with the exact byte payload for every evidence digest referenced by that checkpoint. A verifier can validate the checkpoint and payload hashes without contacting the original CI service, evidence store or BOD service.
 
@@ -56,7 +56,7 @@ A successful verification proves only that:
 
 It does not prove that the evidence is truthful, that a build was safe, that an issuer was authorized, or that a signature/DSSE envelope is cryptographically valid. The bundle_id is an unkeyed commitment, not a signature: anyone can rebuild a modified bundle and calculate a new bundle_id. Authenticity must come from a separately trusted signature or external checkpoint/anchor. Those checks remain the responsibility of format-specific verifiers and trust policy.
 
-The format does not include repository source files. The portable checkpoint's repository snapshot is a manifest of paths, sizes and hashes, not a source archive. This prevents accidental publication of proprietary source code and avoids implying that a metadata manifest can restore file contents.
+The format does not include repository source files. The portable checkpoint's repository snapshot is a manifest of paths, sizes, hashes and Git-compatible file modes, not a source archive. It does not preserve full POSIX permissions, ownership, timestamps or extended attributes. This prevents accidental publication of proprietary source code and avoids implying that a metadata manifest can restore file contents.
 
 The v0.1 representation embeds payloads as base64 in JSON. This is simple and independently portable, but increases size and memory use. It is not intended for large build artifacts. A future version may define external content-addressed object storage or a streaming archive while preserving the same digest semantics.
 

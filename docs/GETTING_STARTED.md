@@ -9,7 +9,7 @@ Requirements: Python 3.11 or newer.
 ```bash
 git clone https://github.com/BogdanXI/Blockchain-BOD.git
 cd Blockchain-BOD
-python -m pip install --editable ".[test,lint]"
+python3 -m pip install --editable ".[test,lint]"
 ```
 
 ## 2. Run the local demonstration
@@ -32,7 +32,7 @@ Do not include private repositories, secrets, credentials, private keys or sensi
 
 ```bash
 bod verify checkpoint.json --portable
-python scripts/independent_verify.py checkpoint.json
+python3 scripts/independent_verify.py checkpoint.json
 bod recover checkpoint.json
 ```
 
@@ -41,9 +41,9 @@ The independent verifier is a separate implementation and does not import the BO
 ## 5. Run Python checks
 
 ```bash
-python scripts/validate_public_surface.py
+python3 scripts/validate_public_surface.py
 ruff check --select E4,E7,E9,F src scripts tests
-python -m pytest -q
+python3 -m pytest -q
 ```
 
 ## 6. Run Ethereum contract tests

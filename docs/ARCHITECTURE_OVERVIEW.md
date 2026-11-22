@@ -10,7 +10,7 @@ It is not a build system, provenance authority, vulnerability scanner, evidence-
 
 ## Data flow
 
-1. **Capture.** The repository adapter enumerates the defined Git-tracked project boundary and computes file-level digests and a deterministic state root.
+1. **Capture.** The repository adapter enumerates the defined Git-tracked project boundary and computes file-level digests, byte sizes and Git-compatible file modes (regular non-executable `100644`, executable `100755`, symlink `120000`) before deriving a deterministic state root. New captures use snapshot v0.2; the verifier retains read compatibility for v0.1 snapshots, which did not commit to file mode.
 2. **Describe evidence.** A versioned evidence envelope records evidence references and the project-state context. References commit to payload digests and metadata; they do not, by themselves, preserve payload availability.
 3. **Link history.** A checkpoint identifies its predecessor. Graph verification checks relationships and reports forks and heads without selecting a canonical head.
 4. **Package for portability.** Evidence Bundle v0.1 carries a checkpoint plus the exact bytes for referenced evidence payloads included in that bundle. The CLI can verify and safely extract those payloads into digest-derived filenames with a mapping manifest.
@@ -21,7 +21,7 @@ It is not a build system, provenance authority, vulnerability scanner, evidence-
 
 | Component | Establishes | Does not establish |
 |---|---|---|
-| Project snapshot | Byte digests for files inside the captured boundary | That files are safe, correct or available later |
+| Project snapshot | Byte digests, sizes and Git-compatible file modes for paths inside the captured boundary | That files are safe, correct or available later; full POSIX permissions, ownership, timestamps or extended attributes |
 | Evidence envelope | Structured references and predecessor linkage | Truthfulness or authenticity of referenced statements |
 | Evidence Bundle | Integrity and presence of payload bytes actually included | Availability of omitted evidence or semantic validity |
 | Independent verifier | Conformance to implemented integrity and lineage checks | Correctness of every external format or trust policy |
@@ -54,6 +54,7 @@ The Ethereum registry is an optional public witness for compact checkpoint commi
 ## Validation still required
 
 - Reproducible comparison against existing evidence stores and toolchains.
+- Cross-platform validation of snapshot v0.2 mode semantics, especially Windows filesystems and Git `core.filemode` configurations.
 - Independent review of protocol invariants and implementation.
 - Broader CI-provider and evidence-format interoperability tests.
 - Independent operator feedback and documented usability results.

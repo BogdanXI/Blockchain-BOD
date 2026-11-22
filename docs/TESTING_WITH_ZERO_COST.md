@@ -106,9 +106,10 @@ Stop and use the local test path instead.
 - Public-surface validation: run locally and passed.
 - npm production dependency audit: run locally and reported zero vulnerabilities.
 - EAS SDK runtime import/schema smoke test: run locally and passed.
-- GitHub Actions for the current reviewed commit: successful.
+- GitHub Actions for the current working branch head: pending a fresh run after the latest local changes; inspect the live workflow before relying on remote CI status.
 - Local Foundry binary: not installed in the current workstation environment;
-  the pinned Foundry job is exercised by GitHub Actions.
+  the pinned Foundry job is configured in CI, but its result must be checked on
+  the exact reviewed commit before claiming current-head Solidity coverage.
 - Sepolia deployment and live EAS transactions: not yet performed.
 - No mainnet transaction has been authorized or performed.
 

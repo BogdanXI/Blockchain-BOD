@@ -43,7 +43,7 @@ BOD should compose existing standards rather than invent another attestation for
 - Sigstore/Rekor for signing and transparency;
 - Ethereum Attestation Service (EAS) where an on-chain/off-chain attestation schema and issuer model are useful.
 
-The executable EAS SDK clients are present in tools/eas. They support Sepolia schema registration and checkpoint attestations using the shared schema. This repository has not registered the schema or submitted a live attestation; the integration is therefore source-implemented but not live-validated. The current schema carries projectId, checkpointId, gitCommit, stateRoot, manifestHash, evidenceRoot and sequence; the predecessor is linked through EAS refUID. See [EAS Integration](EAS_INTEGRATION.md).
+The executable EAS SDK clients are present in tools/eas. They support Sepolia schema registration and checkpoint attestations using the shared schema. This repository has not registered the schema or submitted a live attestation; the integration is therefore source-implemented but not live-validated. The current EAS schema carries projectId, an EAS-context checkpointId, the portableCheckpointId from the BOD checkpoint, gitCommit, stateRoot, manifestHash, evidenceRoot and sequence; the predecessor is linked through EAS refUID. The attestation client checks that the supplied checkpoint matches the current clean repository snapshot before signing. See [EAS Integration](EAS_INTEGRATION.md).
 
 ## Local verification
 

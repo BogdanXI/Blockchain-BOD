@@ -7,7 +7,7 @@
 
   BOD links project-state checkpoints and release evidence across time — preserving predecessor relationships, exposing forks, and carrying selected evidence payloads into a verifiable recovery bundle.
 
-  [Quickstart](docs/GETTING_STARTED.md) · [Architecture](docs/ARCHITECTURE_OVERVIEW.md) · [Verification experiment](docs/VERIFICATION_EXPERIMENT.md) · [Evidence Bundle specification](docs/EVIDENCE_BUNDLE_v0.1.md)
+  [Quickstart](docs/GETTING_STARTED.md) · [Architecture](docs/ARCHITECTURE_OVERVIEW.md) · [Verification experiment](docs/VERIFICATION_EXPERIMENT.md) · [Grant technical brief](docs/GRANT_TECHNICAL_BRIEF.md) · [Ethereum release profile](docs/ETHEREUM_RELEASE_PROFILE.md)
 
   [![CI](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml/badge.svg)](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml)
   [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -32,7 +32,7 @@ BOD explores a small, composable layer for that problem. It does not replace Git
 
 | Capability | Current implementation |
 |---|---|
-| Deterministic project state | Git-tracked file manifest with content digests |
+| Deterministic project state | Git-tracked file manifest with content digests and Git-compatible file modes (snapshot v0.2) |
 | Evidence continuity | Versioned envelopes with predecessor references |
 | Branch-aware history | Graph verification reports forks and heads without choosing a canonical head |
 | Portable recovery | Evidence Bundle v0.1 carries referenced payload bytes and a checkpoint; verified extraction writes digest-named files and a manifest |
@@ -42,7 +42,7 @@ BOD explores a small, composable layer for that problem. It does not replace Git
 | Optional Ethereum witness | Permissionless append-only checkpoint registry; commitments only |
 | EAS integration tooling | Schema and linked-attestation scripts; live registration has not been performed |
 
-See the [technical overview](docs/ARCHITECTURE_OVERVIEW.md) for component boundaries and the [project status](docs/PROJECT_STATUS.md) for the complete implementation and non-claims register.
+See the [technical overview](docs/ARCHITECTURE_OVERVIEW.md) for component boundaries, the [project status](docs/PROJECT_STATUS.md) for implementation limits, and the [grant technical brief](docs/GRANT_TECHNICAL_BRIEF.md) for a scoped Ethereum ecosystem proposal. Current grant-channel availability and readiness gaps are recorded in the [grant readiness assessment](docs/GRANT_READINESS.md).
 
 ## A recovery experiment with real CI evidence
 
@@ -94,7 +94,7 @@ Requirements: Python 3.11 or newer.
 ```bash
 git clone https://github.com/BogdanXI/Blockchain-BOD.git
 cd Blockchain-BOD
-python -m pip install --editable ".[test,lint]"
+python3 -m pip install --editable ".[test,lint]"
 bod demo
 ```
 
@@ -103,14 +103,14 @@ Capture and verify a repository checkpoint:
 ```bash
 bod capture . --project my-project --out checkpoint.json
 bod verify checkpoint.json --portable
-python scripts/independent_verify.py checkpoint.json
+python3 scripts/independent_verify.py checkpoint.json
 ```
 
 Verify a collection of checkpoints as a graph, retaining visible forks rather than selecting a preferred branch:
 
 ```bash
 bod verify checkpoints.json --portable --graph
-python scripts/independent_verify.py checkpoints.json --graph
+python3 scripts/independent_verify.py checkpoints.json --graph
 ```
 
 Create, verify and recover a self-contained evidence bundle:
@@ -127,9 +127,9 @@ Extraction verifies the bundle first, writes digest-named payload files and a ma
 Run the local checks:
 
 ```bash
-python scripts/validate_public_surface.py
+python3 scripts/validate_public_surface.py
 ruff check --select E4,E7,E9,F src scripts tests
-python -m pytest -q
+python3 -m pytest -q
 ```
 
 The optional Ethereum contract tests use [Foundry](https://getfoundry.sh/):
@@ -172,9 +172,22 @@ Review the [threat model](docs/THREAT_MODEL_v0.1.md), [privacy model](docs/PRIVA
 
 ## Repository map
 
+- `src/` — reference implementation and CLI.
+- `protocol/` — versioned protocol and Ethereum contract specifications.
+- `test/` and `tests/` — Solidity and Python regression tests.
+- `tools/eas/` — EAS client scripts; no live schema registration is claimed.
+- `docs/` — architecture, security, interoperability, experiments and grant brief.
+- `experiments/` — reproducible recovery experiments.
+- `research/` — technical decision records and research evidence.
+- `economics/` — archived token/economic experiments, explicitly outside active scope.
+
 ## Contributing
 
 Issues and focused pull requests are welcome. Please include a reproducible scenario, expected behavior, observed behavior and relevant test coverage. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Grant context
+
+BOD is being prepared as an open-source Ethereum builder-tooling proposal. The current prototype is not a grant award, active pilot or production service. The Ethereum Foundation ESP currently lists no active Wishlist items, RFPs or open rounds; see the dated [grant readiness assessment](docs/GRANT_READINESS.md) before treating this repository as an application-ready submission.
 
 ## License
 

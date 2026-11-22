@@ -25,10 +25,13 @@ except ImportError:
         verify_lineage_graph,
     )
 
-SNAPSHOT_SCHEMA = "bod-repository-snapshot-v0.1"
+LEGACY_SNAPSHOT_SCHEMA = "bod-repository-snapshot-v0.1"
+SNAPSHOT_SCHEMA = "bod-repository-snapshot-v0.2"
 PORTABLE_SCHEMA = "bod-portable-checkpoint-v0.1"
 BUNDLE_SCHEMA = "bod-evidence-bundle-v0.1"
-SNAPSHOT_DOMAIN = b"BOD-REPOSITORY-SNAPSHOT-V0.1\0"
+LEGACY_SNAPSHOT_DOMAIN = b"BOD-REPOSITORY-SNAPSHOT-V0.1\0"
+SNAPSHOT_DOMAIN = b"BOD-REPOSITORY-SNAPSHOT-V0.2\0"
+SNAPSHOT_DOMAINS = {LEGACY_SNAPSHOT_SCHEMA: LEGACY_SNAPSHOT_DOMAIN, SNAPSHOT_SCHEMA: SNAPSHOT_DOMAIN}
 PORTABLE_DOMAIN = b"BOD-PORTABLE-CHECKPOINT-V0.1\0"
 BUNDLE_DOMAIN = b"BOD-EVIDENCE-BUNDLE-V0.1\0"
 
@@ -55,8 +58,11 @@ def repository_snapshot(root: Path) -> dict[str, Any]:
 
         if stat.S_ISLNK(metadata.st_mode):
             payload = os.fsencode(os.readlink(path))
+            git_mode = 0o120000
         elif stat.S_ISREG(metadata.st_mode):
             payload = path.read_bytes()
+            executable = bool(metadata.st_mode & stat.S_IXUSR)
+            git_mode = 0o100755 if executable else 0o100644
         else:
             raise EvidenceEnvelopeError(f"tracked path is not a regular file or symlink: {rel.as_posix()}")
 
@@ -64,6 +70,7 @@ def repository_snapshot(root: Path) -> dict[str, Any]:
             "path": rel.as_posix(),
             "sha256": sha256_bytes(payload),
             "size": len(payload),
+            "mode": git_mode,
         })
     durable = {"schema": SNAPSHOT_SCHEMA, "files": entries}
     return {**durable, "state_root": sha256_bytes(SNAPSHOT_DOMAIN + canonical_json(durable))}
@@ -72,14 +79,18 @@ def repository_snapshot(root: Path) -> dict[str, Any]:
 def verify_snapshot(snapshot: dict[str, Any]) -> None:
     if not isinstance(snapshot, dict) or set(snapshot) != {"schema", "files", "state_root"}:
         raise EvidenceEnvelopeError("invalid repository snapshot")
-    if snapshot["schema"] != SNAPSHOT_SCHEMA or not isinstance(snapshot["files"], list):
+    schema = snapshot["schema"]
+    if schema not in SNAPSHOT_DOMAINS or not isinstance(snapshot["files"], list):
         raise EvidenceEnvelopeError("unsupported repository snapshot schema")
+    expected_entry_fields = {"path", "sha256", "size"}
+    if schema == SNAPSHOT_SCHEMA:
+        expected_entry_fields.add("mode")
     if not isinstance(snapshot["state_root"], str) or not re.fullmatch(r"[0-9a-f]{64}", snapshot["state_root"]):
         raise EvidenceEnvelopeError("invalid snapshot state_root")
 
     previous_path: str | None = None
     for item in snapshot["files"]:
-        if not isinstance(item, dict) or set(item) != {"path", "sha256", "size"}:
+        if not isinstance(item, dict) or set(item) != expected_entry_fields:
             raise EvidenceEnvelopeError("invalid snapshot file entry")
 
         relative = item["path"]
@@ -103,9 +114,13 @@ def verify_snapshot(snapshot: dict[str, Any]) -> None:
             raise EvidenceEnvelopeError("invalid snapshot file digest")
         if type(item["size"]) is not int or item["size"] < 0:
             raise EvidenceEnvelopeError("invalid snapshot file size")
+        if schema == SNAPSHOT_SCHEMA and (
+            type(item["mode"]) is not int or item["mode"] not in {0o100644, 0o100755, 0o120000}
+        ):
+            raise EvidenceEnvelopeError("invalid snapshot Git-compatible file mode")
 
     durable = {"schema": snapshot["schema"], "files": snapshot["files"]}
-    expected = sha256_bytes(SNAPSHOT_DOMAIN + canonical_json(durable))
+    expected = sha256_bytes(SNAPSHOT_DOMAINS[schema] + canonical_json(durable))
     if expected != snapshot["state_root"]:
         raise EvidenceEnvelopeError("snapshot state_root mismatch")
 

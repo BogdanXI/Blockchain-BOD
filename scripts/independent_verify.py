@@ -15,11 +15,14 @@ import sys
 from pathlib import Path, PurePosixPath
 
 ENVELOPE_SCHEMA = "bod-evidence-envelope-v0.1"
-SNAPSHOT_SCHEMA = "bod-repository-snapshot-v0.1"
+LEGACY_SNAPSHOT_SCHEMA = "bod-repository-snapshot-v0.1"
+SNAPSHOT_SCHEMA = "bod-repository-snapshot-v0.2"
 PORTABLE_SCHEMA = "bod-portable-checkpoint-v0.1"
 BUNDLE_SCHEMA = "bod-evidence-bundle-v0.1"
 ENVELOPE_DOMAIN = b"BOD-EVIDENCE-ENVELOPE-V0.1\0"
-SNAPSHOT_DOMAIN = b"BOD-REPOSITORY-SNAPSHOT-V0.1\0"
+LEGACY_SNAPSHOT_DOMAIN = b"BOD-REPOSITORY-SNAPSHOT-V0.1\0"
+SNAPSHOT_DOMAIN = b"BOD-REPOSITORY-SNAPSHOT-V0.2\0"
+SNAPSHOT_DOMAINS = {LEGACY_SNAPSHOT_SCHEMA: LEGACY_SNAPSHOT_DOMAIN, SNAPSHOT_SCHEMA: SNAPSHOT_DOMAIN}
 PORTABLE_DOMAIN = b"BOD-PORTABLE-CHECKPOINT-V0.1\0"
 BUNDLE_DOMAIN = b"BOD-EVIDENCE-BUNDLE-V0.1\0"
 HEX = re.compile(r"^[0-9a-f]{64}$")
@@ -45,14 +48,18 @@ def envelope_commitment(document):
 def verify_snapshot(snapshot):
     if not isinstance(snapshot, dict) or set(snapshot) != {"schema", "files", "state_root"}:
         raise ValueError("invalid repository snapshot")
-    if snapshot["schema"] != SNAPSHOT_SCHEMA or not isinstance(snapshot["files"], list):
+    schema = snapshot["schema"]
+    if schema not in SNAPSHOT_DOMAINS or not isinstance(snapshot["files"], list):
         raise ValueError("unsupported repository snapshot")
+    expected_entry_fields = {"path", "sha256", "size"}
+    if schema == SNAPSHOT_SCHEMA:
+        expected_entry_fields.add("mode")
     if not isinstance(snapshot["state_root"], str) or not HEX.fullmatch(snapshot["state_root"]):
         raise ValueError("invalid snapshot state_root")
 
     previous_path = None
     for item in snapshot["files"]:
-        if not isinstance(item, dict) or set(item) != {"path", "sha256", "size"}:
+        if not isinstance(item, dict) or set(item) != expected_entry_fields:
             raise ValueError("invalid snapshot file entry")
         relative = item["path"]
         if not isinstance(relative, str) or not relative or chr(92) in relative or chr(0) in relative:
@@ -73,9 +80,13 @@ def verify_snapshot(snapshot):
             raise ValueError("invalid snapshot file digest")
         if type(item["size"]) is not int or item["size"] < 0:
             raise ValueError("invalid snapshot file size")
+        if schema == SNAPSHOT_SCHEMA and (
+            type(item["mode"]) is not int or item["mode"] not in {0o100644, 0o100755, 0o120000}
+        ):
+            raise ValueError("invalid snapshot Git-compatible file mode")
 
     durable = {"schema": snapshot["schema"], "files": snapshot["files"]}
-    if sha(SNAPSHOT_DOMAIN + canonical(durable)) != snapshot["state_root"]:
+    if sha(SNAPSHOT_DOMAINS[schema] + canonical(durable)) != snapshot["state_root"]:
         raise ValueError("snapshot state_root mismatch")
 
 
