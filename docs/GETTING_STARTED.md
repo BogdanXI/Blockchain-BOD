@@ -54,7 +54,7 @@ Install [Foundry](https://getfoundry.sh/) and run:
 forge test -vvv
 ```
 
-This compiles and tests the Ethereum checkpoint registry locally. It does not submit a transaction.
+This compiles and tests the optional Ethereum checkpoint registry locally. It does not submit a transaction. The EAS workflow is documented separately in [EAS Integration](EAS_INTEGRATION.md).
 
 ## 7. Ethereum Sepolia deployment
 
