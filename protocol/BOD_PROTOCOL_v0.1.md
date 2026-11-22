@@ -1,6 +1,8 @@
 # BOD Protocol v0.1 — Task-to-Settlement Specification
 
-Status: proposed protocol interface baseline
+Status: historical protocol interface baseline — not the active public product specification
+
+> **Scope notice (2026-11-22):** This Task-to-Settlement specification includes BOD-denominated rewards, bonds and settlement concepts from an earlier product direction. It is retained as historical research and must not be represented as the current Ethereum Foundation grant proposal. The active public product is software-release Evidence Continuity; it does not require a BOD token, staking, settlement, an L2 or a custom chain.
 
 ## 1. Purpose
 

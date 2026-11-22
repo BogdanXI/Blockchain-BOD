@@ -1,6 +1,8 @@
 # Blockchain-BOD Protocol Architecture v0.1
 
-Status: proposed architecture baseline
+Status: historical architecture baseline — not the active Ethereum grant-track product architecture
+
+> **Scope notice (2026-11-22):** This document describes the earlier Task-to-Settlement / BOD-economics design. That design and its Arbitrum adapter are retained as historical research only. The active public product is the chain-independent Evidence Continuity core with an optional Ethereum L1/EAS witness. No Arbitrum adapter, BOD token settlement or BOD-owned L2 is in the active roadmap.
 
 ## 1. Objective
 
@@ -181,16 +183,16 @@ This refinement does not change the existing rule that verification and canonica
 
 The protocol does not store prompts, model context, raw source trees, tool calls, logs or full evidence bundles on-chain. On-chain state stores only protocol-significant commitments and economic transitions.
 
-An initial EVM/Arbitrum adapter is permitted without making Arbitrum part of the protocol core. A future native BOD chain may implement the same object lifecycle.
+The historical implementation explored an EVM adapter. This is no longer an active deployment path. The current product uses Ethereum L1 only as an optional checkpoint witness; no L2 or BOD-owned chain is required.
 
 ## 11. Protocol status
 
 The Task-to-Settlement object model is a v0.1 specification baseline. Canonical serialization, executable state transitions, signature implementation and adapter contracts remain implementation work.
 
 
-## 11. Arbitrum adapter v0.1
+## 11. Historical Arbitrum adapter v0.1 — retired
 
-The first chain-facing adapter is implemented at protocol/arbitrum/BODProtocolAdapterV0_1.sol.
+The former adapter implementation is retained at `protocol/arbitrum/BODProtocolAdapterV0_1.sol` for historical reproducibility only. It is not part of the active product or grant scope.
 
 It stores only protocol-significant state:
 
@@ -200,4 +202,4 @@ It stores only protocol-significant state:
 - VerificationRoot commitment;
 - Settlement and canonical state-root transition.
 
-The adapter injects the existing arbitration/consensus boundary through settlementAuthority. It does not define a new consensus mechanism or finalize verifier economics. Arbitrum Sepolia is the first deployment target; the protocol core remains chain-independent.
+The adapter injects the existing arbitration/consensus boundary through settlementAuthority. It does not define a new consensus mechanism or finalize verifier economics. Arbitrum Sepolia was the historical testnet target. No further Arbitrum deployment or integration work is planned in the active product scope.

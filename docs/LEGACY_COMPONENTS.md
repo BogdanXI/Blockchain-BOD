@@ -2,15 +2,19 @@
 
 ## Arbitrum
 
-The original Arbitrum Sepolia work remains in `protocol/arbitrum/`, `tools/metamask/` and the workflows whose names include `bod-sepolia`. It is retained as historical experimental material.
+The former Arbitrum Sepolia adapter and browser-wallet integration are retired from the active product scope. Their source, tests and historical records remain in the repository solely for traceability and reproducibility; they are not supported deployment targets.
 
-It is not the active product target. The current public roadmap targets an Ethereum Sepolia checkpoint-registry pilot. The old browser bridge and adapter have not been re-certified as production-ready; do not infer their current operational correctness from historical tests or documentation.
+The active chain-facing experiment is Ethereum L1, with Ethereum Sepolia as the only planned testnet. The old browser bridge and adapter are not part of the active roadmap, release path or grant proposal. Their historical tests do not establish current operational correctness.
 
-No Arbitrum One or Ethereum mainnet deployment is claimed.
+No Arbitrum One deployment is claimed. No Ethereum Sepolia or Ethereum mainnet deployment is claimed either.
 
 ## BOD token and economics
 
 The previous BOD token/economic model is outside the current Ethereum product. See [the economics archive note](../economics/README.md) for a documented mismatch between the legacy Python simulator and token policy.
+
+## Active Ethereum scope
+
+Use Ethereum-native tooling only where it provides a concrete verification benefit: EAS for linked attestations and, if justified, a minimal Ethereum L1 checkpoint witness. Do not add an L2 integration merely to increase the number of supported networks. No bridge, rollup, custom chain, BOD token, staking or settlement layer is required for the current evidence-continuity product.
 
 ## Migration principle
 

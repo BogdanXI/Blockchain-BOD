@@ -1,6 +1,6 @@
 # Public roadmap
 
-The project advances by reproducible evidence, not promotional dates. The Ethereum track replaces Arbitrum as the primary chain-integration target; it does not imply a new BOD chain.
+The project advances by reproducible evidence, not promotional dates. The active chain-facing scope is limited to an optional Ethereum L1 checkpoint witness and Ethereum Sepolia validation; the continuity core remains chain-independent.
 
 ## 1. Portable continuity core
 
@@ -73,7 +73,7 @@ Requires demonstrated user value, independent security review, operational monit
 
 ## Explicit non-goals
 
-- creating a competing Ethereum L2;
+- creating or operating an Ethereum L2 or other BOD-owned chain;
 - issuing a BOD token to make the product work;
 - replacing Git, SLSA, in-toto, Sigstore, SPDX, CycloneDX or EAS;
 - treating an anchor as proof of semantic truth or canonicality.

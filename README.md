@@ -7,12 +7,12 @@
 
   BOD links project-state checkpoints and release evidence across time — preserving predecessor relationships, exposing forks, and carrying selected evidence payloads into a verifiable recovery bundle.
 
-  [Quickstart](docs/GETTING_STARTED.md) · [Architecture](docs/ARCHITECTURE_OVERVIEW.md) · [Verification experiment](docs/VERIFICATION_EXPERIMENT.md) · [Protocol](protocol/BOD_PROTOCOL_v0.1.md)
+  [Quickstart](docs/GETTING_STARTED.md) · [Architecture](docs/ARCHITECTURE_OVERVIEW.md) · [Verification experiment](docs/VERIFICATION_EXPERIMENT.md) · [Evidence Bundle specification](docs/EVIDENCE_BUNDLE_v0.1.md)
 
   [![CI](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml/badge.svg)](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml)
   [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
   [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
-  [![Protocol v0.1](https://img.shields.io/badge/protocol-v0.1-informational.svg)](protocol/BOD_PROTOCOL_v0.1.md)
+  [![Evidence Bundle v0.1](https://img.shields.io/badge/evidence--bundle-v0.1-informational.svg)](docs/EVIDENCE_BUNDLE_v0.1.md)
   [![Status: Experimental](https://img.shields.io/badge/status-experimental-orange.svg)](docs/PROJECT_STATUS.md)
 </div>
 
@@ -174,7 +174,7 @@ Review the [threat model](docs/THREAT_MODEL_v0.1.md), [privacy model](docs/PRIVA
 
 ```text
 src/                    Python reference implementation and CLI
-protocol/               Protocol specification and Ethereum registry
+protocol/               Ethereum checkpoint registry and historical protocol material
 scripts/                Independent verifier and experiments
 tests/                  Python regression and recovery tests
 test/                   Foundry contract tests

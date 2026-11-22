@@ -4,7 +4,7 @@
 
 ## Design objective
 
-Use Ethereum as a public, independently readable witness for compact BOD project checkpoints. Keep project files, build outputs and evidence payloads off-chain.
+Use Ethereum L1 as an optional, independently readable witness for compact BOD project checkpoints. Keep project files, build outputs and evidence payloads off-chain. The continuity core remains useful without a blockchain connection.
 
 The contract is `protocol/ethereum/BODEthereumCheckpointRegistry.sol`.
 
@@ -76,7 +76,8 @@ Never commit private keys, seed phrases, RPC credentials or signed transaction p
 |---|---:|---|
 | Ethereum Mainnet | 1 | Production target only after separate approval |
 | Ethereum Sepolia | 11155111 | Testnet pilot |
-| Arbitrum Sepolia | 421614 | Legacy experiment only |
+
+No L2-specific adapter or deployment is part of the active Ethereum integration scope.
 
 ## Known limitations
 

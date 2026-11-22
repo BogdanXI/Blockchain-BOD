@@ -8,10 +8,9 @@ network:
   native_bod_network: false
   production: false
 
-legacy_network:
-  profile: arbitrum-sepolia-adapter
-  chain_id: 421614
-  status: legacy_experimental
+network_scope:
+  policy: ethereum_l1_only
+  l2_adapters: out_of_scope
   production: false
 
 surfaces:
@@ -30,14 +29,8 @@ surfaces:
   eas_sdk_integration:
     status: source_implemented_ci_syntax_checked_not_live_validated_schema_not_registered
     reference: tools/eas/attest-checkpoint.mjs
-  arbitrum_adapter:
-    status: legacy_experimental
-    reference: protocol/arbitrum/BODProtocolAdapterV0_1.sol
   ethereum_sepolia_deployment:
     status: not_deployed
-    reference: null
-  arbitrum_sepolia_live_evidence:
-    status: not_independently_recorded_in_public_repository
     reference: null
   token_policy:
     status: historical_experimental_not_active
@@ -82,6 +75,6 @@ launch_gate:
     - prepare_a_sepolia_rehearsal_after_review
   prohibited_now:
     - ethereum_mainnet_deployment
-    - presenting_arbitrum_as_the_primary_product_target
+    - deploying_to_or_presenting_any_l2_as_an_active_product_target
     - presenting_BOD_as_a_production_blockchain
     - promoting_historical_tokenomics_to_final_monetary_policy
