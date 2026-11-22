@@ -9,8 +9,7 @@ Requirements: Python 3.11 or newer.
 ```bash
 git clone https://github.com/BogdanXI/Blockchain-BOD.git
 cd Blockchain-BOD
-python -m pip install -e .
-python -m pip install pytest pyyaml
+python -m pip install --editable ".[test,lint]"
 ```
 
 ## 2. Run the local demonstration
@@ -43,6 +42,7 @@ The independent verifier is a separate implementation and does not import the BO
 
 ```bash
 python scripts/validate_public_surface.py
+ruff check --select E4,E7,E9,F src scripts tests
 python -m pytest -q
 ```
 
