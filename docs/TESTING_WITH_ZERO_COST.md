@@ -106,10 +106,10 @@ Stop and use the local test path instead.
 - Public-surface validation: run locally and passed.
 - npm production dependency audit: run locally and reported zero vulnerabilities.
 - EAS SDK runtime import/schema smoke test: run locally and passed.
-- GitHub Actions run [45049772858](https://github.com/BogdanXI/Blockchain-BOD/actions/runs/45049772858): all five jobs passed on the exact reviewed code commit 6fa51682720554baf205c7a6c6f3ab7525a19728 (Python 3.11/3.12/3.13, Foundry Solidity tests and EAS tooling). Re-run CI after any subsequent source or workflow change.
+- GitHub Actions run [45050151175](https://github.com/BogdanXI/Blockchain-BOD/actions/runs/45050151175): all five jobs passed on the exact reviewed code commit bcfdc7f25a619f96bffe9709f506fb0f531e28cd (Python 3.11/3.12/3.13, Foundry Solidity tests and EAS tooling). Re-run CI after any subsequent source or workflow change.
 - Local Foundry binary: not installed in the current workstation environment;
-  the pinned remote Foundry job passed in run 45049772858 for commit
-  6fa51682720554baf205c7a6c6f3ab7525a19728.
+  the pinned remote Foundry job passed in run 45050151175 for commit
+  bcfdc7f25a619f96bffe9709f506fb0f531e28cd.
 - Sepolia deployment and live EAS transactions: not yet performed.
 - No mainnet transaction has been authorized or performed.
 

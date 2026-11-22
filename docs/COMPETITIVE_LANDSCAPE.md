@@ -29,6 +29,12 @@ The Ethereum Foundation's public disclosures program coordinates vulnerabilities
 
 **Implication for BOD:** do not pitch basic provenance, SBOM generation, artifact signing or GitHub attestation as missing from Ethereum clients. A plausible pilot would test whether a team can preserve and independently reconstruct the evidence set for a historical release across CI/provider changes, repository forks and long retention periods. No client team has expressed interest or agreed to pilot BOD.
 
+## Sourcify verification semantics and API compatibility
+
+The Sourcify legacy Server API v1 was turned off on 7 July 2026. New integrations must use Server API v2, including the contract lookup endpoint `GET /v2/contract/{chainId}/{address}`. The BOD release profile records Sourcify's `exact_match` versus `match` classification rather than reducing both to a generic verified flag. An exact metadata match binds source files and compiler settings more strongly; a non-exact bytecode match does not establish byte-for-byte identity of the published source. Neither result is a formal security proof or audit.
+
+Sources: [Sourcify API v2](https://docs.sourcify.dev/docs/api/), [contract lookup API](https://docs.sourcify.dev/docs/api/index.html), [Ethereum.org source-verification semantics](https://ethereum.org/developers/docs/smart-contracts/verifying/).
+
 ## What this review establishes
 
 1. Evidence collection, signed attestation storage, immutable SDLC histories, metadata graphs, and export are already implemented by real projects.

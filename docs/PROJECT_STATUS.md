@@ -38,7 +38,7 @@ The following checks passed locally on the current working branch:
 - EAS SDK runtime import and schema-encoding smoke test;
 - npm production dependency audit (zero reported vulnerabilities).
 
-The workstation's active Python interpreter is 3.14.4; the declared CI support matrix remains Python 3.11, 3.12 and 3.13. GitHub Actions run [45049772858](https://github.com/BogdanXI/Blockchain-BOD/actions/runs/45049772858) passed on the exact reviewed code commit 6fa51682720554baf205c7a6c6f3ab7525a19728: Python 3.11, 3.12, 3.13, Ethereum Solidity tests and EAS tooling all succeeded. Foundry is not installed in the workstation environment, so Solidity tests were validated remotely. Any later code or workflow changes require a fresh CI run.
+The workstation's active Python interpreter is 3.14.4; the declared CI support matrix remains Python 3.11, 3.12 and 3.13. GitHub Actions run [45050151175](https://github.com/BogdanXI/Blockchain-BOD/actions/runs/45050151175) passed on the exact reviewed code commit bcfdc7f25a619f96bffe9709f506fb0f531e28cd: Python 3.11, 3.12, 3.13, Ethereum Solidity tests and EAS tooling all succeeded. Foundry is not installed in the workstation environment, so Solidity tests were validated remotely. Any later code or workflow changes require a fresh CI run.
 
 ## Ethereum integration boundary
 

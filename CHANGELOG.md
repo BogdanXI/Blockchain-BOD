@@ -4,6 +4,7 @@
 - Added a dependency-free structural validator and the `bod profile-validate` CLI command, with explicit non-claims for cryptographic verification, chain-state verification and semantic truth.
 - Added a real Reth v2.11.0 release fixture using recorded source and binary identities; missing SLSA provenance and unproven binary-to-source correspondence remain explicit gaps.
 - Strengthened contract deployment records to require a chain-finality status and observation source/time, and preserved Sourcify exact-match versus non-exact-match classification.
+- Updated the competitive landscape with current Sourcify API v2 guidance; documented that the legacy v1 API was disabled in July 2026 and that source verification is not formal security verification.
 - Added regression tests for profile structure, invalid digests, invalid URIs, contract-specific requirements, deployment address width, predecessor consistency and CLI behavior.
 - Updated quickstart, project status and grant documents to distinguish implemented profile structure from unimplemented native verification and smart-contract deployment workflows.
 
@@ -16,7 +17,7 @@
 - Extended the EAS schema to carry both the EAS-context checkpoint identifier and the portable BOD checkpoint identifier. The client now checks that the supplied checkpoint matches the current clean repository snapshot before submitting an attestation.
 - Updated public documentation, quickstart commands, grant status, roadmap and zero-cost test status to reflect the current implementation and known limitations.
 - Made the historical task/settlement and token-economics boundary explicit in testnet readiness metadata and documentation; added a packaging regression test to ensure legacy economic modules stay outside the installed Python wheel.
-- Local validation: Python tests, Ruff, public-surface validation, CLI smoke test, recovery experiment, EAS SDK schema-encoding smoke test and npm production dependency audit passed. Foundry is unavailable in the local workstation environment; GitHub Actions run 45049772858 passed all five jobs on commit 6fa51682720554baf205c7a6c6f3ab7525a19728.
+- Local validation: Python tests, Ruff, public-surface validation, CLI smoke test, recovery experiment, EAS SDK schema-encoding smoke test and npm production dependency audit passed. Foundry is unavailable in the local workstation environment; GitHub Actions run 45050151175 passed all five jobs on commit bcfdc7f25a619f96bffe9709f506fb0f531e28cd.
 - No EAS schema registration, wallet signing, Sepolia deployment, mainnet transaction or paid test service was used.
 
 ## 2026-11-22 — Verified evidence bundle extraction
