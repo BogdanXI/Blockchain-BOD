@@ -15,16 +15,22 @@ try:
         verify_chain,
         verify_lineage_graph,
     )
+    from bod_evidence_formats import (
+        EvidenceFormatError,
+        EvidenceVerificationError,
+        inspect_evidence_payload,
+        run_sigstore_verification,
+    )
     from bod_portable import (
         create_evidence_bundle,
         create_portable_checkpoint,
+        extract_evidence_bundle,
         parse_portable,
         repository_snapshot,
         verify_evidence_bundle,
         verify_portable_chain,
         verify_portable_graph,
     )
-    from bod_evidence_formats import EvidenceFormatError, EvidenceVerificationError, inspect_evidence_payload, run_sigstore_verification
 except ImportError:
     from src.bod_evidence_envelope import (
         EvidenceEnvelopeError,
@@ -34,16 +40,22 @@ except ImportError:
         verify_chain,
         verify_lineage_graph,
     )
+    from src.bod_evidence_formats import (
+        EvidenceFormatError,
+        EvidenceVerificationError,
+        inspect_evidence_payload,
+        run_sigstore_verification,
+    )
     from src.bod_portable import (
         create_evidence_bundle,
         create_portable_checkpoint,
+        extract_evidence_bundle,
         parse_portable,
         repository_snapshot,
         verify_evidence_bundle,
         verify_portable_chain,
         verify_portable_graph,
     )
-    from src.bod_evidence_formats import EvidenceFormatError, EvidenceVerificationError, inspect_evidence_payload, run_sigstore_verification
 
 
 def load(path: str | Path) -> Any:
@@ -211,6 +223,12 @@ def cmd_bundle_verify(args) -> int:
     return 0
 
 
+def cmd_bundle_extract(args) -> int:
+    result = extract_evidence_bundle(load(args.file), Path(args.out_dir))
+    print(json.dumps(result, indent=2))
+    return 0
+
+
 def cmd_recover(args) -> int:
     try:
         checkpoints = parse_checkpoints(load(args.file))
@@ -319,6 +337,11 @@ def main() -> int:
     x = sub.add_parser("bundle-verify", help="verify a self-contained evidence bundle")
     x.add_argument("file")
     x.set_defaults(func=cmd_bundle_verify)
+
+    x = sub.add_parser("bundle-extract", help="verify and safely extract evidence payloads from a bundle")
+    x.add_argument("file")
+    x.add_argument("--out-dir", required=True, help="new directory to create; existing paths are never overwritten")
+    x.set_defaults(func=cmd_bundle_extract)
 
     x = sub.add_parser("recover")
     x.add_argument("file")

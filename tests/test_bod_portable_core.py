@@ -12,6 +12,7 @@ from bod_portable import (
     canonical_json,
     create_evidence_bundle,
     create_portable_checkpoint,
+    extract_evidence_bundle,
     parse_portable,
     repository_snapshot,
     sha256_bytes,
@@ -179,11 +180,27 @@ def test_self_contained_evidence_bundle_round_trip_and_tamper_detection(tmp_path
             evidence_type="slsa-provenance",
             digest=digest,
             media_type="application/vnd.in-toto+json",
+            uri="../../outside-file",
+            issuer="test-issuer",
         )],
         capture_boundary="test",
     )
     checkpoint = create_portable_checkpoint(snapshot=snapshot, envelope=envelope)
     bundle = create_evidence_bundle(checkpoint=checkpoint, payloads={digest: payload})
+    extracted_dir = tmp_path / "extracted"
+    extracted = extract_evidence_bundle(bundle, extracted_dir)
+    assert extracted["status"] == "BUNDLE_EXTRACTED"
+    assert (extracted_dir / f"{digest}.json").read_bytes() == payload
+    manifest = json.loads((extracted_dir / "manifest.json").read_text())
+    assert manifest["objects"][0]["digest"] == f"sha256:{digest}"
+    assert manifest["objects"][0]["evidence_type"] == "slsa-provenance"
+    assert manifest["objects"][0]["uri"] == "../../outside-file"
+    assert manifest["objects"][0]["file"] == f"{digest}.json"
+    assert not (tmp_path / "outside-file").exists()
+    with pytest.raises(EvidenceEnvelopeError, match="output directory already exists"):
+        extract_evidence_bundle(bundle, extracted_dir)
+    assert (extracted_dir / f"{digest}.json").read_bytes() == payload
+
     result = verify_evidence_bundle(bundle)
     assert result["payloads_complete"] is True
     assert result["evidence_objects"] == 1
@@ -200,8 +217,37 @@ def test_self_contained_evidence_bundle_round_trip_and_tamper_detection(tmp_path
         "checkpoint": tampered["checkpoint"],
         "objects": tampered["objects"],
     }))
+    rejected_dir = tmp_path / "tampered-extraction"
+    with pytest.raises(EvidenceEnvelopeError, match="size mismatch|digest mismatch"):
+        extract_evidence_bundle(tampered, rejected_dir)
+    assert not rejected_dir.exists()
     with pytest.raises(EvidenceEnvelopeError, match="size mismatch|digest mismatch"):
         verify_evidence_bundle(tampered)
+
+
+def test_bundle_extract_uses_jsonl_extension_for_ndjson_payload(tmp_path):
+    from bod_evidence_envelope import EvidenceReferenceV0_1
+
+    payload = b'{"type":"attestation"}\n'
+    digest = sha256_bytes(payload)
+    snapshot = _synthetic_snapshot("bundle-jsonl")
+    envelope = create_evidence_envelope(
+        project_id="bundle-project", protocol_version="0.1",
+        state_root=snapshot["state_root"], predecessor_state_root=None,
+        transition_id="release-jsonl",
+        evidence=[EvidenceReferenceV0_1(
+            evidence_type="attestation-bundle", digest=digest,
+            media_type="application/x-ndjson",
+        )],
+        capture_boundary="test",
+    )
+    bundle = create_evidence_bundle(
+        checkpoint=create_portable_checkpoint(snapshot=snapshot, envelope=envelope),
+        payloads={digest: payload},
+    )
+    output = tmp_path / "jsonl-recovered"
+    extract_evidence_bundle(bundle, output)
+    assert (output / f"{digest}.jsonl").read_bytes() == payload
 
 
 def test_self_contained_evidence_bundle_requires_every_referenced_payload():
@@ -255,7 +301,15 @@ def test_bundle_cli_round_trip(tmp_path):
         capture_output=True, text=True, check=False,
     )
     assert verify.returncode == 0, verify.stdout + verify.stderr
-    assert json.loads(verify.stdout)["status"] == "VALID_SELF_CONTAINED_BUNDLE"
+    extracted_dir = tmp_path / "bundle-extracted"
+    extract = subprocess.run(
+        [sys.executable, "-m", "src.bod_cli", "bundle-extract", str(bundle_path),
+         "--out-dir", str(extracted_dir)],
+        capture_output=True, text=True, check=False,
+    )
+    assert extract.returncode == 0, extract.stdout + extract.stderr
+    assert json.loads(extract.stdout)["status"] == "BUNDLE_EXTRACTED"
+    assert (extracted_dir / f"{digest}.json").read_bytes() == payload
 
     independent = subprocess.run(
         [sys.executable, "scripts/independent_verify.py", str(bundle_path)],
@@ -298,6 +352,7 @@ def test_evidence_inspector_validates_slsa_and_cyclonedx_structure():
 
 def test_evidence_inspector_validates_spdx_23_and_dsse_wrapper():
     import base64
+
     from bod_evidence_formats import inspect_evidence_payload
 
     spdx = {
@@ -335,6 +390,7 @@ def test_evidence_inspector_validates_spdx_23_and_dsse_wrapper():
 
 def test_evidence_inspector_rejects_malformed_slsa_and_invalid_spdx():
     import pytest
+
     from bod_evidence_formats import EvidenceFormatError, inspect_evidence_payload
 
     malformed_slsa = {
@@ -375,6 +431,7 @@ def test_evidence_inspector_cli(tmp_path):
 
 def test_sigstore_github_verification_command_is_delegated_without_shell(monkeypatch):
     from types import SimpleNamespace
+
     import bod_evidence_formats as formats
 
     captured = {}
@@ -407,8 +464,10 @@ def test_sigstore_github_verification_command_is_delegated_without_shell(monkeyp
 
 def test_sigstore_verification_rejects_missing_policy_and_missing_binary(monkeypatch):
     import shutil
-    import bod_evidence_formats as formats
+
     import pytest
+
+    import bod_evidence_formats as formats
 
     with pytest.raises(formats.EvidenceVerificationError, match="requires"):
         formats.run_sigstore_verification(
@@ -426,9 +485,10 @@ def test_sigstore_verification_rejects_missing_policy_and_missing_binary(monkeyp
 
 
 def test_sigstore_identity_verification_uses_explicit_issuer(monkeypatch):
-    from types import SimpleNamespace
     import shutil
     import subprocess
+    from types import SimpleNamespace
+
     import bod_evidence_formats as formats
 
     captured = {}

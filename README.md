@@ -35,7 +35,7 @@ BOD explores a small, composable layer for that problem. It does not replace Git
 | Deterministic project state | Git-tracked file manifest with content digests |
 | Evidence continuity | Versioned envelopes with predecessor references |
 | Branch-aware history | Graph verification reports forks and heads without choosing a canonical head |
-| Portable recovery | Evidence Bundle v0.1 carries referenced payload bytes and a checkpoint |
+| Portable recovery | Evidence Bundle v0.1 carries referenced payload bytes and a checkpoint; verified extraction writes digest-named files and a manifest |
 | Independent verification | Separate verifier and CLI checks for integrity, completeness and lineage |
 | Evidence format inspection | Structural inspection for in-toto, SLSA, DSSE, CycloneDX and SPDX |
 | Signature verification | Delegation to the official `sigstore-python` tooling |
@@ -112,6 +112,17 @@ Verify a collection of checkpoints as a graph, retaining visible forks rather th
 bod verify checkpoints.json --portable --graph
 python scripts/independent_verify.py checkpoints.json --graph
 ```
+
+Create, verify and recover a self-contained evidence bundle:
+
+```bash
+bod capture . --project my-project --evidence evidence-refs.json --out checkpoint.json
+bod bundle-create checkpoint.json --payload <sha256-hex>=./provenance.json --out release-evidence.bundle.json
+bod bundle-verify release-evidence.bundle.json
+bod bundle-extract release-evidence.bundle.json --out-dir recovered-evidence
+```
+
+Extraction verifies the bundle first, writes digest-named payload files and a mapping manifest, and refuses to overwrite an existing destination directory. See the [Evidence Bundle specification](docs/EVIDENCE_BUNDLE_v0.1.md).
 
 Run the local checks:
 

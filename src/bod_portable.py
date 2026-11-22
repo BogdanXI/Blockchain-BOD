@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import stat
 import subprocess
 from pathlib import Path, PurePosixPath
@@ -197,6 +198,76 @@ def create_evidence_bundle(
     }
     bundle_id = sha256_bytes(BUNDLE_DOMAIN + canonical_json(document))
     return {**document, "bundle_id": bundle_id}
+
+
+def extract_evidence_bundle(value: Any, output_dir: Path) -> dict[str, Any]:
+    """Verify a self-contained bundle and safely extract payloads by digest.
+
+    The destination must not already exist. Filenames are derived only from
+    validated lowercase SHA-256 digests; untrusted evidence metadata is never
+    used as a filesystem path.
+    """
+    summary = verify_evidence_bundle(value)
+    target = Path(output_dir)
+    if target.exists() or target.is_symlink():
+        raise EvidenceEnvelopeError("output directory already exists")
+
+    _, envelope = parse_portable(value["checkpoint"])
+    references = {item.digest: item for item in envelope.evidence}
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.mkdir(exist_ok=False)
+    extracted = []
+    try:
+        extensions = {
+            "application/json": ".json",
+            "application/x-ndjson": ".jsonl",
+            "application/vnd.cyclonedx+json": ".json",
+            "application/vnd.in-toto+json": ".json",
+            "application/spdx+json": ".json",
+            "text/plain": ".txt",
+        }
+        for item in value["objects"]:
+            digest = item["digest"][7:]
+            payload = base64.b64decode(item["data_base64"], validate=True)
+            reference = references[digest]
+            filename = digest + extensions.get(reference.media_type, ".bin")
+            (target / filename).write_bytes(payload)
+            entry = {
+                "digest": f"sha256:{digest}",
+                "file": filename,
+                "size": len(payload),
+                "media_type": reference.media_type,
+                "evidence_type": reference.evidence_type,
+            }
+            if reference.uri is not None:
+                entry["uri"] = reference.uri
+            if reference.issuer is not None:
+                entry["issuer"] = reference.issuer
+            extracted.append(entry)
+
+        manifest = {
+            "schema": "bod-evidence-extraction-manifest-v0.1",
+            "bundle_id": summary["bundle_id"],
+            "checkpoint_id": summary["checkpoint_id"],
+            "project_id": summary["project_id"],
+            "objects": extracted,
+        }
+        (target / "manifest.json").write_text(
+            json.dumps(manifest, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
+            encoding="utf-8",
+        )
+    except Exception:
+        shutil.rmtree(target, ignore_errors=True)
+        raise
+
+    return {
+        "status": "BUNDLE_EXTRACTED",
+        "bundle_id": summary["bundle_id"],
+        "output_dir": str(target),
+        "evidence_objects": len(extracted),
+        "payload_bytes": summary["payload_bytes"],
+        "manifest": str(target / "manifest.json"),
+    }
 
 
 def verify_evidence_bundle(value: Any) -> dict[str, Any]:

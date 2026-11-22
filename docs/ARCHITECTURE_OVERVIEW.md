@@ -13,7 +13,7 @@ It is not a build system, provenance authority, vulnerability scanner, evidence-
 1. **Capture.** The repository adapter enumerates the defined Git-tracked project boundary and computes file-level digests and a deterministic state root.
 2. **Describe evidence.** A versioned evidence envelope records evidence references and the project-state context. References commit to payload digests and metadata; they do not, by themselves, preserve payload availability.
 3. **Link history.** A checkpoint identifies its predecessor. Graph verification checks relationships and reports forks and heads without selecting a canonical head.
-4. **Package for portability.** Evidence Bundle v0.1 carries a checkpoint plus the exact bytes for referenced evidence payloads included in that bundle.
+4. **Package for portability.** Evidence Bundle v0.1 carries a checkpoint plus the exact bytes for referenced evidence payloads included in that bundle. The CLI can verify and safely extract those payloads into digest-derived filenames with a mapping manifest.
 5. **Verify independently.** The verifier checks the encoded commitments, payload digests, metadata constraints, completeness and lineage predicates. External signature verification is delegated to the relevant upstream tooling.
 6. **Optionally publish a witness.** The Ethereum registry can record compact commitments and predecessor references. This is independent of local verification and does not place evidence payloads on-chain.
 

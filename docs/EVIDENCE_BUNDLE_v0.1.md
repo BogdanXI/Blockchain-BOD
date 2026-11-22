@@ -28,7 +28,7 @@ Each object contains:
 
 The bundle verifier checks the outer commitment, portable checkpoint, strict object ordering, reference coverage, media type, base64 validity, byte length and SHA-256 digest. It rejects missing and unreferenced objects.
 
-## Create and verify
+## Create, verify and extract
 
 Given a checkpoint and its evidence payload files, run:
 
@@ -38,9 +38,12 @@ Given a checkpoint and its evidence payload files, run:
       --out release-evidence.bundle.json
 
     bod bundle-verify release-evidence.bundle.json
+    bod bundle-extract release-evidence.bundle.json --out-dir recovered-evidence
     python scripts/independent_verify.py release-evidence.bundle.json
 
 The payload digest is the lowercase SHA-256 hex value without the sha256: prefix. Every evidence reference in the checkpoint must have exactly one supplied payload. The command intentionally fails closed if the set is incomplete.
+
+Extraction first verifies the complete bundle, then writes each payload under a filename derived from its lowercase SHA-256 digest and a small allowlist of media-type extensions (for example, `.json` or `.jsonl`; unknown types use `.bin`). It also writes a machine-readable manifest mapping each digest to its evidence type, media type, size, issuer and URI when present. The destination directory must not already exist; the command refuses to overwrite existing paths. Filenames are derived only from validated digests and fixed extensions, never from untrusted evidence metadata. Extracted bytes still require their format-specific verifier and trust policy.
 
 ## Security and trust boundaries
 

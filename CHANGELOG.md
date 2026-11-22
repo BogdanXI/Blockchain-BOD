@@ -1,3 +1,9 @@
+## 2026-11-22 — Verified evidence bundle extraction
+
+- Added `bod bundle-extract` to verify a self-contained Evidence Bundle before extracting its evidence payloads.
+- Uses digest-derived filenames and a machine-readable extraction manifest; refuses to overwrite an existing destination directory and never uses untrusted evidence metadata as a path.
+- Added tests for successful extraction, CLI behavior, tampering rejection, overwrite refusal and path traversal resistance.
+
 ## 2026-11-22 — Sigstore verification delegation
 
 - Added evidence-verify CLI modes that delegate GitHub workflow identity/claim verification and generic identity/OIDC issuer verification to the official sigstore-python CLI.
