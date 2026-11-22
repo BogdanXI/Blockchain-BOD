@@ -68,8 +68,8 @@ export BOD_EAS_SCHEMA_UID="0x..."
 Create a BOD portable checkpoint and attest it:
 
 ```bash
-bod capture . --project my-project --out checkpoint.json
-npm run eas:attest-checkpoint -- checkpoint.json
+bod capture . --project my-project --out /tmp/bod-checkpoint.json
+npm run eas:attest-checkpoint -- /tmp/bod-checkpoint.json
 ```
 
 For the first checkpoint, omit parent variables. For a later checkpoint, provide the preceding EAS UID and the next sequence:
