@@ -30,7 +30,8 @@ def test_capture_recover_preserves_state_root_across_runtime_change(tmp_path: Pa
 
 def test_quote_binds_full_continuity_workload(tmp_path: Path) -> None:
     artifact, manifest = capture_from_document(sample_document())
-    p = tmp_path / 'artifact.json'; p.write_bytes(artifact)
+    p = tmp_path / 'artifact.json'
+    p.write_bytes(artifact)
     quote = quote_artifact_operation(
         manifest, operation_id='op-1', payer='alice',
         policy=OperationPricingPolicyV0_1(10, 2, 5, 7, state_read_fee_bod_per_kib=3, recovery_step_fee_bod=11, settlement_unit_fee_bod=13, availability_kib_fee_bod=17, network_in_fee_bod_per_kib=19, network_out_fee_bod_per_kib=23),
@@ -41,7 +42,9 @@ def test_quote_binds_full_continuity_workload(tmp_path: Path) -> None:
 
 
 def test_cli_capture_recover_and_quote(tmp_path: Path) -> None:
-    source = tmp_path / 'state.json'; artifact = tmp_path / 'state.artifact.json'; evidence = tmp_path / 'evidence.json'
+    source = tmp_path / 'state.json'
+    artifact = tmp_path / 'state.artifact.json'
+    evidence = tmp_path / 'evidence.json'
     source.write_text(json.dumps(sample_document()), encoding='utf-8')
     base = [sys.executable, 'scripts/bod_continuity.py']
     capture = subprocess.run(base + ['capture', str(source), str(artifact), '--evidence', str(evidence)], check=True, capture_output=True, text=True)
