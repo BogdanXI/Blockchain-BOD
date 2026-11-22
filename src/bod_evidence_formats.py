@@ -239,3 +239,112 @@ def inspect_evidence_payload(
         "semantic_truth": "NOT_ASSERTED",
         "dsse_signature_count": dsse_signatures,
     }
+
+
+
+class EvidenceVerificationError(RuntimeError):
+    """External cryptographic verifier is unavailable or reports failure."""
+
+
+def run_sigstore_verification(
+    *,
+    mode: str,
+    subject: str,
+    bundle: str,
+    offline: bool = False,
+    cert_identity: str | None = None,
+    cert_oidc_issuer: str | None = None,
+    trigger: str | None = None,
+    sha: str | None = None,
+    workflow_name: str | None = None,
+    repository: str | None = None,
+    ref: str | None = None,
+    timeout_seconds: int = 120,
+) -> dict[str, Any]:
+    """Delegate cryptographic verification to the official sigstore CLI."""
+    import shutil
+    import subprocess
+
+    if mode not in {"identity", "github"}:
+        raise EvidenceVerificationError("unsupported Sigstore verification mode")
+
+    command = ["sigstore", "verify", mode]
+    if mode == "identity":
+        if not cert_identity or not cert_oidc_issuer:
+            raise EvidenceVerificationError(
+                "identity verification requires certificate identity and OIDC issuer"
+            )
+        command.extend([
+            "--cert-identity", cert_identity,
+            "--cert-oidc-issuer", cert_oidc_issuer,
+        ])
+    else:
+        required = {
+            "cert_identity": cert_identity,
+            "trigger": trigger,
+            "sha": sha,
+            "repository": repository,
+            "ref": ref,
+        }
+        missing = [name for name, value in required.items() if not value]
+        if missing:
+            raise EvidenceVerificationError(
+                "GitHub verification requires: " + ", ".join(missing)
+            )
+        command.extend([
+            "--cert-identity", cert_identity,
+            "--trigger", trigger,
+            "--sha", sha,
+            "--repository", repository,
+            "--ref", ref,
+        ])
+        if workflow_name:
+            command.extend(["--name", workflow_name])
+
+    command.extend(["--bundle", bundle])
+    if offline:
+        command.append("--offline")
+    command.append(subject)
+
+    executable = shutil.which("sigstore")
+    if executable is None:
+        raise EvidenceVerificationError(
+            "sigstore CLI not found; install sigstore-python 4.x and retry"
+        )
+    command[0] = executable
+
+    try:
+        completed = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            check=False,
+            shell=False,
+            timeout=timeout_seconds,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise EvidenceVerificationError(
+            f"Sigstore verification timed out after {timeout_seconds} seconds"
+        ) from exc
+
+    return {
+        "engine": "sigstore-python",
+        "mode": mode,
+        "status": "VALID" if completed.returncode == 0 else "INVALID",
+        "signature_verification": "VALID" if completed.returncode == 0 else "FAILED",
+        "offline": offline,
+        "subject": subject,
+        "bundle": bundle,
+        "expected_identity": cert_identity,
+        "expected_oidc_issuer": cert_oidc_issuer,
+        "expected_repository": repository,
+        "expected_trigger": trigger,
+        "expected_sha": sha,
+        "expected_workflow_name": workflow_name,
+        "expected_ref": ref,
+        "exit_code": completed.returncode,
+        "stdout": completed.stdout.strip(),
+        "stderr": completed.stderr.strip(),
+        "trust_root_freshness": "NOT_CHECKED_BY_BOD",
+        "semantic_truth": "NOT_ASSERTED",
+    }

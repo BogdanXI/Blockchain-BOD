@@ -371,3 +371,79 @@ def test_evidence_inspector_cli(tmp_path):
     )
     assert result.returncode == 0, result.stdout + result.stderr
     assert json.loads(result.stdout)["structure"] == "VALID"
+
+
+def test_sigstore_github_verification_command_is_delegated_without_shell(monkeypatch):
+    from types import SimpleNamespace
+    import bod_evidence_formats as formats
+
+    captured = {}
+    monkeypatch.setattr(formats.shutil if hasattr(formats, "shutil") else __import__("shutil"),
+                        "which", lambda name: "/usr/bin/sigstore")
+    def fake_run(command, **kwargs):
+        captured["command"] = command
+        captured["kwargs"] = kwargs
+        return SimpleNamespace(returncode=0, stdout="OK: artifact", stderr="")
+    monkeypatch.setattr(formats.subprocess if hasattr(formats, "subprocess") else __import__("subprocess"),
+                        "run", fake_run)
+    result = formats.run_sigstore_verification(
+        mode="github",
+        subject="/tmp/artifact.bin",
+        bundle="/tmp/artifact.bundle.json",
+        offline=True,
+        cert_identity="https://github.com/org/repo/.github/workflows/ci.yml@refs/heads/main",
+        trigger="push",
+        sha="a" * 40,
+        workflow_name="CI",
+        repository="org/repo",
+        ref="refs/heads/main",
+    )
+    assert result["status"] == "VALID"
+    assert result["signature_verification"] == "VALID"
+    assert "--offline" in captured["command"]
+    assert captured["kwargs"]["shell"] is False
+    assert captured["kwargs"]["timeout"] == 120
+
+
+def test_sigstore_verification_rejects_missing_policy_and_missing_binary(monkeypatch):
+    import shutil
+    import bod_evidence_formats as formats
+    import pytest
+
+    with pytest.raises(formats.EvidenceVerificationError, match="requires"):
+        formats.run_sigstore_verification(
+            mode="github", subject="sha256:" + "a" * 64, bundle="bundle.json"
+        )
+    monkeypatch.setattr(shutil, "which", lambda name: None)
+    with pytest.raises(formats.EvidenceVerificationError, match="not found"):
+        formats.run_sigstore_verification(
+            mode="identity",
+            subject="sha256:" + "a" * 64,
+            bundle="bundle.json",
+            cert_identity="builder",
+            cert_oidc_issuer="https://issuer.example",
+        )
+
+
+def test_sigstore_identity_verification_uses_explicit_issuer(monkeypatch):
+    from types import SimpleNamespace
+    import shutil
+    import subprocess
+    import bod_evidence_formats as formats
+
+    captured = {}
+    monkeypatch.setattr(shutil, "which", lambda name: "/usr/bin/sigstore")
+    def fake_run(command, **kwargs):
+        captured["command"] = command
+        return SimpleNamespace(returncode=1, stdout="", stderr="identity mismatch")
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    result = formats.run_sigstore_verification(
+        mode="identity",
+        subject="sha256:" + "a" * 64,
+        bundle="bundle.json",
+        cert_identity="release@example.org",
+        cert_oidc_issuer="https://accounts.example.org",
+    )
+    assert result["status"] == "INVALID"
+    assert "--cert-oidc-issuer" in captured["command"]
+    assert "https://accounts.example.org" in captured["command"]

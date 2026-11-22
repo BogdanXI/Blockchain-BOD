@@ -24,7 +24,7 @@ try:
         verify_portable_chain,
         verify_portable_graph,
     )
-    from bod_evidence_formats import EvidenceFormatError, inspect_evidence_payload
+    from bod_evidence_formats import EvidenceFormatError, EvidenceVerificationError, inspect_evidence_payload, run_sigstore_verification
 except ImportError:
     from src.bod_evidence_envelope import (
         EvidenceEnvelopeError,
@@ -43,7 +43,7 @@ except ImportError:
         verify_portable_chain,
         verify_portable_graph,
     )
-    from src.bod_evidence_formats import EvidenceFormatError, inspect_evidence_payload
+    from src.bod_evidence_formats import EvidenceFormatError, EvidenceVerificationError, inspect_evidence_payload, run_sigstore_verification
 
 
 def load(path: str | Path) -> Any:
@@ -152,9 +152,27 @@ def cmd_verify(args) -> int:
                 verify_chain(envs)
                 print(json.dumps({"status": "VALID_INTEGRITY", "envelopes": len(envs), "commitments": [e.commitment() for e in envs]}, indent=2))
         return 0
-    except (EvidenceEnvelopeError, EvidenceFormatError, OSError, json.JSONDecodeError) as exc:
+    except (EvidenceEnvelopeError, EvidenceFormatError, EvidenceVerificationError, OSError, json.JSONDecodeError) as exc:
         print(json.dumps({"status": "INVALID", "reason": str(exc)}, indent=2))
         return 1
+
+
+def cmd_evidence_verify(args) -> int:
+    result = run_sigstore_verification(
+        mode=args.mode,
+        subject=args.subject,
+        bundle=args.bundle,
+        offline=args.offline,
+        cert_identity=args.cert_identity,
+        cert_oidc_issuer=getattr(args, "cert_oidc_issuer", None),
+        trigger=getattr(args, "trigger", None),
+        sha=getattr(args, "sha", None),
+        workflow_name=getattr(args, "workflow_name", None),
+        repository=getattr(args, "repository", None),
+        ref=getattr(args, "ref", None),
+    )
+    print(json.dumps(result, indent=2))
+    return 0 if result["status"] == "VALID" else 1
 
 
 def cmd_evidence_inspect(args) -> int:
@@ -210,7 +228,7 @@ def cmd_recover(args) -> int:
             "source_payloads": "NOT_INCLUDED",
         }, indent=2))
         return 0
-    except (EvidenceEnvelopeError, EvidenceFormatError, OSError, json.JSONDecodeError) as exc:
+    except (EvidenceEnvelopeError, EvidenceFormatError, EvidenceVerificationError, OSError, json.JSONDecodeError) as exc:
         print(json.dumps({"status": "RECOVERY_FAILED", "reason": str(exc)}, indent=2))
         return 1
 
@@ -264,6 +282,29 @@ def main() -> int:
     x.add_argument("--graph", action="store_true", help="verify all branches without selecting a canonical head")
     x.set_defaults(func=cmd_verify)
 
+    x = sub.add_parser("evidence-verify", help="verify Sigstore signatures and identity claims using the official sigstore CLI")
+    modes = x.add_subparsers(dest="mode", required=True)
+
+    y = modes.add_parser("identity", help="verify a Sigstore bundle against certificate identity and OIDC issuer")
+    y.add_argument("subject", help="artifact path or sha256:<digest>")
+    y.add_argument("--bundle", required=True)
+    y.add_argument("--cert-identity", required=True)
+    y.add_argument("--cert-oidc-issuer", required=True)
+    y.add_argument("--offline", action="store_true")
+    y.set_defaults(func=cmd_evidence_verify)
+
+    y = modes.add_parser("github", help="verify GitHub Actions provenance claims in a Sigstore bundle")
+    y.add_argument("subject", help="artifact path or sha256:<digest>")
+    y.add_argument("--bundle", required=True)
+    y.add_argument("--cert-identity", required=True)
+    y.add_argument("--trigger", required=True)
+    y.add_argument("--sha", required=True)
+    y.add_argument("--workflow-name")
+    y.add_argument("--repository", required=True)
+    y.add_argument("--ref", required=True)
+    y.add_argument("--offline", action="store_true")
+    y.set_defaults(func=cmd_evidence_verify)
+
     x = sub.add_parser("evidence-inspect", help="inspect supported evidence document structure without verifying signatures")
     x.add_argument("file")
     x.add_argument("--format", choices=("auto", "in-toto", "slsa-provenance", "cyclonedx-json", "spdx-json", "dsse"), default="auto")
@@ -290,7 +331,7 @@ def main() -> int:
     args = parser.parse_args()
     try:
         return args.func(args)
-    except (EvidenceEnvelopeError, EvidenceFormatError, OSError, json.JSONDecodeError) as exc:
+    except (EvidenceEnvelopeError, EvidenceFormatError, EvidenceVerificationError, OSError, json.JSONDecodeError) as exc:
         print(json.dumps({"status": "INVALID", "reason": str(exc)}, indent=2))
         return 1
 

@@ -23,11 +23,17 @@ BOD can inspect selected evidence payload formats before they are added to a che
 
 The default format is auto-detection. The command reports STRUCTURE VALID only when the supported structural checks pass.
 
+## Cryptographic verification
+
+BOD can delegate actual Sigstore verification to the official sigstore-python CLI through the evidence-verify command. GitHub Actions provenance claims can be checked with the github mode; generic identity and OIDC issuer constraints can be checked with identity mode. The CLI must be installed separately (sigstore-python 4.x).
+
+See the [real offline verification experiment](VERIFICATION_EXPERIMENT.md) for a completed check against a GitHub-generated SBOM attestation.
+
 ## Trust boundary
 
-This is intentionally not advertised as full JSON Schema or CUE validation. It does not verify DSSE/Sigstore signatures, certificate chains, transparency inclusion proofs, signer identity, builder trust, policy compliance, SBOM completeness or semantic truth.
+This is intentionally not advertised as full JSON Schema or CUE validation. The structural inspector does not verify DSSE/Sigstore signatures, certificate chains, transparency inclusion proofs, signer identity, builder trust, policy compliance, SBOM completeness or semantic truth. The separate evidence-verify command delegates Sigstore bundle verification to sigstore-python when explicitly invoked with expected identity claims.
 
-Use the format's dedicated verifier and trust policy for cryptographic and semantic validation. BOD records and transports the resulting evidence; it must not silently substitute a lightweight structural check for the actual verifier.
+Use the format's dedicated verifier and trust policy for cryptographic and semantic validation. BOD's evidence-verify wrapper delegates to sigstore-python and records the expected identity claims and result; it does not implement Sigstore cryptography itself. For Sigstore bundles, the official sigstore-python CLI supports identity/issuer verification and offline modes; offline operation requires an appropriately current trust root. GitHub documents offline artifact-attestation verification with a downloaded bundle and trusted root. BOD records and transports the resulting evidence; it must not silently substitute a lightweight structural check for the actual verifier.
 
 ## Primary specifications
 
@@ -35,3 +41,5 @@ Use the format's dedicated verifier and trust policy for cryptographic and seman
 - SLSA v1.2 Build Provenance: https://slsa.dev/spec/v1.2/build-provenance
 - CycloneDX JSON 1.7: https://cyclonedx.org/docs/1.7/json/
 - SPDX 2.3 document creation information: https://spdx.github.io/spdx-spec/v2.3/document-creation-information/
+- Sigstore offline verification: https://sigstore.github.io/sigstore-python/advanced/offline/
+- GitHub artifact attestations offline verification: https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/verify-attestations-offline

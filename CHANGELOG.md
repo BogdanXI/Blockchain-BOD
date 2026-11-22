@@ -1,3 +1,11 @@
+## 2026-11-22 — Sigstore verification delegation
+
+- Added evidence-verify CLI modes that delegate GitHub workflow identity/claim verification and generic identity/OIDC issuer verification to the official sigstore-python CLI.
+- The wrapper uses argument arrays without a shell, enforces explicit expected identity claims, supports explicit offline mode and reports the verifier exit status.
+- Added mocked tests for success, policy requirements, missing verifier and failed verification.
+- Manually verified a real GitHub Actions SBOM attestation bundle offline using sigstore-python 4.5.1; documented the exact source run, subject digest, expected workflow identity and trust-root freshness caveat.
+- BOD delegates cryptography; it does not implement Sigstore signature or transparency verification itself.
+
 ## 2026-11-22 — Evidence format interoperability
 
 - Added dependency-free structural inspection for in-toto Statement v1, SLSA provenance v1, DSSE envelope shape, CycloneDX JSON and SPDX JSON 2.x.

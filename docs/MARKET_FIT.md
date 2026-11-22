@@ -22,6 +22,19 @@ Ethereum can provide a public, independently queryable timestamped commitment fo
 
 BOD should integrate with established provenance and attestation systems, including SLSA/in-toto, Sigstore/Rekor, SPDX/CycloneDX and EAS. A proprietary registry alone is not a defensible market advantage.
 
+## Empirical evidence: the need is real, but BOD demand is not established
+
+Two primary sources support the underlying evidence-lifecycle problem:
+
+- A 2025 USENIX Security interview study spoke with 18 experienced practitioners across 13 organizations. All 18 reported signing final software products, but verification was much less common: only two subjects from one organization described verifying build signatures before deployment, and only three subjects reported verifying signatures from external dependencies. Six subjects across five organizations identified lack of signature verification as a challenge. The study also records key-management, compatibility, usability and operationalization barriers. This is qualitative evidence, not a market-wide prevalence estimate. [Study and paper](https://www.usenix.org/system/files/usenixsecurity25-kalu.pdf).
+- CISA/NSA/ODNI's SBOM Consumption guidance recommends preserving original SBOM files and tracking receipt time, location, content, retention and lifecycle. It says retention should continue until the represented software asset is decommissioned and the information is no longer relevant for legal or forensic purposes. This directly supports the importance of durable, retrievable release evidence, but it concerns SBOM lifecycle management rather than demand for BOD. [Guidance PDF](https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf).
+
+The USENIX study also provides negative evidence: one participant reported lack of customer demand for signing, and practitioners described usability, staffing and policy costs. BOD must therefore reduce operator effort and integrate existing cryptographic verifiers; another metadata format or hash ledger will not solve the observed verification gap.
+
+The EU Cyber Resilience Act's reporting obligations for actively exploited vulnerabilities and severe incidents became applicable on 11 September 2026, with staged reporting timelines. This increases the operational importance of reliable records, but it does not prescribe BOD, blockchain or a particular evidence-retention product. [European Commission CRA reporting guidance](https://digital-strategy.ec.europa.eu/en/policies/cra-reporting).
+
+**Interpretation:** these sources support a broad need for reliable evidence management and verification. They do not prove that teams need a separate continuity product, that BOD is differentiated, or that customers will pay for it. The next step is direct interviews and a comparative recovery experiment.
+
 ## Direct competitor review
 
 The direct product set includes Chainloop, Kosli, Archivista and GUAC—not only standards such as SLSA and Sigstore. These projects already cover substantial parts of evidence collection, immutable event recording, attestation storage, graph queries, policy enforcement and export. BOD must not position those capabilities as missing from the market.

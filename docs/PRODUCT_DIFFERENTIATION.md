@@ -61,7 +61,7 @@ Implemented in the current public branch:
 
 Not yet demonstrated:
 
-- full schema-level ingestion, cryptographic signature verification and trust-policy evaluation of SLSA/in-toto, SPDX/CycloneDX and Sigstore evidence from independent systems;
+- repeatable multi-provider ingestion and policy integration; one manual offline GitHub Actions/Sigstore bundle has been cryptographically verified through the official sigstore-python CLI, but broad interoperability and automated verification are not yet established;
 - a live Sepolia deployment and EAS schema/attestation round trip;
 - recovery after removing access to a real external CI/storage provider using independent pilots and third-party evidence;
 - comparative results against Git + SLSA/in-toto + Sigstore/GitHub attestations without BOD;
@@ -86,3 +86,10 @@ Publish the scripts, fixtures, environment, raw non-sensitive measurements and n
 ## Grant-facing positioning
 
 The strongest defensible proposal is a small, open-source Ethereum ecosystem infrastructure project: build and validate a reusable release-evidence continuity and recovery workflow for Ethereum client/tooling maintainers. Funding should be requested for measurable integrations, independent security review and pilots—not for creating another blockchain, token or generic hash registry.
+
+
+## Evidence of the underlying problem
+
+A USENIX Security 2025 interview study of 18 practitioners across 13 organizations found a gap between signing and verification: all participants reported signing final products, while verification of build signatures before deployment and external dependency signatures was uncommon. The study also identified key-management, compatibility, usability and operationalization barriers. CISA/NSA/ODNI guidance recommends retaining original SBOM files through the software asset lifecycle and while they remain relevant for legal or forensic purposes.
+
+These sources validate the broader evidence-lifecycle and verification problem, not demand for BOD. BOD now has an optional wrapper around the official sigstore-python verifier, and one real GitHub Actions bundle was verified offline. It does not implement cryptography itself, and broad multi-provider policy verification is still incomplete. A product claim that it solves that gap would be premature.
