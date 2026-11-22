@@ -27,7 +27,7 @@ A verifier or reviewer should be able to reproduce the documented checks from a 
 - The EAS SDK dependency tree includes build tooling that is not needed at runtime. Overrides reduce known advisories, but the override set must be reviewed when the SDK or its contracts package changes.
 - CI uploads separate CycloneDX SBOM artifacts for the Python CI toolchain and npm dependency tree; these are not a complete inventory of every future runtime deployment.
 - CI creates and verifies Sigstore-signed SLSA provenance attestations for the Python and npm SBOM artifacts.
-- A separate release workflow (version tag or manual dispatch) builds the Python wheel and source archive, tests both installations, creates a CycloneDX build-environment SBOM, signs and verifies provenance for all distribution artifacts, and uploads them as a 90-day workflow artifact. It does not publish to PyPI or create a GitHub Release.
+- A separate release workflow is configured for version tags and manual dispatch: it builds the Python wheel and source archive, tests both installations, creates a CycloneDX build-environment SBOM, signs and verifies provenance for all distribution artifacts, and uploads them as a 90-day workflow artifact. The workflow has not yet been run on GitHub; local build/install smoke tests pass. It does not publish to PyPI or create a GitHub Release.
 - Cryptographic signing of Git tags and publication to a package registry remain deliberately unconfigured.
 
 ## Verifying generated distribution artifacts
