@@ -6,7 +6,7 @@
 
 [![CI](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml/badge.svg)](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml) [![License](https://img.shields.io/badge/license-MIT-111827.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-3.11%2B-111827.svg)](pyproject.toml) [![Status: Experimental](https://img.shields.io/badge/status-experimental-orange.svg)](docs/PROJECT_STATUS.md)
 
-[Quickstart](docs/GETTING_STARTED.md) · [Ethereum integration](docs/ETHEREUM_INTEGRATION.md) · [Market hypothesis](docs/MARKET_FIT.md) · [Threat model](docs/THREAT_MODEL_v0.1.md) · [Roadmap](docs/ROADMAP.md)
+[Quickstart](docs/GETTING_STARTED.md) · [Ethereum integration](docs/ETHEREUM_INTEGRATION.md) · [EAS integration](docs/EAS_INTEGRATION.md) · [Market hypothesis](docs/MARKET_FIT.md) · [Threat model](docs/THREAT_MODEL_v0.1.md) · [Roadmap](docs/ROADMAP.md)
 
 ---
 
@@ -99,7 +99,7 @@ The registry is in `protocol/ethereum/BODEthereumCheckpointRegistry.sol`. It rec
 
 It intentionally does not store source code, build logs, SBOM payloads, secrets, prompts or personal data. It does not expose a mutable “latest canonical state” pointer. Multiple branches can be recorded and independently examined.
 
-See [Ethereum integration and deployment boundaries](docs/ETHEREUM_INTEGRATION.md).
+See [Ethereum integration and deployment boundaries](docs/ETHEREUM_INTEGRATION.md) and the [EAS checkpoint workflow](docs/EAS_INTEGRATION.md).
 
 ## Product boundary
 
