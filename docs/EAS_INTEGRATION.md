@@ -43,7 +43,7 @@ Before registering a schema, search the EAS schema explorer for an existing comp
 Node.js 20+ is required.
 
 ```bash
-npm install --ignore-scripts
+npm install --ignore-scripts --no-package-lock --no-audit --no-fund
 ```
 
 Create a dedicated Ethereum Sepolia wallet. Never use a production key. Set the following variables in your local shell:
