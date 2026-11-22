@@ -250,6 +250,31 @@ def test_bundle_extract_uses_jsonl_extension_for_ndjson_payload(tmp_path):
     assert (output / f"{digest}.jsonl").read_bytes() == payload
 
 
+def test_bundle_extract_uses_asc_extension_for_pgp_key_payload(tmp_path):
+    from bod_evidence_envelope import EvidenceReferenceV0_1
+
+    payload = b"-----BEGIN PGP PUBLIC KEY BLOCK-----\nfixture\n"
+    digest = sha256_bytes(payload)
+    snapshot = _synthetic_snapshot("bundle-pgp")
+    envelope = create_evidence_envelope(
+        project_id="bundle-project", protocol_version="0.1",
+        state_root=snapshot["state_root"], predecessor_state_root=None,
+        transition_id="release-pgp",
+        evidence=[EvidenceReferenceV0_1(
+            evidence_type="release-signing-key", digest=digest,
+            media_type="application/pgp-keys",
+        )],
+        capture_boundary="test",
+    )
+    bundle = create_evidence_bundle(
+        checkpoint=create_portable_checkpoint(snapshot=snapshot, envelope=envelope),
+        payloads={digest: payload},
+    )
+    output = tmp_path / "pgp-recovered"
+    extract_evidence_bundle(bundle, output)
+    assert (output / f"{digest}.asc").read_bytes() == payload
+
+
 def test_self_contained_evidence_bundle_requires_every_referenced_payload():
     from bod_evidence_envelope import EvidenceReferenceV0_1
     payload = b"missing evidence"

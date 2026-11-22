@@ -221,6 +221,9 @@ def extract_evidence_bundle(value: Any, output_dir: Path) -> dict[str, Any]:
         extensions = {
             "application/json": ".json",
             "application/x-ndjson": ".jsonl",
+            "application/gzip": ".gz",
+            "application/pgp-keys": ".asc",
+            "application/pgp-signature": ".asc",
             "application/vnd.cyclonedx+json": ".json",
             "application/vnd.in-toto+json": ".json",
             "application/spdx+json": ".json",
