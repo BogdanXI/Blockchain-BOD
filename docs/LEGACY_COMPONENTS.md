@@ -1,13 +1,5 @@
 # Legacy components and migration boundary
 
-## Arbitrum
-
-The former Arbitrum Sepolia adapter and browser-wallet integration are retired from the active product scope. Their source, archived tests and historical records have been moved under `legacy/arbitrum/` solely for traceability and reproducibility; they are not imported, packaged, run by CI or supported deployment targets.
-
-The active chain-facing experiment is Ethereum L1, with Ethereum Sepolia as the only planned testnet. The old browser bridge and adapter are not part of the active roadmap, release path, Python package, CI test suite or grant proposal. Their archived tests do not establish current operational correctness.
-
-No Arbitrum One deployment is claimed. No Ethereum Sepolia or Ethereum mainnet deployment is claimed either.
-
 ## BOD token and economics
 
 The previous BOD token/economic model is outside the current Ethereum product. See [the economics archive note](../economics/README.md) for a documented mismatch between the legacy Python simulator and token policy.

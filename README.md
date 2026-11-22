@@ -172,18 +172,6 @@ Review the [threat model](docs/THREAT_MODEL_v0.1.md), [privacy model](docs/PRIVA
 
 ## Repository map
 
-```text
-src/                    Python reference implementation and CLI
-protocol/               Ethereum checkpoint registry and readiness profile
-legacy/arbitrum/        Retired Arbitrum experiment; excluded from package and CI
-scripts/                Independent verifier and experiments
-tests/                  Python regression and recovery tests
-test/                   Foundry contract tests
-tools/eas/              EAS integration scripts
-docs/                   Architecture, security, formats and experiment records
-research/               Architecture decisions
-```
-
 ## Contributing
 
 Issues and focused pull requests are welcome. Please include a reproducible scenario, expected behavior, observed behavior and relevant test coverage. See [CONTRIBUTING.md](CONTRIBUTING.md).

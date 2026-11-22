@@ -30,13 +30,7 @@ The Ethereum contract records compact commitments and predecessor references. It
 
 The Ethereum contract is source code with local tests. It has not been deployed to Sepolia or Ethereum mainnet. The EAS schema has not yet been registered and no live attestation is claimed. A passing local test suite is not a security audit.
 
-## Legacy Arbitrum work
-
-The previous Arbitrum Sepolia adapter and browser bridge are retired and moved under `legacy/arbitrum/`. They are not imported, packaged, executed by CI or supported as deployment targets. No Arbitrum One deployment is claimed.
-
 ## Legacy research boundary
-
-The earlier BOD token/economic experiments are not part of the active Ethereum product. The legacy Python simulator and token-policy YAML contain unreconciled supply parameters; they are explicitly archived and must not be presented as final tokenomics. The Arbitrum adapter and browser bridge are archived under `legacy/arbitrum/`. See [Legacy components](LEGACY_COMPONENTS.md) and [economics archive note](../economics/README.md).
 
 ## Explicit non-claims
 

@@ -291,8 +291,6 @@ BOD is not required merely to:
 
 Verifier staking/reward mechanics remain a calibration question and must not be invented here as a final economic rule.
 
-Gas for an initial Arbitrum deployment is a separate execution-layer concern. BOD utility does not imply that BOD is the gas token.
-
 ## 7. State machine
 
 The minimal lifecycle is:
@@ -370,27 +368,6 @@ A conforming implementation must reject:
 - malformed or ambiguous canonical encoding.
 
 The protocol must tolerate multiple independently valid Candidates. Their existence is not itself a protocol fault.
-
-## 10. Arbitrum adapter boundary
-
-The protocol core remains chain-neutral.
-
-An initial Arbitrum adapter may implement the on-chain commitments as smart-contract state:
-
-    Task -> Candidate -> EvidenceRoot -> VerificationRoot -> Settlement
-
-The adapter must not move raw project data or full evidence bundles onto the chain.
-
-The adapter must expose deterministic events or queryable state sufficient to reconstruct:
-
-- Task identity;
-- Candidate identity;
-- evidence commitment;
-- verification commitment;
-- settlement;
-- BOD accounting outcome.
-
-A future native BOD chain can reuse the same protocol objects without changing the object-level lifecycle.
 
 ## 11. MVP acceptance criteria
 

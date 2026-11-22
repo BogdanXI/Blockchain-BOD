@@ -9,11 +9,6 @@ The Phase 1.5 continuity MVP already measures durable state capture, delivery an
 
 ## Decision
 
-1. Add local infrastructure observations for settlement execution of a BOD economic Transition, deterministic adapter settlement-commitment construction, artifact retention/read availability, loopback network transfer using a Unix socket pair, and the complete local continuity path.
-2. Extend the experimental OperationPricingPolicyV0_1 and OperationQuote with optional network-in and network-out byte dimensions. Their default coefficients remain zero so existing v0.1 vectors are unchanged.
-3. Keep observed infrastructure resources separate from BOD monetary policy. Measured nanoseconds/bytes and retention quantities are evidence for future calibration, not token prices.
-4. Bind the measured byte quantities into the deterministic utility quote and existing Arbitrum economicOutcomeHash commitment. This remains an accounting/evidence boundary; it is not native consensus and does not imply willingness-to-pay.
-
 ## Rejected alternatives
 
 - Convert measured CPU/wall time directly into BOD: rejected because infrastructure cost and token price are different quantities.

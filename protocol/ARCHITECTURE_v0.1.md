@@ -2,8 +2,6 @@
 
 Status: historical architecture baseline — not the active Ethereum grant-track product architecture
 
-> **Scope notice (2026-11-22):** This document describes the earlier Task-to-Settlement / BOD-economics design. That design and its Arbitrum adapter are retained as historical research only. The active public product is the chain-independent Evidence Continuity core with an optional Ethereum L1/EAS witness. No Arbitrum adapter, BOD token settlement or BOD-owned L2 is in the active roadmap.
-
 ## 1. Objective
 
 Build a public blockchain whose canonical state changes through a verifiable state-transition pipeline:
@@ -166,7 +164,6 @@ Those choices must be specified only after their role in the transition pipeline
 8. network implementation;
 9. benchmark and security review.
 
-
 ## 9. BOD Protocol v0.1 interface
 
 The application-independent lifecycle is refined to:
@@ -188,18 +185,3 @@ The historical implementation explored an EVM adapter. This is no longer an acti
 ## 11. Protocol status
 
 The Task-to-Settlement object model is a v0.1 specification baseline. Canonical serialization, executable state transitions, signature implementation and adapter contracts remain implementation work.
-
-
-## 11. Historical Arbitrum adapter v0.1 — retired
-
-The former adapter implementation is retained at `legacy/arbitrum/protocol/BODProtocolAdapterV0_1.sol` for historical reproducibility only. It is not part of the active product or grant scope.
-
-It stores only protocol-significant state:
-
-- Task metadata and BOD reward escrow;
-- Candidate metadata and BOD bond;
-- EvidenceRoot commitment;
-- VerificationRoot commitment;
-- Settlement and canonical state-root transition.
-
-The adapter injects the existing arbitration/consensus boundary through settlementAuthority. It does not define a new consensus mechanism or finalize verifier economics. Arbitrum Sepolia was the historical testnet target. No further Arbitrum deployment or integration work is planned in the active product scope.
