@@ -14,13 +14,14 @@
 - Python CLI and regression suite;
 - a permissionless, append-only Ethereum checkpoint registry;
 - Foundry tests for checkpoint creation, lineage validation, duplicate rejection and fork visibility;
-- CI coverage for Python and Solidity.
+- CI coverage for Python and Solidity;
+- EAS SDK schema-registration and linked-checkpoint scripts with parent-attestation checks.
 
 ## Ethereum integration boundary
 
 The Ethereum contract records compact commitments and predecessor references. It does not store evidence payloads, determine semantic truth, select a canonical branch, execute software, verify SLSA attestations, or implement BOD consensus.
 
-The Ethereum contract is source code with local tests. It has not been deployed to Sepolia or Ethereum mainnet. A passing local test suite is not a security audit.
+The Ethereum contract is source code with local tests. It has not been deployed to Sepolia or Ethereum mainnet. The EAS schema has not yet been registered and no live attestation is claimed. A passing local test suite is not a security audit.
 
 ## Legacy Arbitrum work
 
