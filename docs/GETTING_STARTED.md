@@ -38,7 +38,17 @@ bod recover checkpoint.json
 
 The independent verifier is a separate implementation and does not import the BOD package. A successful result establishes only the encoded integrity and lineage predicates; it does not prove semantic truth or evidence availability.
 
-## 5. Run Python checks
+## 5. Validate an Ethereum release profile
+
+The repository includes an experimental v0.1 profile schema and a real public Reth release fixture. Validate its structure locally:
+
+```bash
+bod profile-validate examples/ethereum-release-profile/reth-v2.11.0.json
+```
+
+A `VALID_PROFILE_STRUCTURE` result checks required fields and cross-field constraints only. It does not fetch the release asset, verify its PGP signature, validate provenance, query Ethereum, or assert semantic truth. The [profile specification](ETHEREUM_RELEASE_PROFILE.md) documents the current boundary.
+
+## 6. Run Python checks
 
 ```bash
 python3 scripts/validate_public_surface.py
@@ -46,7 +56,7 @@ ruff check --select E4,E7,E9,F src scripts tests
 python3 -m pytest -q
 ```
 
-## 6. Run Ethereum contract tests
+## 7. Run Ethereum contract tests
 
 Install [Foundry](https://getfoundry.sh/) and run:
 
@@ -56,7 +66,7 @@ forge test -vvv
 
 This compiles and tests the optional Ethereum checkpoint registry locally. It does not submit a transaction. The EAS workflow is documented separately in [EAS Integration](EAS_INTEGRATION.md).
 
-## 7. Ethereum Sepolia deployment
+## 8. Ethereum Sepolia deployment
 
 Deployment is intentionally not automated. Read [Ethereum integration](ETHEREUM_INTEGRATION.md) first. The contract has not been independently audited or deployed; use a disposable Sepolia wallet only after review.
 

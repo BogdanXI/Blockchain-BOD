@@ -1,9 +1,13 @@
 # Ethereum software release evidence profile
 
-**Document status:** design proposal, not an implemented protocol extension  
-**Proposed profile identifier:** bod-ethereum-release-profile-v0.1  
-**Prepared:** 22 November 2026  
-**Depends on:** BOD Evidence Envelope v0.1 and Evidence Bundle v0.1  
+**Document status:** experimental v0.1 profile with a published JSON Schema and local structural validator; not a stable standard or deployed integration
+
+**Profile identifier:** bod-ethereum-release-profile-v0.1
+
+**Prepared:** 22 November 2026
+
+**Depends on:** BOD Evidence Envelope v0.1 and Evidence Bundle v0.1
+
 **Scope:** Ethereum execution/consensus clients, developer tooling and smart-contract releases/upgrades
 
 ## 1. Purpose
@@ -12,7 +16,7 @@ This profile proposes a consistent way to associate the evidence for an Ethereum
 
 The goal is to make the release record portable and independently inspectable across changes in CI providers, artifact stores and maintainers. The profile does not replace the native formats or trust systems that produce the evidence.
 
-The profile is a grant-work proposal. It is not yet a stable schema, an implemented CLI command or a production integration.
+The profile remains experimental. A versioned JSON Schema, a dependency-free Python structural validator, a CLI command and a public Reth v2.11.0 fixture are now present. This does not yet implement build-system adapters, compiler capture, chain-state verification, Sourcify verification or a production integration.
 
 ## 2. Design requirements
 
@@ -48,76 +52,34 @@ The profile groups evidence into the following domains.
 
 A reference to a native report is not equivalent to verifying it. The profile records which evidence exists and how to locate it; consumers must still run the relevant verifier and apply an explicit trust policy.
 
-## 4. Proposed record structure
+## 4. Versioned record structure
 
-The following is an illustrative shape, not a finalized JSON Schema:
+The machine-readable contract is published in:
 
-```json
-{
-  "profile": "bod-ethereum-release-profile-v0.1",
-  "project": {
-    "id": "example-client",
-    "kind": "ethereum-client",
-    "repository": "https://github.com/example/project"
-  },
-  "release": {
-    "id": "v1.2.3",
-    "sequence": 12,
-    "source_commit": "0123456789abcdef0123456789abcdef01234567",
-    "source_tree": "sha1:..."
-  },
-  "predecessor": {
-    "release_id": "v1.2.2",
-    "checkpoint_id": "sha256:..."
-  },
-  "build": {
-    "builder_id": "https://github.com/example/project/.github/workflows/release.yml",
-    "provenance": "sha256:...",
-    "compiler": {
-      "name": "solc",
-      "version": "0.8.24",
-      "settings_digest": "sha256:...",
-      "input_digest": "sha256:...",
-      "bytecode_digest": "sha256:...",
-      "abi_digest": "sha256:..."
-    }
-  },
-  "deployment": {
-    "chain_id": 1,
-    "transaction_hash": "0x...",
-    "block_hash": "0x...",
-    "block_number": 12345678,
-    "contract_address": "0x...",
-    "runtime_bytecode_digest": "sha256:...",
-    "source_verification": {
-      "provider": "Sourcify",
-      "reference": "https://..."
-    }
-  },
-  "evidence": [
-    {
-      "type": "cyclonedx-sbom",
-      "digest": "sha256:...",
-      "media_type": "application/vnd.cyclonedx+json",
-      "uri": "https://...",
-      "issuer": "https://..."
-    }
-  ],
-  "gaps": [
-    {
-      "type": "independent-security-audit",
-      "status": "not-provided",
-      "reason": "No independent audit report is available for this release."
-    }
-  ],
-  "witnesses": {
-    "ethereum_registry_checkpoint": null,
-    "eas_attestation_uid": null
-  }
-}
-```
+- [JSON Schema — bod-ethereum-release-profile-v0.1](../schemas/bod-ethereum-release-profile-v0.1.schema.json)
+- [Reth v2.11.0 public release fixture](../examples/ethereum-release-profile/reth-v2.11.0.json)
+- Reference validator: `src/bod_ethereum_release_profile.py`
+- CLI: `bod profile-validate FILE`
 
-The values above are placeholders. They do not refer to a real release, deployment, address, transaction or attestation. The project kind should distinguish at least an Ethereum client from a smart-contract project. Compiler and deployment sections are conditional: client releases may omit contract deployment fields, while a contract deployment/upgrade record must include the applicable chain and deployment references.
+The top-level record contains:
+
+| Field | Required content | Meaning |
+|---|---|---|
+| `profile` | Exact profile identifier | Version dispatch |
+| `project` | Stable project ID, project kind, repository URI | Project namespace |
+| `release` | Release label/kind, local sequence, full source commit and Git tree ID | Immutable source identity and BOD lineage position |
+| `predecessor` | Null or prior release label plus checkpoint ID | Explicit release continuity |
+| `build` | Null or builder URI, provenance digest and optional compiler record | Build context; compiler is mandatory for contract deployments/upgrades |
+| `deployment` | Null or chain ID, transaction/block IDs, block number, contract address and runtime-code digest | Chain-specific deployment reference |
+| `evidence` | Typed SHA-256 references, media types, optional URI/issuer and verification status | Evidence inventory |
+| `gaps` | Typed missing/unavailable/unverified/invalid items with reasons | Explicit incompleteness |
+| `witnesses` | Optional BOD registry checkpoint and EAS attestation UID | External witness references |
+
+The `release.sequence` is a non-negative sequence within the BOD continuity history being represented. It is not inferred from a semantic version or claimed to be a project's global release number. A single-release fixture may use sequence 1 with a null predecessor because it is the first record in that fixture's local lineage.
+
+For `contract-deployment` and `contract-upgrade` records, the validator requires a smart-contract project, compiler metadata, and deployment identifiers. Ethereum client releases do not fabricate contract or compiler deployment fields.
+
+The Reth fixture is a real public release reference populated from the documented recovery experiment. It intentionally records the binary-to-source relationship and SLSA provenance as gaps. The fixture's structural validity does not re-run GPG or independently re-verify the release asset. See [Verification Experiment](VERIFICATION_EXPERIMENT.md) for the actual GPG result and its limitations.
 
 ## 5. Required semantics
 
@@ -136,7 +98,9 @@ The values above are placeholders. They do not refer to a real release, deployme
 - A URI is a retrieval hint, not proof of availability.
 - Missing evidence must be represented explicitly in the gaps list.
 - An absent audit, test report or source-verification record must never be interpreted as a successful result.
-- The profile must distinguish NOT_PROVIDED, NOT_CHECKED, INVALID, VALID and UNAVAILABLE states where applicable.
+- Evidence verification states are `NOT_CHECKED`, `VALID`, `INVALID` and `UNAVAILABLE`; `VALID` and `INVALID` entries require a `verification_method` description.
+- A `VALID` value is a recorded upstream-verifier result, not a result produced by `bod profile-validate`; consumers must inspect the method, identity policy and original verification output.
+- Missing-evidence gap states are `NOT_PROVIDED`, `NOT_CHECKED`, `UNAVAILABLE` and `INVALID`.
 - A bundle is self-contained only for payload bytes actually included and successfully verified.
 
 ### 5.3 Trust and verification
@@ -212,7 +176,7 @@ A comparative baseline must use the project's existing Git, CI, provenance, sign
 | Independent bundle/checkpoint verifier | Implemented |
 | Solidity checkpoint registry | Source and tests present; no deployment or audit |
 | EAS client tooling | Source and SDK smoke test; no schema registration or live attestation |
-| Ethereum release profile schema | Proposed only |
+| Ethereum release profile schema | Experimental JSON Schema v0.1, dependency-free validator, CLI and Reth v2.11.0 fixture |
 | Compiler/build/deployment profile adapter | Not implemented |
 | Sourcify integration | Not implemented |
 | End-to-end public contract release fixture | Not completed |
@@ -220,11 +184,10 @@ A comparative baseline must use the project's existing Git, CI, provenance, sign
 
 ## 10. Decisions before standardization
 
-1. Select the first target workflow: Ethereum client release, standalone contract deployment, or proxy upgrade history.
-2. Confirm required fields with independent maintainers and security reviewers.
-3. Decide whether one profile should cover both clients and contracts or whether separate profiles are clearer.
-4. Define JSON Schema, canonicalization, digest and compatibility rules.
-5. Implement a public fixture and native-verifier orchestration.
-6. Compare with existing tools before describing the profile as differentiated.
+1. Validate the current v0.1 fields with independent Ethereum client and smart-contract maintainers.
+2. Decide whether client releases and contract deployment/upgrade histories should remain one profile or become separate profiles.
+3. Define canonicalization and a profile commitment only if a concrete consumer requires one.
+4. Add native-verifier orchestration and a complete contract fixture.
+5. Compare with existing tools before describing the profile as differentiated.
 
-Until these decisions and tests are complete, this document remains a design proposal and must not be represented as an implemented standard.
+The v0.1 data shape and structural validator are implemented as an experiment, not standardized. Do not represent the profile as a stable standard, complete integration, independently reviewed format or deployed Ethereum workflow.

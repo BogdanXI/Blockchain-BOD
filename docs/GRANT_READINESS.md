@@ -31,7 +31,7 @@ ESP describes support for open-source, non-commercial public goods that strength
 | Evidence portability | One GitHub/Sigstore scenario and one Reth release recovery scenario documented | Repeat across independent projects and baseline toolchains |
 | Ethereum contract | Solidity source and Foundry tests; remote CI passed on current reviewed branch | Independent review, deeper threat analysis and deployment rehearsal |
 | EAS | SDK scripts and local smoke checks | Schema not registered; no live attestation; issuer policy needs independent review |
-| Smart-contract release profile | Proposed in the technical brief | Implement a complete public fixture including build, test, audit, bytecode and upgrade evidence |
+| Ethereum release profile | Experimental JSON Schema, structural validator, CLI and real Reth client-release fixture | Implement a complete public smart-contract fixture including build, test, audit, bytecode and upgrade evidence |
 | Interoperability | Structural inspection and delegated Sigstore verification | Broader real fixtures and format-specific verifiers |
 | Competitive differentiation | Competitor landscape documented | Reproducible side-by-side benchmark against Git + SLSA/in-toto + Sigstore and relevant evidence tools |
 | User demand | No independently documented users, pilots or expressed team interest | Interviews, design-partner feedback or reproducible operator evaluations |
@@ -75,7 +75,7 @@ The accompanying [Grant Technical Brief](GRANT_TECHNICAL_BRIEF.md) contains the 
 ## 5. Critical gaps, ordered by importance
 
 1. **Active programme fit:** wait for a relevant ESP Wishlist item or RFP; use Office Hours only for non-financial project feedback.
-2. **Ethereum-specific validation:** implement and demonstrate a complete smart-contract release/upgrade evidence profile using a public, reproducible fixture.
+2. **Ethereum-specific validation:** extend the experimental profile and demonstrate a complete smart-contract release/upgrade using a public, reproducible fixture.
 3. **Comparative evidence:** benchmark the same workflow against a baseline without BOD and publish all methods and results.
 4. **Technical correctness:** review the snapshot v0.2 file-mode correction, independent verifier compatibility and adversarial regression tests on the exact current commit.
 5. **Security review:** obtain independent review of the registry, EAS trust model and off-chain evidence semantics before any deployment.

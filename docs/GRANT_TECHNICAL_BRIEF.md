@@ -45,7 +45,7 @@ This is a technical problem statement, not a claim that existing tools fail to p
 
 ### 3.2 Ethereum-specific release profile
 
-The proposed profile is specified at design level in [Ethereum software release evidence profile](ETHEREUM_RELEASE_PROFILE.md); it is not yet implemented. It will define stable evidence types and relations for:
+An experimental v0.1 profile now has a versioned [JSON Schema](../schemas/bod-ethereum-release-profile-v0.1.schema.json), a dependency-free [CLI structural validator](../src/bod_ethereum_release_profile.py), and a real public [Reth v2.11.0 fixture](../examples/ethereum-release-profile/reth-v2.11.0.json). It defines evidence fields and relations for:
 
 - source repository and immutable commit identity;
 - compiler name/version, build settings and reproducible build inputs;
@@ -57,7 +57,7 @@ The proposed profile is specified at design level in [Ethereum software release 
 - deployment transaction, chain ID and contract address;
 - upgrade predecessor and successor references, including explicit missing-evidence gaps.
 
-The profile will reference existing evidence formats and external records. It will not claim that a digest proves a report is correct, that source code is safe, or that an on-chain record establishes semantic truth.
+The profile references existing evidence formats and external records. It will not claim that a digest proves a report is correct, that source code is safe, or that an on-chain record establishes semantic truth.
 
 ### 3.3 Ethereum components
 
@@ -98,7 +98,7 @@ Two public recovery exercises are recorded in [Verification Experiment](VERIFICA
 | Sigstore | One offline verification scenario | Broad CI-provider coverage or continuously fresh trust metadata |
 | Ethereum registry | Solidity source and tests | Deployed contract, finality operations or audit |
 | EAS | SDK scripts and local checks | Registered schema or live attestations |
-| Ethereum contract release profile | Proposed scope | Complete profile implementation |
+| Ethereum contract release profile | Experimental JSON Schema, structural validator, CLI and Reth client-release fixture | Complete smart-contract deployment/upgrade fixture and native verifier integration |
 | User value | Technical experiments | Independent users, pilots, demand or product-market fit |
 | Comparative advantage | Competitor analysis documented | Reproducible side-by-side benchmark |
 
@@ -110,7 +110,7 @@ The schedule below is a proposed scope for a future grant discussion, not a comm
 
 **Work**
 - Complete snapshot v0.2 mode semantics and backwards-compatible v0.1 verification.
-- Define the Ethereum release evidence profile, canonical field names, versioning and trust boundaries.
+- Exercise the experimental Ethereum release profile against public client and contract fixtures; refine field names, versioning and trust boundaries.
 - Add adversarial tests for path normalization, symlinks, executable modes, missing evidence, malformed payloads and graph forks.
 - Publish independent test vectors and a reproducible clean-environment setup.
 

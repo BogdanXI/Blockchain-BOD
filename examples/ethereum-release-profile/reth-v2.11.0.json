@@ -1,0 +1,50 @@
+{
+  "profile": "bod-ethereum-release-profile-v0.1",
+  "project": {
+    "id": "reth",
+    "kind": "ethereum-client",
+    "repository": "https://github.com/paradigmxyz/reth"
+  },
+  "release": {
+    "id": "v2.11.0",
+    "kind": "software-release",
+    "sequence": 1,
+    "source_commit": "b9abbcc1b982755baa9021e6874e2e58936ca65f",
+    "source_tree": "sha1:036143b1efd61b83c6aebf49907181da2d90f290"
+  },
+  "predecessor": null,
+  "build": null,
+  "deployment": null,
+  "evidence": [
+    {
+      "type": "linux-x86_64-release-archive",
+      "digest": "3b4dc68d56c0690801b91f5c5aabc6014b40ac4da2ed6d8ee6209a170f6a8e11",
+      "media_type": "application/gzip",
+      "verification_status": "VALID",
+      "uri": "https://github.com/paradigmxyz/reth/releases/tag/v2.11.0",
+      "verification_method": "GPG detached-signature verification passed using the full fingerprint published in Reth binary installation documentation; owner trust was unknown.",
+      "issuer": "https://reth.rs/installation/binaries/"
+    }
+  ],
+  "gaps": [
+    {
+      "type": "slsa-build-provenance",
+      "status": "NOT_PROVIDED",
+      "reason": "No SLSA provenance for this binary was verified in the recorded experiment."
+    },
+    {
+      "type": "binary-source-correspondence",
+      "status": "NOT_CHECKED",
+      "reason": "The detached PGP signature was verified, but the binary was not proven to have been built from the recorded source commit."
+    },
+    {
+      "type": "runtime-compatibility",
+      "status": "UNAVAILABLE",
+      "reason": "The recovered binary terminated with SIGILL on the test workstation; runtime compatibility was not established."
+    }
+  ],
+  "witnesses": {
+    "ethereum_registry_checkpoint": null,
+    "eas_attestation_uid": null
+  }
+}

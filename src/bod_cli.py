@@ -21,6 +21,7 @@ try:
         inspect_evidence_payload,
         run_sigstore_verification,
     )
+    from bod_ethereum_release_profile import ReleaseProfileError, validate_release_profile
     from bod_portable import (
         create_evidence_bundle,
         create_portable_checkpoint,
@@ -46,6 +47,7 @@ except ImportError:
         inspect_evidence_payload,
         run_sigstore_verification,
     )
+    from src.bod_ethereum_release_profile import ReleaseProfileError, validate_release_profile
     from src.bod_portable import (
         create_evidence_bundle,
         create_portable_checkpoint,
@@ -251,6 +253,12 @@ def cmd_recover(args) -> int:
         return 1
 
 
+def cmd_profile_validate(args) -> int:
+    result = validate_release_profile(load(args.file))
+    print(json.dumps(result, indent=2))
+    return 0
+
+
 def cmd_demo(args) -> int:
     root = Path(args.path).resolve()
     snapshot = repository_snapshot(root)
@@ -347,6 +355,10 @@ def main() -> int:
     x.add_argument("file")
     x.set_defaults(func=cmd_recover)
 
+    x = sub.add_parser("profile-validate", help="validate a BOD Ethereum release profile record")
+    x.add_argument("file")
+    x.set_defaults(func=cmd_profile_validate)
+
     x = sub.add_parser("demo")
     x.add_argument("path", nargs="?", default=".")
     x.set_defaults(func=cmd_demo)
@@ -354,7 +366,7 @@ def main() -> int:
     args = parser.parse_args()
     try:
         return args.func(args)
-    except (EvidenceEnvelopeError, EvidenceFormatError, EvidenceVerificationError, OSError, json.JSONDecodeError) as exc:
+    except (EvidenceEnvelopeError, EvidenceFormatError, EvidenceVerificationError, ReleaseProfileError, OSError, json.JSONDecodeError) as exc:
         print(json.dumps({"status": "INVALID", "reason": str(exc)}, indent=2))
         return 1
 

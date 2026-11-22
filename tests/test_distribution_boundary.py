@@ -16,6 +16,7 @@ def test_distribution_allowlist_excludes_historical_token_economics_modules() ->
         "bod_evidence_formats",
         "bod_anchor",
         "bod_verify_simple",
+        "bod_ethereum_release_profile",
     }
     historical_modules = {
         "bod_protocol",

@@ -20,6 +20,7 @@
 - Structural inspection for in-toto Statement v1, SLSA provenance v1, DSSE envelope shape, CycloneDX JSON and SPDX JSON 2.x.
 - Delegation to official sigstore-python for selected identity and GitHub artifact-attestation verification.
 - One documented GitHub Actions/SBOM/Sigstore recovery experiment and one documented Reth v2.11.0 release-evidence recovery experiment.
+- Experimental Ethereum Release Profile v0.1 JSON Schema, dependency-free structural validator, `bod profile-validate` CLI command, and a Reth v2.11.0 fixture with explicit provenance/source-correspondence gaps.
 - Solidity checkpoint registry source with Foundry unit/fuzz tests and a CI test job configured.
 - EAS schema-registration and linked-attestation scripts, including clean-checkout and current-snapshot checks, a fixed Sepolia chain guard, parent-attestation checks, and both EAS and portable checkpoint identifiers.
 - CI workflows for Python, Solidity and EAS SDK checks; Python/npm dependency SBOM generation and GitHub artifact-attestation verification.
@@ -65,7 +66,7 @@ Historical task/settlement, token and economic experiments remain in the source 
 ## Remaining validation gates
 
 1. Obtain fresh remote CI results for the exact reviewed branch commit, including Python matrix, Foundry and EAS SDK jobs.
-2. Implement and reproduce the proposed [Ethereum release evidence profile](ETHEREUM_RELEASE_PROFILE.md) using public fixtures.
+2. Extend the experimental [Ethereum release evidence profile](ETHEREUM_RELEASE_PROFILE.md) to a complete public smart-contract deployment/upgrade fixture and native verification orchestration.
 3. Run a controlled comparison against Git + SLSA/in-toto + Sigstore and relevant evidence-management tools.
 4. Obtain independent protocol and Solidity contract review; resolve critical/high findings.
 5. Only after review and explicit authorization, rehearse deployment and EAS registration/attestation on Sepolia using free services and test ETH.

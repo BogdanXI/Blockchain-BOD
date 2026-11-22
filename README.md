@@ -41,6 +41,7 @@ BOD explores a small, composable layer for that problem. It does not replace Git
 | Signature verification | Delegation to the official `sigstore-python` tooling |
 | Optional Ethereum witness | Permissionless append-only checkpoint registry; commitments only |
 | EAS integration tooling | Schema and linked-attestation scripts; live registration has not been performed |
+| Ethereum release profile | Experimental JSON Schema v0.1, dependency-free structural validator, CLI and public Reth release fixture |
 
 See the [technical overview](docs/ARCHITECTURE_OVERVIEW.md) for component boundaries, the [project status](docs/PROJECT_STATUS.md) for implementation limits, and the [grant technical brief](docs/GRANT_TECHNICAL_BRIEF.md) for a scoped Ethereum ecosystem proposal. Current grant-channel availability and readiness gaps are recorded in the [grant readiness assessment](docs/GRANT_READINESS.md).
 
@@ -112,6 +113,14 @@ Verify a collection of checkpoints as a graph, retaining visible forks rather th
 bod verify checkpoints.json --portable --graph
 python3 scripts/independent_verify.py checkpoints.json --graph
 ```
+
+Validate the experimental Ethereum release profile fixture:
+
+```bash
+bod profile-validate examples/ethereum-release-profile/reth-v2.11.0.json
+```
+
+This checks record structure only; it does not re-run cryptographic or chain verification. See the [profile specification](docs/ETHEREUM_RELEASE_PROFILE.md).
 
 Create, verify and recover a self-contained evidence bundle:
 
