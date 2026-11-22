@@ -24,6 +24,7 @@ def test_ethereum_is_the_primary_testnet_target_and_not_deployed():
     assert doc["legacy_network"]["chain_id"] == 421614
     assert doc["legacy_network"]["status"] == "legacy_experimental"
     assert doc["surfaces"]["ethereum_sepolia_deployment"]["status"] == "not_deployed"
+    assert doc["surfaces"]["eas_sdk_integration"]["status"] == "source_implemented_ci_syntax_checked_schema_not_registered"
     assert doc["surfaces"]["arbitrum_sepolia_live_evidence"]["status"] == "not_independently_recorded_in_public_repository"
     assert doc["launch_gate"]["decision"] == "blocked"
     assert "ethereum_mainnet_deployment" in doc["launch_gate"]["prohibited_now"]
