@@ -174,7 +174,8 @@ Review the [threat model](docs/THREAT_MODEL_v0.1.md), [privacy model](docs/PRIVA
 
 ```text
 src/                    Python reference implementation and CLI
-protocol/               Ethereum checkpoint registry and historical protocol material
+protocol/               Ethereum checkpoint registry and readiness profile
+legacy/arbitrum/        Retired Arbitrum experiment; excluded from package and CI
 scripts/                Independent verifier and experiments
 tests/                  Python regression and recovery tests
 test/                   Foundry contract tests

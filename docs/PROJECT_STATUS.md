@@ -1,9 +1,9 @@
 # Project status
 
-**Release status:** experimental public engineering prototype  
-**Protocol version:** v0.1  
-**License:** MIT  
-**Primary chain integration target:** Ethereum  
+**Release status:** experimental public engineering prototype
+**Evidence Bundle format:** v0.1
+**License:** MIT
+**Optional public witness:** Ethereum L1 / EAS (not required by the core)
 **Ethereum deployment status:** not deployed / not audited
 
 ## Implemented and reviewable
@@ -32,11 +32,11 @@ The Ethereum contract is source code with local tests. It has not been deployed 
 
 ## Legacy Arbitrum work
 
-The previous Arbitrum Sepolia adapter, browser bridge and workflows remain as historical experimental work. They are not the primary product narrative or deployment target. No Arbitrum One or Ethereum mainnet deployment is claimed.
+The previous Arbitrum Sepolia adapter and browser bridge are retired and moved under `legacy/arbitrum/`. They are not imported, packaged, executed by CI or supported as deployment targets. No Arbitrum One deployment is claimed.
 
 ## Legacy research boundary
 
-The earlier BOD token/economic experiments are not part of the active Ethereum product. The legacy Python simulator and token-policy YAML contain unreconciled supply parameters; they are explicitly archived and must not be presented as final tokenomics. The Arbitrum adapter and browser bridge remain historical experimental components. See [Legacy components](LEGACY_COMPONENTS.md) and [economics archive note](../economics/README.md).
+The earlier BOD token/economic experiments are not part of the active Ethereum product. The legacy Python simulator and token-policy YAML contain unreconciled supply parameters; they are explicitly archived and must not be presented as final tokenomics. The Arbitrum adapter and browser bridge are archived under `legacy/arbitrum/`. See [Legacy components](LEGACY_COMPONENTS.md) and [economics archive note](../economics/README.md).
 
 ## Explicit non-claims
 

@@ -2,9 +2,9 @@
 
 ## Arbitrum
 
-The former Arbitrum Sepolia adapter and browser-wallet integration are retired from the active product scope. Their source, tests and historical records remain in the repository solely for traceability and reproducibility; they are not supported deployment targets.
+The former Arbitrum Sepolia adapter and browser-wallet integration are retired from the active product scope. Their source, archived tests and historical records have been moved under `legacy/arbitrum/` solely for traceability and reproducibility; they are not imported, packaged, run by CI or supported deployment targets.
 
-The active chain-facing experiment is Ethereum L1, with Ethereum Sepolia as the only planned testnet. The old browser bridge and adapter are not part of the active roadmap, release path or grant proposal. Their historical tests do not establish current operational correctness.
+The active chain-facing experiment is Ethereum L1, with Ethereum Sepolia as the only planned testnet. The old browser bridge and adapter are not part of the active roadmap, release path, Python package, CI test suite or grant proposal. Their archived tests do not establish current operational correctness.
 
 No Arbitrum One deployment is claimed. No Ethereum Sepolia or Ethereum mainnet deployment is claimed either.
 

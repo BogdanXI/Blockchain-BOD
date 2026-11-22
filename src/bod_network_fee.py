@@ -86,7 +86,3 @@ ETHEREUM_MAINNET_FEE_POLICY = NetworkFeePolicyV0_1(
 ETHEREUM_SEPOLIA_FEE_POLICY = NetworkFeePolicyV0_1(
     "Ethereum Sepolia", 11155111, "ETH", 0, priority_fee_wei=0
 )
-
-# Legacy policies retained for reproducibility of the original Arbitrum experiments.
-ARBITRUM_SEPOLIA_FEE_POLICY = NetworkFeePolicyV0_1("Arbitrum Sepolia", 421614, "ETH", 200_000_000)
-ARBITRUM_ONE_FEE_POLICY = NetworkFeePolicyV0_1("Arbitrum One", 42161, "ETH", 20_000_000)

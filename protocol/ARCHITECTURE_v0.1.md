@@ -192,7 +192,7 @@ The Task-to-Settlement object model is a v0.1 specification baseline. Canonical 
 
 ## 11. Historical Arbitrum adapter v0.1 — retired
 
-The former adapter implementation is retained at `protocol/arbitrum/BODProtocolAdapterV0_1.sol` for historical reproducibility only. It is not part of the active product or grant scope.
+The former adapter implementation is retained at `legacy/arbitrum/protocol/BODProtocolAdapterV0_1.sol` for historical reproducibility only. It is not part of the active product or grant scope.
 
 It stores only protocol-significant state:
 

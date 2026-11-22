@@ -16,7 +16,7 @@ network_scope:
 surfaces:
   protocol_objects:
     status: implemented
-    reference: protocol/BOD_PROTOCOL_v0.1.md
+    reference: docs/EVIDENCE_BUNDLE_v0.1.md
   deterministic_state_machine:
     status: implemented
     reference: src/bod_protocol.py
