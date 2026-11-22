@@ -73,7 +73,7 @@ const stateRoot = "0x" + checkpoint.snapshot.state_root;
 const manifestHash = sha256Hex(canonical(checkpoint));
 const evidenceRoot = sha256Hex(canonical(checkpoint.envelope.evidence));
 const checkpointId = ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(
-  ["bytes32", "uint256", "bytes32", "bytes32", "bytes32", "bytes32", "bytes32", "uint64"],
+  ["bytes32", "uint256", "bytes32", "bytes32", "bytes32", "bytes32", "bytes32", "uint64", "bytes32"],
   [
     ethers.id("BOD_EAS_CHECKPOINT_V1"),
     network.chainId,
