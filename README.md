@@ -22,32 +22,6 @@ A Git commit proves that bytes existed in a repository. A blockchain transaction
 
 ## The product
 
-```text
-SOURCE / GIT / BUILD
-        |
-        v
-DETERMINISTIC STATE SNAPSHOT
-        |
-        v
-EVIDENCE ENVELOPE
-  state root + predecessor
-  provenance/SBOM/attestation digests
-        |
-        v
-BOD VERIFIER
-  integrity + lineage + replay/fork detection
-        |
-        v
-OPTIONAL EXTERNAL ANCHOR
-  Arbitrum / another EVM / future BOD network
-        |
-        v
-FRESH RUNTIME RECOVERY
-        |
-        v
-VALID / INVALID
-```
-
 The blockchain is an **external anchor**, not a database for large evidence payloads.
 
 ## Why this is useful
@@ -95,16 +69,6 @@ python -m pytest -q
 Full walkthrough: [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
 
 ## Architecture
-
-| Layer | Responsibility | Current implementation |
-|---|---|---|
-| State | deterministic project snapshot | `bod snapshot` |
-| Evidence | versioned durable envelope | Evidence Envelope v0.1 |
-| Verification | integrity + lineage + adversarial checks | Python reference verifier |
-| Provenance | references to external evidence | digest-only evidence records |
-| Anchor | independent external checkpoint | experimental Arbitrum path |
-| Recovery | fresh-runtime reconstruction | executable recovery experiments |
-| Economics | service-backed token policy | **separate, not final** |
 
 **BOD protocol validity is not the same thing as blockchain consensus, and a successful testnet transaction is not a production-security claim.**
 

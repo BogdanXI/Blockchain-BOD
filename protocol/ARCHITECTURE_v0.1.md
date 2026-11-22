@@ -164,7 +164,6 @@ Those choices must be specified only after their role in the transition pipeline
 8. network implementation;
 9. benchmark and security review.
 
-
 ## 9. BOD Protocol v0.1 interface
 
 The application-independent lifecycle is refined to:
@@ -181,23 +180,6 @@ This refinement does not change the existing rule that verification and canonica
 
 The protocol does not store prompts, model context, raw source trees, tool calls, logs or full evidence bundles on-chain. On-chain state stores only protocol-significant commitments and economic transitions.
 
-An initial EVM/Arbitrum adapter is permitted without making Arbitrum part of the protocol core. A future native BOD chain may implement the same object lifecycle.
-
 ## 11. Protocol status
 
 The Task-to-Settlement object model is a v0.1 specification baseline. Canonical serialization, executable state transitions, signature implementation and adapter contracts remain implementation work.
-
-
-## 11. Arbitrum adapter v0.1
-
-The first chain-facing adapter is implemented at protocol/arbitrum/BODProtocolAdapterV0_1.sol.
-
-It stores only protocol-significant state:
-
-- Task metadata and BOD reward escrow;
-- Candidate metadata and BOD bond;
-- EvidenceRoot commitment;
-- VerificationRoot commitment;
-- Settlement and canonical state-root transition.
-
-The adapter injects the existing arbitration/consensus boundary through settlementAuthority. It does not define a new consensus mechanism or finalize verifier economics. Arbitrum Sepolia is the first deployment target; the protocol core remains chain-independent.

@@ -48,6 +48,4 @@ A failing scenario is preserved as evidence rather than removed by weakening the
 
 ## Security boundary
 
-The token model does not establish consensus authority or production security. Arbitrum integration evidence is an application/integration test boundary only.
-
 See economics/EC_0001_INVARIANTS_v0.1.md for the public invariant boundary.

@@ -4,31 +4,6 @@ BOD Evidence Fabric is a verification layer for digital state that survives repl
 
 ## The product
 
-```text
-SOURCE
-  ↓
-DETERMINISTIC SNAPSHOT
-  ↓
-EVIDENCE ENVELOPE
-  ├── state root
-  ├── predecessor state root
-  ├── provenance / SBOM / attestation digests
-  └── transition boundary
-  ↓
-VERIFIER
-  ├── integrity
-  ├── lineage
-  ├── replay/fork detection
-  └── project boundary
-  ↓
-OPTIONAL EXTERNAL ANCHOR
-  ├── Arbitrum
-  ├── another EVM network
-  └── future BOD-native provider
-  ↓
-FRESH RUNTIME RECOVERY
-```
-
 The blockchain is an **anchor**, not the place where large evidence payloads are stored. The durable BOD object is a compact, deterministic commitment that can be reconstructed and independently verified.
 
 ## Why this is different from a simple hash registry
