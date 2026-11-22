@@ -6,7 +6,7 @@
 
 [![CI](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml/badge.svg)](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml) [![License](https://img.shields.io/badge/license-MIT-111827.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-3.11%2B-111827.svg)](pyproject.toml) [![Status: Experimental](https://img.shields.io/badge/status-experimental-orange.svg)](docs/PROJECT_STATUS.md)
 
-[Quickstart](docs/GETTING_STARTED.md) · [Ethereum integration](docs/ETHEREUM_INTEGRATION.md) · [EAS integration](docs/EAS_INTEGRATION.md) · [Market hypothesis](docs/MARKET_FIT.md) · [Threat model](docs/THREAT_MODEL_v0.1.md) · [Roadmap](docs/ROADMAP.md)
+[Quickstart](docs/GETTING_STARTED.md) · [Ethereum integration](docs/ETHEREUM_INTEGRATION.md) · [EAS integration](docs/EAS_INTEGRATION.md) · [Market hypothesis](docs/MARKET_FIT.md) · [Threat model](docs/THREAT_MODEL_v0.1.md) · [CROPS alignment](docs/CROPS_COMPLIANCE.md) · [Privacy model](docs/PRIVACY_MODEL.md) · [Grant readiness](docs/GRANT_READINESS.md) · [Reproducibility](docs/REPRODUCIBILITY.md) · [Roadmap](docs/ROADMAP.md)
 
 ---
 
@@ -124,7 +124,7 @@ A matching digest proves byte identity relative to the digest. It does not prove
 
 No production BOD token, native BOD network, decentralized consensus, hosted service or audited mainnet deployment is claimed. The former Arbitrum adapter remains in the repository as a legacy EVM experiment; the active chain-facing development target is Ethereum.
 
-See [Threat model](docs/THREAT_MODEL_v0.1.md), [Security policy](SECURITY.md), and [Project status](docs/PROJECT_STATUS.md).
+See [Threat model](docs/THREAT_MODEL_v0.1.md), [Privacy Model](docs/PRIVACY_MODEL.md), [CROPS alignment](docs/CROPS_COMPLIANCE.md), [Reproducibility Policy](docs/REPRODUCIBILITY.md), [Security policy](SECURITY.md), and [Project status](docs/PROJECT_STATUS.md).
 
 ## Repository map
 
