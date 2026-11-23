@@ -41,7 +41,7 @@ The following checks passed locally on the current working branch:
 - Draft 2020-12 JSON Schema validation of both fixtures using system `jsonschema` 4.19.2;
 - temporary WETH9 evidence-bundle creation, BOD verification, independent verification, deletion of original payloads, extraction and SHA-256 recovery checks.
 
-The workstation's active Python interpreter is 3.14.4; the declared CI support matrix remains Python 3.11, 3.12 and 3.13. GitHub Actions run [45050151175](https://github.com/BogdanXI/Blockchain-BOD/actions/runs/45050151175) passed on the exact reviewed code commit bcfdc7f25a619f96bffe9709f506fb0f531e28cd: Python 3.11, 3.12, 3.13, Ethereum Solidity tests and EAS tooling all succeeded. Foundry is not installed in the workstation environment, so Solidity tests were validated remotely. Any later code or workflow changes require a fresh CI run.
+The workstation's active Python interpreter is 3.14.4; the declared CI support matrix remains Python 3.11, 3.12 and 3.13. GitHub Actions run [45264184657](https://github.com/BogdanXI/Blockchain-BOD/actions/runs/45264184657) passed on code commit `72ab433c1c34968093b65fe042e5c45b337d979e`: Python 3.11, 3.12, 3.13, Ethereum Solidity tests and EAS tooling all succeeded. Foundry is not installed in the workstation environment, so Solidity tests were validated remotely. Any later code or workflow changes require a fresh CI run.
 
 ## Ethereum integration boundary
 
@@ -68,7 +68,7 @@ Historical task/settlement, token and economic experiments remain in the source 
 
 ## Remaining validation gates
 
-1. Obtain fresh remote CI results for the exact reviewed branch commit, including Python matrix, Foundry and EAS SDK jobs.
+1. Maintain CI on the exact reviewed branch head; the current code commit passed the Python matrix, Foundry and EAS SDK jobs.
 2. Complete the experimental [Ethereum release evidence profile](ETHEREUM_RELEASE_PROFILE.md): resolve a source revision for the WETH9 deployment or document why it cannot be resolved; add a second traceable contract fixture and native verification orchestration.
 3. Run a controlled comparison against Git + SLSA/in-toto + Sigstore and relevant evidence-management tools.
 4. Obtain independent protocol and Solidity contract review; resolve critical/high findings.

@@ -7,7 +7,7 @@
 
 ## Executive assessment
 
-BOD has a credible experimental engineering base and a plausible builder-tooling/security-infrastructure angle for Ethereum. It is not yet grant-ready as a funding application. The largest gaps are a precise match to an active ESP Wishlist/RFP, independent user validation, a reproducible comparative benchmark, current-head remote CI evidence, and independent review of the Ethereum contract.
+BOD has a credible experimental engineering base and a plausible builder-tooling/security-infrastructure angle for Ethereum. It is not yet grant-ready as a funding application. The largest gaps are a precise match to an active ESP Wishlist/RFP, independent user validation, a reproducible comparative benchmark, exact source/build lineage for a real contract deployment, and independent review of the Ethereum contract.
 
 **Important programme status:** ESP's public Applicants pages currently show no active Wishlist items, no active RFP items and no active open rounds. Office Hours remain a non-financial feedback channel. This repository can be prepared for a future matching opportunity, but there is no current open call to which this project can honestly claim alignment.
 
@@ -54,7 +54,7 @@ These results do not constitute:
 - independent user adoption or product-market fit;
 - an independently reproduced multi-project benchmark.
 
-GitHub Actions run [45050151175](https://github.com/BogdanXI/Blockchain-BOD/actions/runs/45050151175) passed on the exact reviewed code commit bcfdc7f25a619f96bffe9709f506fb0f531e28cd across Python 3.11, 3.12, 3.13, Foundry Solidity tests and EAS tooling. Foundry is not installed locally, but the remote Solidity job passed. Any subsequent source or workflow changes require another run.
+GitHub Actions run [45264184657](https://github.com/BogdanXI/Blockchain-BOD/actions/runs/45264184657) passed on code commit `72ab433c1c34968093b65fe042e5c45b337d979e` across Python 3.11, 3.12, 3.13, Foundry Solidity tests and EAS tooling. Foundry is not installed locally, but the remote Solidity job passed. Any subsequent source or workflow changes require another run.
 
 ## 4. Recommended grant framing
 
