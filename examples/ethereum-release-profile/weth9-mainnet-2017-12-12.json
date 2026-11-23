@@ -1,0 +1,128 @@
+{
+  "profile": "bod-ethereum-release-profile-v0.1",
+  "project": {
+    "id": "weth9",
+    "kind": "smart-contract",
+    "repository": "https://github.com/dapphub/ds-weth"
+  },
+  "release": {
+    "id": "mainnet-deployment-2017-12-12",
+    "kind": "contract-deployment",
+    "sequence": 1,
+    "source_commit": null,
+    "source_tree": null
+  },
+  "predecessor": null,
+  "build": {
+    "builder_id": null,
+    "provenance_digest": null,
+    "compiler": {
+      "name": "solc",
+      "version": "0.4.19+commit.c4cbbb05",
+      "settings_digest": "34125e2b50bd2afa896f327b012234a10b49d084c259fab173be63ef5eb14bbf",
+      "input_digest": null,
+      "bytecode_digest": null,
+      "abi_digest": null
+    }
+  },
+  "deployment": {
+    "chain_id": 1,
+    "transaction_hash": "0xb95343413e459a0f97461812111254163ae53467855c0d73e0f1e7c5b8442fa3",
+    "block_hash": "0xd6e5f60d6b2367e74cd2aa520dbeb104826c3932eb482cc16e7f7ef5f8f74799",
+    "block_number": 4719568,
+    "contract_address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+    "runtime_bytecode_digest": null,
+    "source_verification": {
+      "provider": "Sourcify",
+      "reference": "https://sourcify.dev/server/v2/contract/1/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2?fields=deployment,compilation,metadata,sources,creationMatch,runtimeMatch,verifiedAt,proxyResolution",
+      "match_type": null
+    },
+    "finality": {
+      "status": "FINALIZED",
+      "observed_at": "2026-11-24T01:34:00+05:00",
+      "source": "https://etherscan.io/block/4719568"
+    }
+  },
+  "evidence": [
+    {
+      "type": "candidate-upstream-source-file",
+      "digest": "763dd16d90b9b591eca5b24b733301f500fbe18eeabc7bead848f60f2771857a",
+      "media_type": "text/plain",
+      "verification_status": "NOT_CHECKED",
+      "uri": "https://github.com/dapphub/ds-weth/blob/abb410d7a927f5c9b42e3bca83fa5701ed9a36b4/src/weth9.sol"
+    },
+    {
+      "type": "current-runtime-bytecode-observation",
+      "digest": "5566bf50796faf93c9b6f6adacd3b32c70bfe16b48ffc59db6cd144cbdc89739",
+      "media_type": "application/octet-stream",
+      "verification_status": "NOT_CHECKED",
+      "uri": "https://ethereum-rpc.publicnode.com"
+    }
+  ],
+  "gaps": [
+    {
+      "type": "source-commit",
+      "status": "NOT_CHECKED",
+      "reason": "No immutable upstream source commit has been established as the exact source revision for this deployment."
+    },
+    {
+      "type": "source-tree",
+      "status": "NOT_CHECKED",
+      "reason": "No upstream Git tree has been established as the exact source tree for this deployment."
+    },
+    {
+      "type": "source-commit-bytecode-correspondence",
+      "status": "NOT_CHECKED",
+      "reason": "The candidate Dapphub source revision is not proven to be the source revision represented by Sourcify verification for the deployed bytecode."
+    },
+    {
+      "type": "builder-identity",
+      "status": "NOT_PROVIDED",
+      "reason": "No authenticated build-system identity or builder record was found."
+    },
+    {
+      "type": "build-provenance",
+      "status": "NOT_PROVIDED",
+      "reason": "No SLSA or in-toto provenance statement for the historical deployment build was located."
+    },
+    {
+      "type": "compiler-input",
+      "status": "NOT_PROVIDED",
+      "reason": "The original Standard JSON compiler input was not located; only compiler version and settings metadata were available."
+    },
+    {
+      "type": "compiler-bytecode",
+      "status": "NOT_CHECKED",
+      "reason": "The original compiler output artifact was not preserved in this fixture."
+    },
+    {
+      "type": "compiler-abi",
+      "status": "NOT_CHECKED",
+      "reason": "The ABI is exposed by Sourcify, but no separately archived and digested ABI payload is included in this fixture."
+    },
+    {
+      "type": "deployment-runtime-bytecode",
+      "status": "NOT_CHECKED",
+      "reason": "A current eth_getCode response was captured, but historical runtime bytecode at the deployment block was not independently retrieved; the public RPC endpoint has pruned that historical range."
+    },
+    {
+      "type": "sourcify-match-classification",
+      "status": "NOT_CHECKED",
+      "reason": "The durable capture available for this fixture did not preserve Sourcify\u2019s top-level exact_match versus match classification; neither value is asserted."
+    },
+    {
+      "type": "tests",
+      "status": "NOT_PROVIDED",
+      "reason": "No test report for the exact deployed source revision is included."
+    },
+    {
+      "type": "security-audit",
+      "status": "NOT_PROVIDED",
+      "reason": "No independent security audit report for the exact deployed source revision is included."
+    }
+  ],
+  "witnesses": {
+    "ethereum_registry_checkpoint": null,
+    "eas_attestation_uid": null
+  }
+}

@@ -1,18 +1,81 @@
-schema_version: 1
+schema_version: 2
 status: ethereum_track_preparation
+
 network:
-  profile: ethereum-sepolia-checkpoint-witness
+  profile: ethereum-sepolia-checkpoint-registry
   chain_id: 11155111
-  role: optional_integration_testnet
+  role: integration_testnet_target
   native_bod_network: false
   production: false
+
 network_scope:
   policy: ethereum_l1_only
   l2_adapters: out_of_scope
-launch_gate:
-  decision: blocked
-  prohibited_now:
-    - ethereum_mainnet_deployment
-    - production_network_claims
+  production: false
+
+surfaces:
+  protocol_objects:
+    status: implemented
+    reference: docs/EVIDENCE_BUNDLE_v0.1.md
+  ethereum_checkpoint_registry:
+    status: source_implemented
+    reference: protocol/ethereum/BODEthereumCheckpointRegistry.sol
+  ethereum_contract_tests:
+    status: implemented_ci_verified_not_deployed
+    reference: test/BODEthereumCheckpointRegistry.t.sol
+  eas_sdk_integration:
+    status: source_implemented_ci_verified_not_live_validated_schema_not_registered
+    reference: tools/eas/attest-checkpoint.mjs
+  ethereum_sepolia_deployment:
+    status: not_deployed
+    reference: null
+historical_research:
+  task_to_settlement_protocol:
+    status: archived_experimental_not_active
+    reference: docs/LEGACY_COMPONENTS.md
+  token_policy:
+    status: archived_experimental_not_active
+    reference: economics/README.md
+  economic_state_machine:
+    status: archived_experimental_not_reconciled
+    reference: economics/README.md
+
+operator_requirements:
+  funded_test_wallet: required_only_for_future_sepolia_deployment
+  private_key_storage: local_environment_or_protected_ci_only
+  rpc_endpoint: free_public_or_self_hosted_ethereum_sepolia_rpc_only
+  paid_rpc_or_api_plan: prohibited
+  test_eth_source: public_faucet_only
+  maximum_test_budget_usd: 0
+  mainnet_funds: prohibited
+  production_credentials: prohibited
+
 native_bod_network:
   status: not_ready
+  consensus: not_implemented
+  p2p: not_implemented
+  validator_admission: not_finalized
+  native_genesis: not_defined
+  rpc_node: not_implemented
+
+launch_gate:
+  decision: blocked
+  reasons:
+    - ethereum_contract_requires_independent_security_review
+    - ethereum_sepolia_deployment_and_reproducible_verification_not_completed
+    - EAS_live_testnet_flow_not_validated
+    - end_to_end_SLSA_SBOM_and_Sigstore_interoperability_is_not_yet_complete
+    - reproducible_dependency_lockfiles_and_release_provenance_incomplete
+    - product_value_and_market_demand_not_validated
+    - native_consensus_and_p2p_are_out_of_current_scope
+  allowed_now:
+    - run_python_regression_and_independent_verification
+    - run_foundry_ethereum_contract_tests
+    - conduct_independent_design_and_security_review
+    - review_CROPS_and_privacy_documents
+    - prepare_a_sepolia_rehearsal_after_review
+  prohibited_now:
+    - ethereum_mainnet_deployment
+    - deploying_to_or_presenting_any_l2_as_an_active_product_target
+    - presenting_BOD_as_a_production_blockchain
+    - promoting_historical_tokenomics_to_final_monetary_policy

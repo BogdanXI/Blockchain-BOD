@@ -1,1 +1,31 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 96" role="img"><title>BOD Evidence Fabric</title><rect width="320" height="96" rx="18" fill="#0b1020"/><text x="28" y="62" font-family="Arial,sans-serif" font-size="42" font-weight="800" fill="#fff">BOD</text><text x="128" y="50" font-family="Arial,sans-serif" font-size="14" font-weight="600" fill="#b8c1d9">EVIDENCE</text><text x="128" y="70" font-family="Arial,sans-serif" font-size="14" font-weight="600" fill="#b8c1d9">FABRIC</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 210" role="img" aria-labelledby="title desc">
+  <title id="title">BOD Evidence Continuity</title>
+  <desc id="desc">BOD wordmark with a linked checkpoint motif representing portable release evidence continuity.</desc>
+  <defs>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#101a2d"/>
+      <stop offset="1" stop-color="#172b43"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5eead4"/>
+      <stop offset="1" stop-color="#60a5fa"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="210" rx="24" fill="url(#panel)"/>
+  <g transform="translate(42 38)" fill="none" stroke="url(#accent)" stroke-width="5">
+    <path d="M20 66 H76 M104 66 H160 M76 66 L104 30 M76 66 L104 102" stroke-linecap="round"/>
+    <rect x="0" y="48" width="40" height="36" rx="9" fill="#14263b"/>
+    <rect x="84" y="12" width="40" height="36" rx="9" fill="#14263b"/>
+    <rect x="84" y="84" width="40" height="36" rx="9" fill="#14263b"/>
+    <rect x="144" y="48" width="40" height="36" rx="9" fill="#14263b"/>
+    <circle cx="20" cy="66" r="4" fill="#5eead4" stroke="none"/>
+    <circle cx="104" cy="30" r="4" fill="#60a5fa" stroke="none"/>
+    <circle cx="104" cy="102" r="4" fill="#60a5fa" stroke="none"/>
+    <circle cx="164" cy="66" r="4" fill="#5eead4" stroke="none"/>
+  </g>
+  <text x="260" y="104" fill="#f8fafc" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="72" font-weight="750" letter-spacing="-3">BOD</text>
+  <text x="265" y="146" fill="#b8c7d9" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="22" font-weight="600" letter-spacing="4">EVIDENCE CONTINUITY</text>
+  <path d="M720 48 V162" stroke="#334b64" stroke-width="2"/>
+  <text x="752" y="91" fill="#5eead4" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="16" font-weight="700">OPEN</text>
+  <text x="752" y="116" fill="#5eead4" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="16" font-weight="700">PROTOCOL</text>
+</svg>

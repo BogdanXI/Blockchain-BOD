@@ -1,4 +1,4 @@
-"""Validate the public repository for prohibited provenance and private-workspace material."""
+"""Check tracked public files for private workspace material and credential leaks."""
 
 from __future__ import annotations
 
@@ -8,63 +8,67 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# Encoded literals keep the validator itself free of the strings it is designed to reject.
-_FORBIDDEN = tuple(
-    bytes.fromhex(value).decode("utf-8")
-    for value in (
-        "43686174475054",
-        "4f70656e4149",
-        "6172746966696369616c20696e74656c6c6967656e6365",
-        "4c4c4d",
-        "475054",
-    )
-)
-
-_PRIVATE_PATH_PARTS = (
+_PRIVATE_PATH_NAMES = {
     ".agents",
     ".repo-os",
-    "AGENTS.md",
-    "PROJECT_STATE.md",
-    "STATUS.md",
+    ".env",
+    ".secrets",
+    "agents.md",
+    "project_state.md",
+    "private.md",
+    "credentials.json",
+    "id_rsa",
+    "id_ed25519",
+}
+
+# High-confidence formats only. Avoid broad keyword scans that create false positives.
+_SECRET_PATTERNS = (
+    re.compile(r"-----BEGIN (?:[A-Z0-9 ]+)?PRIVATE KEY-----"),
+    re.compile(r"\bgh[pousr]_[A-Za-z0-9]{30,}\b"),
+    re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
+    re.compile(r"\bxox[baprs]-[A-Za-z0-9-]{10,}\b"),
 )
 
 
-def iter_text_files() -> list[Path]:
-    """Validate the tracked public surface, not local ignored build/runtime artifacts."""
-    output = subprocess.check_output(
-        ["git", "ls-files", "-z"], cwd=ROOT, text=False
-    )
-    files: list[Path] = []
-    for relative in output.decode("utf-8").split("\x00"):
-        if not relative:
-            continue
-        path = ROOT / relative
-        try:
-            path.read_text(encoding="utf-8")
-        except (UnicodeDecodeError, OSError):
-            continue
-        files.append(path)
-    return files
+def tracked_paths(root: Path = ROOT) -> list[str]:
+    """Return repository paths tracked by Git, independent of local untracked files."""
+    output = subprocess.check_output(["git", "ls-files", "-z"], cwd=root)
+    return [item.decode("utf-8") for item in output.split(b"\0") if item]
 
 
-def main() -> int:
+def find_violations(root: Path, paths: list[str]) -> list[str]:
+    """Find private paths and high-confidence credential patterns in tracked text files."""
     violations: list[str] = []
 
-    for path in iter_text_files():
-        relative = path.relative_to(ROOT).as_posix()
-        if any(part in relative.split("/") for part in _PRIVATE_PATH_PARTS):
+    for relative in paths:
+        path = Path(relative)
+        parts = [part.casefold() for part in path.parts]
+
+        if any(
+            part in _PRIVATE_PATH_NAMES
+            or part.startswith(".env.")
+            or part.startswith("credentials.")
+            for part in parts
+        ):
             violations.append(f"private path: {relative}")
             continue
 
-        text = path.read_text(encoding="utf-8", errors="replace")
-        folded = text.casefold()
-        for token in _FORBIDDEN:
-            if re.search(rf"(?<![A-Za-z0-9]){re.escape(token.casefold())}(?![A-Za-z0-9])", folded):
-                violations.append(f"prohibited provenance term in: {relative}")
-                break
+        candidate = root / path
+        try:
+            text = candidate.read_text(encoding="utf-8")
+        except (UnicodeDecodeError, OSError):
+            continue
 
+        if any(pattern.search(text) for pattern in _SECRET_PATTERNS):
+            violations.append(f"possible credential material: {relative}")
+
+    return sorted(set(violations))
+
+
+def main() -> int:
+    violations = find_violations(ROOT, tracked_paths(ROOT))
     if violations:
-        print("\n".join(sorted(set(violations))))
+        print("\n".join(violations))
         return 1
 
     print("public surface validation passed")

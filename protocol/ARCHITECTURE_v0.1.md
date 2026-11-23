@@ -1,6 +1,6 @@
 # Blockchain-BOD Protocol Architecture v0.1
 
-Status: proposed architecture baseline
+Status: historical architecture baseline — not the active Ethereum grant-track product architecture
 
 ## 1. Objective
 
@@ -179,6 +179,8 @@ This refinement does not change the existing rule that verification and canonica
 ## 10. Chain/storage boundary
 
 The protocol does not store prompts, model context, raw source trees, tool calls, logs or full evidence bundles on-chain. On-chain state stores only protocol-significant commitments and economic transitions.
+
+The historical implementation explored an EVM adapter. This is no longer an active deployment path. The current product uses Ethereum L1 only as an optional checkpoint witness; no L2 or BOD-owned chain is required.
 
 ## 11. Protocol status
 

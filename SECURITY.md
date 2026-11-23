@@ -2,7 +2,7 @@
 
 ## Scope and status
 
-BOD v0.1 is experimental and is not represented as production-secure. The repository includes verification code and experimental chain integration; neither is a substitute for an independent security review.
+BOD v0.1 is experimental and is not represented as production-secure. The repository includes verification code and experimental Ethereum integration; neither is a substitute for independent security review.
 
 ## Reporting a concern
 

@@ -4,87 +4,68 @@
 
 BOD proves only predicates that its verifier actually checks.
 
-A successful BOD verification means:
+A successful BOD verification may establish that:
+1. canonical envelope bytes match their commitment;
+2. declared state roots and evidence digests are bound to that envelope;
+3. predecessor relationships are valid for the supplied history;
+4. a published Ethereum checkpoint matches the supplied commitments and can be read from the selected chain history.
 
-1. the envelope bytes are canonical and its commitment matches;
-2. the declared state root and evidence digests are bound to that envelope;
-3. the predecessor relationship is valid for the supplied history;
-4. the selected verification policy accepts the referenced evidence metadata.
+It does **not** establish that evidence is truthful, builds are secure, referenced artifacts remain available, publishers are authorized, source code is correct, or an Ethereum transaction makes a BOD transition valid or canonical.
 
-It does **not** mean:
+## Privacy and data disclosure\n\nHashes and fixed-size commitments are not anonymization. Predictable values may be guessed, and public metadata can be correlated with repositories, organizations, wallet activity or release timing. The current public-surface scanner covers selected high-confidence credential patterns and private path names only; it is not comprehensive DLP. Operators must review checkpoint contents before publication and keep source, evidence payloads, secrets and personal data off-chain. See [Privacy Model](PRIVACY_MODEL.md).\n\n## Adversaries
 
-- the underlying evidence is truthful;
-- the build was secure merely because it has provenance;
-- the referenced URI is still available;
-- the issuer is trustworthy unless the verifier policy says so;
-- the source code is functionally correct;
-- a blockchain transaction makes an invalid envelope valid;
-- a local anchor is independent evidence.
+### Evidence fabricator
 
-## Adversaries
+Can create false reports, logs or attestations. BOD can bind the resulting bytes but cannot determine whether the producer lied. Consumers must verify upstream signatures, identities and policies.
 
-### A1 — evidence fabricator
+### Evidence mutator
 
-Can create false reports, logs or attestations.
+Changes an evidence file after capture. A digest mismatch should cause verification failure when the bytes are available.
 
-**BOD response:** detects later mutation of the referenced bytes when those bytes are available, but cannot determine whether the original producer lied. Trust policy and upstream attestation verification are required.
+### History rewriter
 
-### A2 — evidence mutator
+Removes predecessors, injects forks, replays roots or crosses project boundaries. The local verifier checks supplied lineage; the Ethereum registry checks parent existence, project identity and sequence. Forks are allowed and deliberately visible.
 
-Changes an evidence file after capture.
+### Compromised CI/runtime
 
-**BOD response:** digest mismatch causes verification failure.
+Controls the machine that produced evidence. BOD preserves the declared evidence and lineage but does not turn a compromised builder into a trustworthy builder.
 
-### A3 — history rewriter
+### Malicious publisher
 
-Removes a predecessor, injects a fork, replays a state root or crosses project boundaries.
+Publishes arbitrary commitments or competing branches. The Ethereum registry is permissionless and records the sender, but does not authenticate repository ownership. Consumers must verify signed provenance or an independent authorization policy.
 
-**BOD response:** chain verification fails closed on gaps, forks, duplicate roots, disconnected components and project mismatch.
+### RPC/indexer compromise
 
-### A4 — compromised CI/runtime
+Returns incomplete or misleading chain data. Critical verification must use independent RPC providers, check chain ID, transaction receipt, contract address and event/storage data, and apply a documented finality threshold.
 
-Controls the machine that produced the evidence.
+### Chain reorganization
 
-**BOD response:** BOD preserves the declared evidence and its lineage but does not turn a compromised builder into a trustworthy builder. Consumers must verify builder identity and provenance policy independently.
+A recent checkpoint may be removed by a reorg. A receipt is not finality. Clients must wait for an appropriate confirmation/finality condition and retain the block hash and transaction receipt.
 
-### A5 — anchor compromise
+### Verifier bug
 
-Controls one external anchor provider or RPC endpoint.
+One implementation may accept an invalid envelope. BOD publishes an independent verifier; cross-implementation vectors and external review remain required.
 
-**BOD response:** an anchor is an external witness, not validity. Verification must independently check the anchor and may use multiple providers. A failed or unavailable anchor must not silently become VALID.
+### Path, mode and symlink abuse
 
-### A6 — BOD verifier bug
+Repository capture hashes a tracked symlink's link target rather than dereferencing the target and reading arbitrary external file contents. Snapshot v0.2 records Git-compatible file modes (`100644`, `100755`, `120000`) so an executable-bit change alters the state root. Snapshot verification rejects absolute paths, traversal components, non-normalized paths, duplicate/unsorted entries, invalid modes and invalid size/digest types. Snapshot v0.1 remains readable but cannot prove that an executable-bit distinction was captured. These checks reduce path confusion and accidental data capture; they do not replace OS sandboxing or a review of the capture boundary.
 
-A verifier implementation accepts an invalid envelope.
+## Data availability and exit paths\n\nA commitment proves a relationship to bytes only when those bytes can be obtained. Ethereum, EAS and a digest do not guarantee artifact availability. A production workflow must provide independently controlled artifact locations, retrieval checks and a documented recovery path if a repository host, CI provider, indexer or RPC endpoint disappears. These capabilities are not yet demonstrated end-to-end.\n\n## Ethereum contract boundaries
 
-**BOD response:** the project publishes a second independent verifier and cross-implementation test vectors. The canonical format is deliberately small so independent implementations are practical.
-
-### A7 — BOD service disappears
-
-The original BOD service is unavailable.
-
-**BOD response:** exported envelopes, evidence and anchor receipts remain self-contained. Verification must not require a BOD SaaS endpoint.
-
-## Trust layers
-
-CONTENT INTEGRITY -> LINEAGE -> EVIDENCE TRUST -> EVIDENCE SEMANTICS -> EXTERNAL WITNESSES
-
-Each layer is independent. Passing a lower layer never upgrades a higher layer automatically.
+- Permissionless publication is not repository authorization.
+- Append-only storage is not canonical branch selection.
+- The contract stores commitments, not source or evidence payloads.
+- Block timestamps are approximate.
+- No owner, upgrade key, ERC-20, custody or settlement authority exists in the Ethereum registry.
+- No formal verification or external smart-contract audit has been completed.
 
 ## Required verifier result
 
-The verifier MUST distinguish:
+The verifier must distinguish:
+- integrity validity;
+- policy acceptance;
+- semantic truth (not asserted);
+- evidence availability (unknown unless retrieval was performed);
+- chain inclusion and finality status.
 
-- `VALID_INTEGRITY`;
-- `INVALID`;
-- `semantic_truth = NOT_ASSERTED`;
-- `availability = UNKNOWN` unless evidence retrieval was actually performed;
-- policy acceptance separately from cryptographic validity.
-
-This prevents the product from converting "hash matched" into "the claim was true."
-
-## Residual risks
-
-BOD does not eliminate malicious or compromised evidence producers, malicious builders, unavailable evidence, weak trust policies, semantic errors in tests or SBOMs, compromised upstream signing infrastructure, or chain/anchor failure.
-
-The correct mitigation is layered verification, not a stronger marketing claim.
+Passing a lower trust layer never upgrades a higher layer automatically.

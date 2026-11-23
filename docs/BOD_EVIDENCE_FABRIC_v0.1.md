@@ -4,7 +4,31 @@ BOD Evidence Fabric is a verification layer for digital state that survives repl
 
 ## The product
 
-The blockchain is an **anchor**, not the place where large evidence payloads are stored. The durable BOD object is a compact, deterministic commitment that can be reconstructed and independently verified.
+```text
+SOURCE
+  ↓
+DETERMINISTIC SNAPSHOT
+  ↓
+EVIDENCE ENVELOPE
+  ├── state root
+  ├── predecessor state root
+  ├── provenance / SBOM / attestation digests
+  └── transition boundary
+  ↓
+VERIFIER
+  ├── integrity
+  ├── lineage
+  ├── replay/fork detection
+  └── project boundary
+  ↓
+OPTIONAL ETHEREUM WITNESS
+  ├── Ethereum L1 checkpoint registry
+  └── Ethereum Attestation Service (EAS)
+  ↓
+FRESH RUNTIME RECOVERY
+```
+
+Ethereum is an **optional witness**, not a product dependency or the place where large evidence payloads are stored. The durable BOD object is a compact, deterministic commitment that can be reconstructed and independently verified.
 
 ## Why this is different from a simple hash registry
 
@@ -39,6 +63,6 @@ Production economics are a separate gate. No experimental token parameter is imp
 - lineage verification: implemented;
 - adversarial verification: implemented;
 - fresh-process recovery experiments: implemented;
-- external anchor adapter: existing experimental path;
+- Ethereum registry and EAS clients: source-implemented; no live deployment or schema registration;
 - production security: **not claimed**;
 - production economic policy: **not final**.

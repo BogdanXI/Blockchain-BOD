@@ -1,0 +1,1065 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:bod:schema:ethereum-release-profile:v0.1",
+  "title": "BOD Ethereum Release Profile v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profile",
+    "project",
+    "release",
+    "predecessor",
+    "build",
+    "deployment",
+    "evidence",
+    "gaps",
+    "witnesses"
+  ],
+  "properties": {
+    "profile": {
+      "const": "bod-ethereum-release-profile-v0.1"
+    },
+    "project": {
+      "$ref": "#/$defs/project"
+    },
+    "release": {
+      "$ref": "#/$defs/release"
+    },
+    "predecessor": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/predecessor"
+        }
+      ]
+    },
+    "build": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/build"
+        }
+      ]
+    },
+    "deployment": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/deployment"
+        }
+      ]
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/evidence"
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/gap"
+      }
+    },
+    "witnesses": {
+      "$ref": "#/$defs/witnesses"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "release": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "contract-deployment",
+                  "contract-upgrade"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "build": {
+            "$ref": "#/$defs/contractBuild"
+          },
+          "deployment": {
+            "$ref": "#/$defs/deployment"
+          },
+          "project": {
+            "properties": {
+              "kind": {
+                "const": "smart-contract"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          }
+        },
+        "required": [
+          "project",
+          "build",
+          "deployment"
+        ]
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "release"
+        ],
+        "properties": {
+          "release": {
+            "properties": {
+              "source_commit": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "gaps": {
+            "contains": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "const": "source-commit"
+                }
+              },
+              "required": [
+                "type"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "release"
+        ],
+        "properties": {
+          "release": {
+            "properties": {
+              "source_tree": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "gaps": {
+            "contains": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "const": "source-tree"
+                }
+              },
+              "required": [
+                "type"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "build"
+        ],
+        "properties": {
+          "build": {
+            "type": "object",
+            "properties": {
+              "builder_id": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "gaps": {
+            "contains": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "const": "builder-identity"
+                }
+              },
+              "required": [
+                "type"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "build"
+        ],
+        "properties": {
+          "build": {
+            "type": "object",
+            "properties": {
+              "provenance_digest": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "gaps": {
+            "contains": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "const": "build-provenance"
+                }
+              },
+              "required": [
+                "type"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "build"
+        ],
+        "properties": {
+          "build": {
+            "type": "object",
+            "required": [
+              "compiler"
+            ],
+            "properties": {
+              "compiler": {
+                "type": "object",
+                "properties": {
+                  "settings_digest": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "gaps": {
+            "contains": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "const": "compiler-settings"
+                }
+              },
+              "required": [
+                "type"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "build"
+        ],
+        "properties": {
+          "build": {
+            "type": "object",
+            "required": [
+              "compiler"
+            ],
+            "properties": {
+              "compiler": {
+                "type": "object",
+                "properties": {
+                  "input_digest": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "gaps": {
+            "contains": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "const": "compiler-input"
+                }
+              },
+              "required": [
+                "type"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "build"
+        ],
+        "properties": {
+          "build": {
+            "type": "object",
+            "required": [
+              "compiler"
+            ],
+            "properties": {
+              "compiler": {
+                "type": "object",
+                "properties": {
+                  "bytecode_digest": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "gaps": {
+            "contains": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "const": "compiler-bytecode"
+                }
+              },
+              "required": [
+                "type"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "build"
+        ],
+        "properties": {
+          "build": {
+            "type": "object",
+            "required": [
+              "compiler"
+            ],
+            "properties": {
+              "compiler": {
+                "type": "object",
+                "properties": {
+                  "abi_digest": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "gaps": {
+            "contains": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "const": "compiler-abi"
+                }
+              },
+              "required": [
+                "type"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "deployment"
+        ],
+        "properties": {
+          "deployment": {
+            "type": "object",
+            "properties": {
+              "runtime_bytecode_digest": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "gaps": {
+            "contains": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "const": "deployment-runtime-bytecode"
+                }
+              },
+              "required": [
+                "type"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "deployment"
+        ],
+        "properties": {
+          "deployment": {
+            "type": "object",
+            "anyOf": [
+              {
+                "required": [
+                  "source_verification"
+                ],
+                "properties": {
+                  "source_verification": {
+                    "type": "null"
+                  }
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "source_verification"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "gaps": {
+            "contains": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "const": "sourcify-match-classification"
+                }
+              },
+              "required": [
+                "type"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "deployment"
+        ],
+        "properties": {
+          "deployment": {
+            "type": "object",
+            "properties": {
+              "source_verification": {
+                "type": "object",
+                "required": [
+                  "match_type"
+                ],
+                "properties": {
+                  "match_type": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "gaps": {
+            "contains": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "const": "sourcify-match-classification"
+                }
+              },
+              "required": [
+                "type"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "uri": {
+      "type": "string",
+      "format": "uri",
+      "minLength": 1
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "repository"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "kind": {
+          "enum": [
+            "ethereum-client",
+            "smart-contract",
+            "developer-tool"
+          ]
+        },
+        "repository": {
+          "$ref": "#/$defs/uri",
+          "pattern": "^https://"
+        }
+      }
+    },
+    "release": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "sequence",
+        "source_commit",
+        "source_tree"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "kind": {
+          "enum": [
+            "software-release",
+            "contract-deployment",
+            "contract-upgrade"
+          ]
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "source_commit": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/commit"
+            }
+          ]
+        },
+        "source_tree": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/tree"
+            }
+          ]
+        }
+      }
+    },
+    "predecessor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "release_id",
+        "checkpoint_id"
+      ],
+      "properties": {
+        "release_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "checkpoint_id": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "compiler": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version",
+        "settings_digest",
+        "input_digest",
+        "bytecode_digest",
+        "abi_digest"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "settings_digest": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/sha256"
+            }
+          ]
+        },
+        "input_digest": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/sha256"
+            }
+          ]
+        },
+        "bytecode_digest": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/sha256"
+            }
+          ]
+        },
+        "abi_digest": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/sha256"
+            }
+          ]
+        }
+      }
+    },
+    "build": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "builder_id",
+        "provenance_digest",
+        "compiler"
+      ],
+      "properties": {
+        "builder_id": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/uri"
+            }
+          ]
+        },
+        "provenance_digest": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/sha256"
+            }
+          ]
+        },
+        "compiler": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/compiler"
+            }
+          ]
+        }
+      }
+    },
+    "contractBuild": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "builder_id",
+        "provenance_digest",
+        "compiler"
+      ],
+      "properties": {
+        "builder_id": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/uri"
+            }
+          ]
+        },
+        "provenance_digest": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/sha256"
+            }
+          ]
+        },
+        "compiler": {
+          "$ref": "#/$defs/compiler"
+        }
+      }
+    },
+    "deployment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "chain_id",
+        "transaction_hash",
+        "block_hash",
+        "block_number",
+        "contract_address",
+        "runtime_bytecode_digest",
+        "finality"
+      ],
+      "properties": {
+        "chain_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "transaction_hash": {
+          "type": "string",
+          "pattern": "^0x[0-9a-fA-F]{64}$"
+        },
+        "block_hash": {
+          "type": "string",
+          "pattern": "^0x[0-9a-fA-F]{64}$"
+        },
+        "block_number": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "contract_address": {
+          "type": "string",
+          "pattern": "^0x[0-9a-fA-F]{40}$"
+        },
+        "runtime_bytecode_digest": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/sha256"
+            }
+          ]
+        },
+        "source_verification": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "provider",
+                "reference",
+                "match_type"
+              ],
+              "properties": {
+                "provider": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "reference": {
+                  "$ref": "#/$defs/uri"
+                },
+                "match_type": {
+                  "oneOf": [
+                    {
+                      "type": "null"
+                    },
+                    {
+                      "type": "string",
+                      "enum": [
+                        "exact_match",
+                        "match"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "finality": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "observed_at",
+            "source"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "NOT_CHECKED",
+                "SAFE",
+                "FINALIZED",
+                "REORGED",
+                "UNKNOWN"
+              ]
+            },
+            "observed_at": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              ]
+            },
+            "source": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "$ref": "#/$defs/uri"
+                }
+              ]
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "SAFE",
+                      "FINALIZED",
+                      "REORGED"
+                    ]
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "observed_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "source": {
+                    "$ref": "#/$defs/uri"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "digest",
+        "media_type",
+        "verification_status"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "digest": {
+          "$ref": "#/$defs/sha256"
+        },
+        "media_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verification_status": {
+          "enum": [
+            "NOT_CHECKED",
+            "VALID",
+            "INVALID",
+            "UNAVAILABLE"
+          ]
+        },
+        "uri": {
+          "$ref": "#/$defs/uri"
+        },
+        "issuer": {
+          "$ref": "#/$defs/uri"
+        },
+        "verification_method": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "verification_status": {
+                "enum": [
+                  "VALID",
+                  "INVALID"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "verification_method"
+            ]
+          }
+        }
+      ]
+    },
+    "gap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "status",
+        "reason"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "NOT_PROVIDED",
+            "NOT_CHECKED",
+            "UNAVAILABLE",
+            "INVALID"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "witnesses": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ethereum_registry_checkpoint",
+        "eas_attestation_uid"
+      ],
+      "properties": {
+        "ethereum_registry_checkpoint": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/sha256"
+            }
+          ]
+        },
+        "eas_attestation_uid": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "^0x[0-9a-fA-F]{64}$"
+            }
+          ]
+        }
+      }
+    },
+    "commit": {
+      "type": "string",
+      "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+    },
+    "tree": {
+      "type": "string",
+      "pattern": "^(?:sha1:[0-9a-f]{40}|sha256:[0-9a-f]{64})$"
+    }
+  }
+}

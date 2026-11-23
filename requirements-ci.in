@@ -1,0 +1,8 @@
+pytest>=9.0.3,<10
+PyYAML>=6.0,<7
+ruff==0.17.6
+setuptools==84.2.1
+
+pip-audit==2.10.1
+typing_extensions>=4.6,<5
+build==1.6.1

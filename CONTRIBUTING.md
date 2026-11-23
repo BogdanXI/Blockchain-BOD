@@ -16,13 +16,22 @@ BOD is an experimental public engineering project. Contributions should be focus
 Requirements: Python 3.11 or newer.
 
 ```bash
-python -m pip install -e .
-python -m pip install pytest pyyaml
-python scripts/validate_public_surface.py
-python -m pytest -q
+python3 -m pip install --editable ".[test,lint]"
+python3 scripts/validate_public_surface.py
+ruff check --select E4,E7,E9,F src scripts tests
+python3 -m pytest -q
+forge test
 ```
 
 A passing local test suite is useful evidence, but reviewers should also inspect CI and the affected invariants.
+
+## Ethereum changes
+
+- Prefer EAS for attestations rather than introducing another generic attestation format.
+- Keep checkpoint evidence payloads off-chain; publish only commitments.
+- Document chain ID, contract address, schema UID, issuer policy and finality assumptions.
+- Never commit wallets, private keys, seed phrases or RPC credentials.
+- Do not use mainnet for tests.
 
 ## Protocol changes
 

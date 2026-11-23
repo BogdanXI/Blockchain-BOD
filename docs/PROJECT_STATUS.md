@@ -1,48 +1,80 @@
-# Project Status
+# Project status
 
-**Release status:** experimental public engineering prototype  
-**Protocol version:** v0.1  
+**Release classification:** experimental public engineering prototype (alpha)
+**Evidence envelope / portable checkpoint:** v0.1
+**Repository snapshot:** v0.2 (v0.1 read compatibility)
+**Evidence Bundle:** v0.1 experimental format
 **License:** MIT
+**Ethereum deployment:** none
+**Independent security audit:** none
 
-## What can be evaluated
+## Implemented and reviewable
 
-The public repository contains a local continuity workflow:
+- Deterministic Git-tracked repository snapshots with SHA-256 content digests, byte sizes and Git-compatible modes (100644, 100755, 120000).
+- Backwards-compatible verification of legacy snapshot v0.1 documents.
+- Versioned evidence envelopes and predecessor-linked project history.
+- Branch-aware lineage graph verification that reports forks and heads without selecting a canonical head.
+- Self-contained Evidence Bundle v0.1 packaging every referenced evidence payload included in a checkpoint, with strict completeness, size, media-type and digest checks.
+- Safe bundle extraction to digest-derived filenames with a manifest; destination overwrite is refused.
+- Independent verifier that does not import the BOD implementation, with tests for current and legacy snapshot formats.
+- Structural inspection for in-toto Statement v1, SLSA provenance v1, DSSE envelope shape, CycloneDX JSON and SPDX JSON 2.x.
+- Delegation to official sigstore-python for selected identity and GitHub artifact-attestation verification.
+- One documented GitHub Actions/SBOM/Sigstore recovery experiment, one documented Reth v2.11.0 release-evidence recovery experiment, and a WETH9 contract deployment fixture with a temporary two-payload BOD bundle recovery test and one tar.gz size/recovery baseline comparison.
+- Experimental Ethereum Release Profile v0.1 JSON Schema, dependency-free structural validator, `bod profile-validate` CLI command, a Reth v2.11.0 client-release fixture, and a WETH9 mainnet deployment fixture with explicit source/build/runtime gaps.
+- Solidity checkpoint registry source with Foundry unit/fuzz tests and a CI test job configured.
+- EAS schema-registration and linked-attestation scripts, including clean-checkout and current-snapshot checks, a fixed Sepolia chain guard, parent-attestation checks, and both EAS and portable checkpoint identifiers.
+- CI workflows for Python, Solidity and EAS SDK checks; Python/npm dependency SBOM generation and GitHub artifact-attestation verification.
+- Public threat, privacy, CROPS, reproducibility, zero-cost testing, competitive landscape and grant-readiness documentation.
 
-1. Capture a deterministic repository snapshot.
-2. Bind its state root to a versioned evidence envelope.
-3. Verify the envelope and predecessor-linked history.
-4. Export a portable checkpoint.
-5. Verify and recover the checkpoint in a fresh process.
+## Current local validation
 
-Start with [Getting Started](GETTING_STARTED.md). The reference implementation, CLI, independent verifier, tests, and CI workflow are part of this repository.
+The following checks passed locally on the current working branch:
 
-## Verification record
+- Python regression suite;
+- Ruff checks (E4,E7,E9,F);
+- public-surface validation;
+- installed bod demo smoke test;
+- synthetic fresh-process recovery experiment;
+- EAS SDK runtime import and schema-encoding smoke test;
+- npm production dependency audit (zero reported vulnerabilities);
+- `bod profile-validate` for both Reth and WETH9 fixtures;
+- Draft 2020-12 JSON Schema validation of both fixtures using system `jsonschema` 4.19.2;
+- temporary WETH9 evidence-bundle creation, BOD verification, independent verification, deletion of original payloads, extraction and SHA-256 recovery checks;
+- one WETH9 tar.gz baseline comparison: 21,285-byte gzip-compressed BOD bundle versus 14,724-byte tar.gz, both recovered and digest-checked.
 
-A prior public CI run passed for commit [316f261](https://github.com/BogdanXI/Blockchain-BOD/commit/316f26115c9d8578276f1553f3dce876c8b5ed34). Check the live [CI workflow](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml) before relying on that result; a historical pass does not establish the current branch status.
+The workstation's active Python interpreter is 3.14.4; the declared CI support matrix remains Python 3.11, 3.12 and 3.13. GitHub Actions run [45264184657](https://github.com/BogdanXI/Blockchain-BOD/actions/runs/45264184657) passed on code commit `72ab433c1c34968093b65fe042e5c45b337d979e`: Python 3.11, 3.12, 3.13, Ethereum Solidity tests and EAS tooling all succeeded. Foundry is not installed in the workstation environment, so Solidity tests were validated remotely. Any later code or workflow changes require a fresh CI run.
 
-Tests are evidence for the behaviors they exercise. They are not an external security audit or proof of production readiness.
+## Ethereum integration boundary
 
-## What is not claimed
+The Solidity registry is permissionless and append-only. It checks parent existence, project identity and sequence, permits forks, and records the publisher. It does not authenticate repository ownership, select a canonical head, store evidence bytes or establish semantic truth.
 
-- No production-ready BOD blockchain or native consensus mechanism is claimed.
-- No production token launch is claimed.
-- Cryptographic integrity does not prove semantic truth.
-- The repository does not guarantee availability of referenced evidence.
-- Ethereum inclusion does not by itself make a BOD transition valid or canonical.
-- Economic assumptions and fee targets remain experimental until measured and independently reviewed.
+No Sepolia or mainnet deployment is claimed. No EAS schema has been registered and no live attestation has been submitted. The contract has not received an independent security audit. No wallet signing or blockchain transaction was performed as part of this work.
 
-## Current open question
+Ethereum is an optional external witness. Local capture, portable bundle verification and independent recovery do not require a wallet, ETH, RPC endpoint or BOD-operated service.
 
-Does portable, independently verifiable continuity materially improve a real engineering workflow compared with Git and established provenance/signing tools? This requires independent users and reproducible comparisons, not marketing claims.
+## Legacy research boundary
 
-Technical limitations are documented in the [Threat Model](THREAT_MODEL_v0.1.md). Planned validation gates are in the [Roadmap](ROADMAP.md).
+Historical task/settlement, token and economic experiments remain in the source tree for traceability. They are not active product requirements, grant deliverables, deployment policy or approved monetary policy, and are excluded from the installed Python wheel. See [Legacy Components](LEGACY_COMPONENTS.md) and [Economics archive](../economics/README.md).
 
-## How to review
+## Explicit non-claims
 
-1. Follow [Getting Started](GETTING_STARTED.md).
-2. Run `python -m pytest -q`.
-3. Inspect the latest public CI result.
-4. Review [Why BOD Exists](WHY_BOD_v0.1.md) and the [Threat Model](THREAT_MODEL_v0.1.md).
-5. Report a reproducible counterexample, missing invariant, or comparison through the [issue tracker](https://github.com/BogdanXI/Blockchain-BOD/issues).
+- No production-ready BOD blockchain or native consensus network.
+- No production token, token launch or final tokenomics.
+- No audited or production-secure smart contract.
+- No guarantee that evidence is truthful, complete or available beyond payload bytes included in a verified bundle.
+- No claim that an Ethereum transaction makes a release safe, valid or canonical.
+- No independently demonstrated advantage over Chainloop, Kosli, Archivista, GUAC or existing Git/SLSA/Sigstore workflows.
+- No independent users, pilots, expressed team interest, paying customers or product-market fit.
+- No Ethereum Foundation endorsement, grant award or active application.
 
-Feedback that disproves the product hypothesis or exposes a verification boundary is useful.
+## Remaining validation gates
+
+1. Maintain CI on the exact reviewed branch head; the current code commit passed the Python matrix, Foundry and EAS SDK jobs.
+2. Complete the experimental [Ethereum release evidence profile](ETHEREUM_RELEASE_PROFILE.md): resolve a source revision for the WETH9 deployment or document why it cannot be resolved; add a second traceable contract fixture and native verification orchestration.
+3. Run a controlled comparison against Git + SLSA/in-toto + Sigstore and relevant evidence-management tools.
+4. Obtain independent protocol and Solidity contract review; resolve critical/high findings.
+5. Only after review and explicit authorization, rehearse deployment and EAS registration/attestation on Sepolia using free services and test ETH.
+6. Obtain independent maintainer feedback and document positive and negative results.
+7. Define actual contributor capacity and a costed milestone budget before any grant submission.
+
+See [Architecture](ARCHITECTURE_OVERVIEW.md), [Grant Readiness](GRANT_READINESS.md), [Grant Technical Brief](GRANT_TECHNICAL_BRIEF.md), [Roadmap](ROADMAP.md), [Threat Model](THREAT_MODEL_v0.1.md), [Privacy Model](PRIVACY_MODEL.md), and [Verification Experiment](VERIFICATION_EXPERIMENT.md).

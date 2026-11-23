@@ -1,3 +1,55 @@
+## 2026-11-22 — Ethereum release profile v0.1 implementation
+
+- Published a versioned JSON Schema for Ethereum client releases and smart-contract deployment/upgrade records.
+- Added a dependency-free structural validator and the `bod profile-validate` CLI command, with explicit non-claims for cryptographic verification, chain-state verification and semantic truth.
+- Added a real Reth v2.11.0 release fixture using recorded source and binary identities; missing SLSA provenance and unproven binary-to-source correspondence remain explicit gaps.
+- Strengthened contract deployment records to require a chain-finality status and observation source/time, and preserved Sourcify exact-match versus non-exact-match classification.
+- Updated the competitive landscape with current Sourcify API v2 guidance; documented that the legacy v1 API was disabled in July 2026 and that source verification is not formal security verification.
+- Added regression tests for profile structure, invalid digests, invalid URIs, contract-specific requirements, deployment address width, predecessor consistency and CLI behavior.
+- Updated quickstart, project status and grant documents to distinguish implemented profile structure from unimplemented native verification and smart-contract deployment workflows.
+
+## 2026-11-22 — Ethereum grant-readiness and protocol hardening
+
+- Added a grant technical brief scoped to portable release-evidence continuity for Ethereum software and smart-contract upgrades, with measurable milestones, acceptance criteria, evaluation metrics and explicit non-goals.
+- Added an ESP readiness assessment that records the current absence of active Wishlist items, RFPs and open rounds, and separates demonstrated engineering evidence from unvalidated demand and future work.
+- Versioned repository snapshots to v0.2 and committed Git-compatible file modes (`100644`, `100755`, `120000`) so executable-bit changes alter the state root; retained v0.1 snapshot verification compatibility in both verifiers.
+- Added regression coverage for executable-bit changes, symlink mode, invalid modes and legacy snapshot verification.
+- Extended the EAS schema to carry both the EAS-context checkpoint identifier and the portable BOD checkpoint identifier. The client now checks that the supplied checkpoint matches the current clean repository snapshot before submitting an attestation.
+- Updated public documentation, quickstart commands, grant status, roadmap and zero-cost test status to reflect the current implementation and known limitations.
+- Made the historical task/settlement and token-economics boundary explicit in testnet readiness metadata and documentation; added a packaging regression test to ensure legacy economic modules stay outside the installed Python wheel.
+- Local validation: Python tests, Ruff, public-surface validation, CLI smoke test, recovery experiment, EAS SDK schema-encoding smoke test and npm production dependency audit passed. Foundry is unavailable in the local workstation environment; GitHub Actions run 45050151175 passed all five jobs on commit bcfdc7f25a619f96bffe9709f506fb0f531e28cd.
+- No EAS schema registration, wallet signing, Sepolia deployment, mainnet transaction or paid test service was used.
+
+## 2026-11-22 — Verified evidence bundle extraction
+
+- Added `bod bundle-extract` to verify a self-contained Evidence Bundle before extracting its evidence payloads.
+- Uses digest-derived filenames and a machine-readable extraction manifest; refuses to overwrite an existing destination directory and never uses untrusted evidence metadata as a path.
+- Added tests for successful extraction, CLI behavior, tampering rejection, overwrite refusal and path traversal resistance.
+
+## 2026-11-22 — Sigstore verification delegation
+
+- Added evidence-verify CLI modes that delegate GitHub workflow identity/claim verification and generic identity/OIDC issuer verification to the official sigstore-python CLI.
+- The wrapper uses argument arrays without a shell, enforces explicit expected identity claims, supports explicit offline mode and reports the verifier exit status.
+- Added mocked tests for success, policy requirements, missing verifier and failed verification.
+- Verified a real GitHub Actions SBOM attestation bundle offline using sigstore-python 4.5.1; then packaged the SBOM and Sigstore bundle with a BOD checkpoint bound to the exact 108-file GitHub merge-tree snapshot, deleted local original copies, recovered both payloads and re-verified the recovered SBOM. Documented exact run, digests, identities and trust-root freshness caveat.
+- BOD delegates cryptography; it does not implement Sigstore signature or transparency verification itself.
+
+## 2026-11-22 — Evidence format interoperability
+
+- Added dependency-free structural inspection for in-toto Statement v1, SLSA provenance v1, DSSE envelope shape, CycloneDX JSON and SPDX JSON 2.x.
+- Added the bod evidence-inspect CLI command and regression fixtures for supported structures and malformed documents.
+- Extended the synthetic offline recovery experiment to inspect SLSA and CycloneDX fixture structures before packaging.
+- Documented that structural inspection is not full schema validation, signature verification, trust-policy evaluation or a claim of semantic truth.
+- Added official format specification references and explicit SPDX 3.x non-support.
+
+## 2026-11-22 — Evidence continuity and recovery
+
+- Added experimental Evidence Bundle v0.1 to package every raw evidence payload referenced by one portable checkpoint.
+- Added strict bundle commitment, payload digest, size, media-type and completeness verification.
+- Added a separate independent bundle verifier and CLI commands to create and verify bundles.
+- Documented explicit trust boundaries: payload integrity is checked, semantic truth and format-specific signatures are not asserted, and repository source is not included.
+- Added regression coverage for successful bundle round trips, missing payloads, tampering and independent verification.
+
 ## 2026-10-09 — External review readiness
 
 - Clarified that BOD is an experimental continuity prototype and does not claim a production network or solved native consensus.

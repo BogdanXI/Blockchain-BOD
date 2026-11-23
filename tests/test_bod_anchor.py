@@ -1,4 +1,3 @@
-import json
 from src.bod_anchor import AnchorReceipt, LocalAnchorProvider
 
 def test_local_anchor_is_idempotent(tmp_path):

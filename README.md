@@ -1,188 +1,204 @@
-# BOD
+<div align="center">
+  <img src="docs/assets/bod-mark.svg" alt="BOD — Evidence Continuity" width="680" />
 
-![BOD Evidence Fabric](docs/assets/bod-mark.svg)
+  # BOD — Evidence Continuity
 
-## Evidence Fabric for verifiable digital state
+  **Portable, independently verifiable history for software release evidence.**
 
-**Prove what existed. Prove how it changed. Recover it on another runtime. Verify it independently.**
+  BOD links project-state checkpoints and release evidence across time — preserving predecessor relationships, exposing forks, and carrying selected evidence payloads into a verifiable recovery bundle.
 
-[![CI](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml/badge.svg)](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml) [![License](https://img.shields.io/badge/license-MIT-111827.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-3.11%2B-111827.svg)](pyproject.toml) [![Status: Experimental](https://img.shields.io/badge/status-experimental-orange.svg)](docs/PROJECT_STATUS.md)
+  [Quickstart](docs/GETTING_STARTED.md) · [Architecture](docs/ARCHITECTURE_OVERVIEW.md) · [Verification experiment](docs/VERIFICATION_EXPERIMENT.md) · [Grant technical brief](docs/GRANT_TECHNICAL_BRIEF.md) · [Ethereum release profile](docs/ETHEREUM_RELEASE_PROFILE.md) · [WETH9 contract fixture report](docs/ETHEREUM_CONTRACT_FIXTURE.md)
 
-[Getting started](docs/GETTING_STARTED.md) · [Project status](docs/PROJECT_STATUS.md) · [Roadmap](docs/ROADMAP.md) · [Threat model](docs/THREAT_MODEL_v0.1.md) · [Contributing](CONTRIBUTING.md)
+  [![CI](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml/badge.svg)](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml)
+  [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+  [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
+  [![Evidence Bundle v0.1](https://img.shields.io/badge/evidence--bundle-v0.1-informational.svg)](docs/EVIDENCE_BUNDLE_v0.1.md)
+  [![Status: Experimental](https://img.shields.io/badge/status-experimental-orange.svg)](docs/PROJECT_STATUS.md)
+</div>
 
 ---
 
-## The problem
+## The engineering problem
 
-Software projects lose trustworthy history when the machine, CI runner, agent, model runtime or local workspace disappears.
+A software release is supported by more than a Git commit. Its evidence may include build provenance, SBOMs, signatures, vulnerability results, deployment records and attestations. These objects are produced by different tools and retained in different systems.
 
-A Git commit proves that bytes existed in a repository. A blockchain transaction can prove that a commitment was anchored. Neither alone gives a complete, machine-verifiable answer to what project state was captured, what evidence supported it, which state came before it, whether a result was replayed/forked, or whether a fresh runtime can reconstruct the same history.
+That fragmentation makes a specific question difficult to answer later:
 
-**BOD connects those layers.**
+> **Can an independent operator reconstruct and verify which project state and evidence belonged to a release, how that state followed its predecessor, and whether the evidence bytes are still available — without depending on the original CI service?**
 
-## The product
+BOD explores a small, composable layer for that problem. It does not replace Git, SLSA, in-toto, Sigstore, SPDX, CycloneDX, or an evidence store. It records deterministic state commitments, links successive evidence states, and provides a portable package for the evidence bytes explicitly included in it.
 
-The blockchain is an **external anchor**, not a database for large evidence payloads.
+## What is implemented
 
-## Why this is useful
+| Capability | Current implementation |
+|---|---|
+| Deterministic project state | Git-tracked file manifest with content digests and Git-compatible file modes (snapshot v0.2) |
+| Evidence continuity | Versioned envelopes with predecessor references |
+| Branch-aware history | Graph verification reports forks and heads without choosing a canonical head |
+| Portable recovery | Evidence Bundle v0.1 carries referenced payload bytes and a checkpoint; verified extraction writes digest-named files and a manifest |
+| Independent verification | Separate verifier and CLI checks for integrity, completeness and lineage |
+| Evidence format inspection | Structural inspection for in-toto, SLSA, DSSE, CycloneDX and SPDX |
+| Signature verification | Delegation to the official `sigstore-python` tooling |
+| Optional Ethereum witness | Permissionless append-only checkpoint registry; commitments only |
+| EAS integration tooling | Schema and linked-attestation scripts; live registration has not been performed |
+| Ethereum release profile | Experimental JSON Schema v0.1, dependency-free structural validator, CLI, Reth client fixture and partial WETH9 mainnet deployment fixture with explicit gaps |
 
-- **Deterministic:** machine-specific runtime metadata is excluded from durable commitments.
-- **Lineage-aware:** state transitions form a verifiable chain and missing predecessors, forks and replayed roots are rejected.
-- **Evidence-native:** BOD references SLSA/in-toto, CycloneDX, Sigstore/Rekor and other evidence by digest instead of duplicating their payload formats.
-- **Runtime-independent:** verification can restart in a fresh process or on another machine.
-- **Anchor-agnostic:** external blockchain anchoring is a provider, not the definition of BOD.
+See the [technical overview](docs/ARCHITECTURE_OVERVIEW.md) for component boundaries, the [project status](docs/PROJECT_STATUS.md) for implementation limits, and the [grant technical brief](docs/GRANT_TECHNICAL_BRIEF.md) for a scoped Ethereum ecosystem proposal. Current grant-channel availability and readiness gaps are recorded in the [grant readiness assessment](docs/GRANT_READINESS.md).
 
-## Try it locally
+## A recovery experiment with real CI evidence
 
-No wallet. No blockchain account. No paid service.
+A public GitHub Actions run was used to test whether release evidence could be recovered and checked after the original local evidence copies were removed.
+
+<div align="center">
+
+| Snapshot | Recovered payloads | Payload bytes | Sigstore result |
+|---:|---:|---:|---|
+| 108 tracked files | 2 | 17,349 | **VALID** |
+
+</div>
+
+The experiment packaged a CycloneDX SBOM and a Sigstore bundle, deleted the original local evidence directory, extracted both payloads from the BOD bundle, verified bundle integrity, inspected the SBOM (37 components), and verified the Sigstore bundle offline against the expected GitHub workflow identity.
+
+This demonstrates one concrete recovery path. It does **not** establish broad interoperability, prove SBOM correctness, or show that BOD outperforms existing systems. Offline Sigstore verification used a local trust root; trust metadata freshness remains an operator responsibility.
+
+**Reproduce / inspect:** [experiment record](docs/VERIFICATION_EXPERIMENT.md) · [CI workflow](.github/workflows/ci.yml) · [latest workflow runs](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml)
+
+## How the pieces fit
+
+```text
+  SOURCE REPOSITORY                 EXISTING EVIDENCE TOOLS
+  Git-tracked project state         SLSA · in-toto · Sigstore
+             │                      SPDX · CycloneDX · CI
+             └──────────────┬──────────────────┘
+                            ▼
+                 DETERMINISTIC CHECKPOINT
+                 state root · evidence refs
+                 predecessor · sequence
+                            │
+                            ▼
+                  CONTINUITY / LINEAGE
+                  integrity · graph · forks
+                            │
+                 ┌──────────┴──────────┐
+                 ▼                     ▼
+          PORTABLE BUNDLE        OPTIONAL ETHEREUM
+          checkpoint + bytes     compact commitment
+          offline verification  public timestamped witness
+```
+
+The portable verification path does not require a wallet, token, RPC endpoint or BOD-operated service. Ethereum is an optional publication layer, not a dependency of the continuity core. Evidence payloads remain off-chain.
+
+## Quickstart
+
+Requirements: Python 3.11 or newer.
 
 ```bash
 git clone https://github.com/BogdanXI/Blockchain-BOD.git
 cd Blockchain-BOD
-python -m pip install -e .
+python3 -m pip install --editable ".[test,lint]"
 bod demo
 ```
 
-The demo creates three linked state transitions and verifies the complete chain.
-
-Create a deterministic repository state root:
+Capture and verify a repository checkpoint:
 
 ```bash
-bod snapshot . --out snapshot.json
+bod capture . --project my-project --out checkpoint.json
+bod verify checkpoint.json --portable
+python3 scripts/independent_verify.py checkpoint.json
 ```
 
-Verify an envelope or chain:
+Verify a collection of checkpoints as a graph, retaining visible forks rather than selecting a preferred branch:
 
 ```bash
-bod verify envelope.json
-bod verify chain.json --chain
+bod verify checkpoints.json --portable --graph
+python3 scripts/independent_verify.py checkpoints.json --graph
 ```
 
-Run the repository checks from a clean checkout:
+Validate the experimental Ethereum release profile fixture:
 
 ```bash
-python -m pip install pytest pyyaml
-python scripts/validate_public_surface.py
-python -m pytest -q
+bod profile-validate examples/ethereum-release-profile/reth-v2.11.0.json
+bod profile-validate examples/ethereum-release-profile/weth9-mainnet-2017-12-12.json
 ```
 
-Full walkthrough: [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
+This checks record structure only; it does not re-run cryptographic or chain verification. The WETH9 fixture records a real deployment and explicitly leaves unresolved source/build/runtime evidence as gaps; it is not a complete source-to-deployment proof. See the [profile specification](docs/ETHEREUM_RELEASE_PROFILE.md) and [fixture report](docs/ETHEREUM_CONTRACT_FIXTURE.md).
 
-## Architecture
+Create, verify and recover a self-contained evidence bundle:
 
-**BOD protocol validity is not the same thing as blockchain consensus, and a successful testnet transaction is not a production-security claim.**
+```bash
+bod capture . --project my-project --evidence evidence-refs.json --out checkpoint.json
+bod bundle-create checkpoint.json --payload <sha256-hex>=./provenance.json --out release-evidence.bundle.json
+bod bundle-verify release-evidence.bundle.json
+bod bundle-extract release-evidence.bundle.json --out-dir recovered-evidence
+```
 
-## Technology strategy
+Extraction verifies the bundle first, writes digest-named payload files and a mapping manifest, and refuses to overwrite an existing destination directory. See the [Evidence Bundle specification](docs/EVIDENCE_BUNDLE_v0.1.md).
 
-BOD composes mature technologies rather than rebuilding them:
+Run the local checks:
 
-- Git and content hashing for source identity;
-- deterministic canonical serialization for durable commitments;
-- SLSA/in-toto for provenance semantics;
-- CycloneDX for software inventory;
-- Sigstore/Rekor for transparency evidence;
-- EVM networks for independent external anchoring;
-- public or self-hosted CI for reproducible verification.
+```bash
+python3 scripts/validate_public_surface.py
+ruff check --select E4,E7,E9,F src scripts tests
+python3 -m pytest -q
+```
 
-The differentiating layer is the **continuity relationship** between state, evidence, lineage, external anchoring and fresh-runtime recovery.
+The optional Ethereum contract tests use [Foundry](https://getfoundry.sh/):
 
-## Cost strategy
+```bash
+forge test -vvv
+```
 
-The development stack is intentionally close to zero incremental infrastructure cost:
+For the complete installation and safety notes, see [Getting Started](docs/GETTING_STARTED.md).
 
-1. local deterministic verification is free;
-2. public CI executes the open-source test surface;
-3. a self-hosted runner can execute heavier experiments on existing hardware;
-4. external testnet anchors use test assets;
-5. production anchoring is optional and costed separately.
+## Design boundaries
 
-## Security model
+- **No new evidence format mandate.** BOD references existing evidence rather than redefining provenance or SBOM semantics.
+- **No canonical-head authority.** Forks remain visible; verification does not silently decide which branch is authoritative.
+- **No on-chain payload storage.** Ethereum records compact commitments, not source code, logs, SBOMs, secrets or personal data.
+- **No hosted-service dependency.** Local capture, bundle verification and independent checks are designed to run without a BOD server.
+- **No claim of semantic truth.** A matching digest establishes byte identity relative to a digest. It does not prove that a build was safe, a statement was truthful, or an SBOM was complete.
 
-BOD v0.1 is experimental. It does not claim production consensus security, censorship resistance, availability of external evidence, correctness of upstream evidence producers, economic finality, or that EVM inclusion makes a BOD transition valid.
+## Relationship to the ecosystem
 
-See [SECURITY.md](SECURITY.md).
+BOD is intended to compose with established tools, not displace them. Chainloop and Kosli provide evidence-management capabilities; Archivista stores and exposes in-toto attestations; GUAC aggregates supply-chain metadata; Git, SLSA, in-toto and Sigstore provide foundational source, provenance and transparency functions. BOD's hypothesis is narrower: portable, predecessor-linked continuity and recovery across successive evidence states.
 
-## Project status
+That differentiation remains a hypothesis until a reproducible, side-by-side evaluation demonstrates a material operational advantage. See the [competitive landscape](docs/COMPETITIVE_LANDSCAPE.md) and [product differentiation](docs/PRODUCT_DIFFERENTIATION.md).
 
-**Experimental / public engineering release**
+## Ethereum integration status
 
-BOD is not a production blockchain and does not claim a solved native consensus mechanism. See [the public roadmap](docs/ROADMAP.md) for evidence-gated milestones and [the project status](docs/PROJECT_STATUS.md) for the current verification boundary.
+The repository includes a minimal append-only Solidity checkpoint registry, Foundry tests, and EAS client tooling. The contract has no owner-controlled upgrade path, token, staking mechanism or canonical-head pointer.
 
-Implemented:
+**No Ethereum or Sepolia deployment is claimed. No EAS schema has been registered. No live attestation has been issued. The contract has not undergone an independent security audit.** Local tests are not an audit or a production-readiness claim.
 
-- deterministic state commitments;
-- Evidence Envelope v0.1;
-- canonical evidence ordering;
-- self-verifying envelope IDs;
-- predecessor-linked state history;
-- adversarial lineage verification;
-- local CLI;
-- reproducible test suite;
-- experimental external-anchor integration.
+Details: [Ethereum integration](docs/ETHEREUM_INTEGRATION.md) · [EAS integration](docs/EAS_INTEGRATION.md)
 
-Still gated:
+## Maturity and security
 
-- production economic policy;
-- production token launch;
-- native BOD network;
-- production security audit.
+**Status: experimental public engineering prototype — not production-secure.**
+
+The current evidence supports a working local prototype, a GitHub Actions/Sigstore recovery scenario and a recovery test using a real Reth v2.11.0 release asset. These tests do not yet support claims of production readiness, market demand, paying customers, broad interoperability or superiority over existing products. The next validation gate is a reproducible comparative benchmark and independent operator feedback.
+
+Review the [threat model](docs/THREAT_MODEL_v0.1.md), [privacy model](docs/PRIVACY_MODEL.md), [security policy](SECURITY.md), [reproducibility policy](docs/REPRODUCIBILITY.md), and [roadmap](docs/ROADMAP.md) before using the prototype with sensitive or production data.
 
 ## Repository map
 
-```text
-protocol/     protocol and chain-facing specifications
-src/          reference implementation and CLI
-tests/        executable verification
-docs/         product and architecture documentation
-economics/    experimental economic model
-experiments/ reproducible falsification work
-research/     public research and decision records
-scripts/      validation and experiment runners
-```
+- `src/` — active reference implementation and CLI. Historical task/economics modules remain for traceability but are excluded from the installed wheel; see [legacy components](docs/LEGACY_COMPONENTS.md).
+- `protocol/` — versioned protocol and Ethereum contract specifications.
+- `test/` and `tests/` — Solidity and Python regression tests.
+- `tools/eas/` — EAS client scripts; no live schema registration is claimed.
+- `docs/` — architecture, security, interoperability, experiments and grant brief.
+- `experiments/` — reproducible recovery experiments.
+- `research/` — technical decision records and research evidence.
+- `economics/` — archived token/economic experiments, explicitly outside active scope.
 
-## Design principle
+## Contributing
 
-> **Don't market the blockchain. Market the experiment.**
+Issues and focused pull requests are welcome. Please include a reproducible scenario, expected behavior, observed behavior and relevant test coverage. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-Every important claim should be backed by code, a reproducible experiment, an explicit invariant or independently verifiable evidence.
+## Grant context
+
+BOD is being prepared as a possible open-source Ethereum builder-tooling proposal. The current prototype is not a grant award, active pilot or production service. The Ethereum Foundation ESP currently lists no active Wishlist items, RFPs or open rounds. See the dated [grant readiness assessment](docs/GRANT_READINESS.md) and the [ESP alignment framework](docs/ESP_ALIGNMENT_FRAMEWORK.md); neither is an EF template, endorsement or claim of application readiness.
 
 ## License
 
 MIT — see [LICENSE](LICENSE).
-## Critical trust boundary
-
-BOD does **not** claim that a hash proves a statement is true.
-
-```
-VALID_INTEGRITY
-    !=
-SEMANTIC TRUTH
-    !=
-AVAILABILITY
-    !=
-EXTERNAL FINALITY
-```
-
-A `VALID_INTEGRITY` result means the declared bytes, commitments and lineage satisfy the verifier. It does not certify the correctness of the underlying claim, the honesty of the producer, or the availability of the referenced evidence.
-
-BOD deliberately composes existing standards instead of replacing them:
-
-- SLSA/in-toto: build/source provenance;
-- Sigstore/Rekor: signatures and transparency;
-- CycloneDX/SPDX: software inventory;
-- Git: source history.
-
-BOD's product hypothesis is narrower: **portable continuity across successive project states and independent reconstruction of that continuity after the original runtime disappears.**
-
-See [Why BOD Exists](docs/WHY_BOD_v0.1.md) and [Threat Model](docs/THREAT_MODEL_v0.1.md).
-
-## Independent verification
-
-The repository contains a second verifier that does not import the BOD implementation:
-
-```bash
-python scripts/independent_verify.py envelope.json
-python scripts/independent_verify.py chain.json --chain
-```
-
-This is an explicit defense against implementation self-confirmation.

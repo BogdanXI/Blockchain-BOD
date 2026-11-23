@@ -1,0 +1,85 @@
+name: Python distribution provenance
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+
+jobs:
+  build:
+    name: Build, test and attest Python distribution
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements-ci.txt
+
+      - name: Install hash-locked build and test toolchain
+        run: |
+          python -m pip install --require-hashes -r requirements-ci.txt
+
+      - name: Verify release tag version
+        if: github.event_name == 'push'
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          project_version="$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')"
+          test "$tag_version" = "$project_version"
+
+      - name: Run source validation
+        run: |
+          pip-audit --skip-editable
+          ruff check --select E4,E7,E9,F src scripts tests
+          python scripts/validate_public_surface.py
+          python -m pytest -q
+
+      - name: Build source distribution and wheel
+        run: python -m build --no-isolation --sdist --wheel --outdir dist
+
+      - name: Generate release build-environment SBOM
+        run: pip-audit --skip-editable --format cyclonedx-json -o dist/sbom-build-env.cdx.json
+
+      - name: Test installed wheel
+        run: |
+          python -m venv /tmp/bod-wheel-check
+          /tmp/bod-wheel-check/bin/python -m pip install --no-deps --no-build-isolation dist/*.whl
+          /tmp/bod-wheel-check/bin/bod --help
+          /tmp/bod-wheel-check/bin/python -m pip check
+
+      - name: Test installed source distribution
+        run: |
+          python -m pip install --no-deps --no-build-isolation --force-reinstall dist/*.tar.gz
+          bod --help
+          python -m pip check
+
+      - name: Attest distribution and SBOM provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: dist/*
+
+      - name: Verify distribution provenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for artifact in dist/*; do
+            gh attestation verify "$artifact" --repo "$GITHUB_REPOSITORY"
+          done
+
+      - name: Upload verified distribution artifacts
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: blockchain-bod-distribution
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 90

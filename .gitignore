@@ -10,3 +10,8 @@ build/
 coverage.xml
 htmlcov/
 .DS_Store
+# Node.js and Foundry build artifacts
+node_modules/
+out/
+cache/
+broadcast/

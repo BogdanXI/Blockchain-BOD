@@ -7,37 +7,28 @@ POLICY = ROOT / "protocol" / "genesis" / "BOD_TOKEN_POLICY_v0.1.yml"
 READINESS = ROOT / "protocol" / "TESTNET_READINESS_v0.1.yml"
 
 
-def test_candidate_supply_and_founder_boundary_match_policy():
+def test_historical_token_policy_remains_an_unapproved_candidate():
     doc = yaml.safe_load(POLICY.read_text(encoding="utf-8"))
-    genesis = doc["genesis"]
-
+    assert doc["status"] == "candidate_not_final"
     assert doc["token"]["max_supply"] == 100_000_000
-    assert genesis["minted_supply"] == 25_000_000
-    assert genesis["founder_preallocation"] == 5_000_000
-    assert genesis["founder_preallocation_share_bps"] == 500
-    assert genesis["initial_circulation_allocation"] == 20_000_000
-    assert genesis["founder_preallocation"] + genesis["initial_circulation_allocation"] == genesis["minted_supply"]
+    assert doc["genesis"]["minted_supply"] == 25_000_000
+    assert doc["genesis"]["founder_preallocation"] == 5_000_000
+    assert doc["genesis"]["unissued_issuance_capacity"] == 75_000_000
 
 
-def test_unissued_capacity_is_not_an_account_balance():
-    doc = yaml.safe_load(POLICY.read_text(encoding="utf-8"))
-    genesis = doc["genesis"]
-
-    assert genesis["unissued_issuance_capacity"] == 75_000_000
-    assert genesis["minted_supply"] + genesis["unissued_issuance_capacity"] == 100_000_000
-    assert genesis["issuance_capacity_is_not_an_account_balance"] is True
-    assert genesis["founder_preallocation"] == 5_000_000
-
-
-def test_ethereum_is_optional_and_not_a_production_or_native_network():
+def test_ethereum_is_the_primary_testnet_target_and_not_deployed():
     doc = yaml.safe_load(READINESS.read_text(encoding="utf-8"))
-
-    assert doc["network"]["profile"] == "ethereum-sepolia-checkpoint-witness"
+    assert doc["network"]["profile"] == "ethereum-sepolia-checkpoint-registry"
     assert doc["network"]["chain_id"] == 11155111
-    assert doc["network"]["native_bod_network"] is False
     assert doc["network"]["production"] is False
     assert doc["network_scope"]["policy"] == "ethereum_l1_only"
     assert doc["network_scope"]["l2_adapters"] == "out_of_scope"
+    assert doc["surfaces"]["ethereum_sepolia_deployment"]["status"] == "not_deployed"
+    assert doc["surfaces"]["eas_sdk_integration"]["status"] == "source_implemented_ci_verified_not_live_validated_schema_not_registered"
+    assert doc["surfaces"]["ethereum_contract_tests"]["status"] == "implemented_ci_verified_not_deployed"
+    assert "deterministic_state_machine" not in doc["surfaces"]
+    assert doc["historical_research"]["task_to_settlement_protocol"]["status"] == "archived_experimental_not_active"
+    assert doc["historical_research"]["token_policy"]["status"] == "archived_experimental_not_active"
     assert doc["launch_gate"]["decision"] == "blocked"
     assert "ethereum_mainnet_deployment" in doc["launch_gate"]["prohibited_now"]
     assert doc["native_bod_network"]["status"] == "not_ready"
