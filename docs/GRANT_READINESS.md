@@ -34,7 +34,7 @@ ESP describes support for work that strengthens Ethereum and enables builders, w
 | EAS | SDK scripts and local smoke checks | Schema not registered; no live attestation; issuer policy needs independent review |
 | Ethereum release profile | Experimental JSON Schema, structural validator, CLI, Reth client fixture and partial WETH9 mainnet deployment fixture | Resolve exact source lineage; add complete build/test/audit/bytecode/upgrade evidence and native verification |
 | Interoperability | Structural inspection and delegated Sigstore verification | Broader real fixtures and format-specific verifiers |
-| Competitive differentiation | Competitor landscape documented | Reproducible side-by-side benchmark against Git + SLSA/in-toto + Sigstore and relevant evidence tools |
+| Competitive differentiation | Competitor landscape documented; one WETH9 payload-recovery comparison against tar.gz (BOD gzip 21,285 bytes; tar.gz 14,724 bytes) | Reproducible multi-release benchmark against Git + SLSA/in-toto + Sigstore and relevant evidence platforms |
 | User demand | No independently documented users, pilots or expressed team interest | Interviews, design-partner feedback or reproducible operator evaluations |
 | Security | Threat model and automated tests | Independent protocol and Solidity review; resolve critical/high findings |
 | Grant proposal | Technical brief prepared | Match an active Wishlist/RFP, cost milestones, establish contributor roles and confirm applicant details |
@@ -44,7 +44,7 @@ ESP describes support for work that strengthens Ethereum and enables builders, w
 The repository contains real, bounded experiments:
 - GitHub Actions-generated CycloneDX SBOM and Sigstore bundle were packaged, recovered and checked offline under the documented trust-root conditions.
 - A Reth v2.11.0 release archive and associated release evidence were recovered from a BOD bundle and independently checked with GPG.
-- A WETH9 mainnet deployment fixture captures transaction/block facts, compiler metadata and Sourcify compiler/source metadata (match classification not retained); a temporary BOD bundle containing two selected evidence payloads passed both BOD and separate independent verification after original payload deletion and extraction.
+- A WETH9 mainnet deployment fixture captures transaction/block facts, compiler metadata and Sourcify source/compiler metadata (match classification not retained); a temporary BOD bundle containing two selected evidence payloads passed both BOD and separate independent verification after original payload deletion and extraction. A one-sample tar.gz baseline recovered the same payloads and was 44.5% smaller than gzip-compressed BOD JSON.
 - Python regression tests, Ruff, public-surface validation, CLI smoke checks, JSON Schema validation and npm production dependency audit have passed locally in the current working environment.
 
 These results do not constitute:

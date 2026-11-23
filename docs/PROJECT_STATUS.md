@@ -19,7 +19,7 @@
 - Independent verifier that does not import the BOD implementation, with tests for current and legacy snapshot formats.
 - Structural inspection for in-toto Statement v1, SLSA provenance v1, DSSE envelope shape, CycloneDX JSON and SPDX JSON 2.x.
 - Delegation to official sigstore-python for selected identity and GitHub artifact-attestation verification.
-- One documented GitHub Actions/SBOM/Sigstore recovery experiment, one documented Reth v2.11.0 release-evidence recovery experiment, and a WETH9 contract deployment fixture with a temporary two-payload BOD bundle recovery test.
+- One documented GitHub Actions/SBOM/Sigstore recovery experiment, one documented Reth v2.11.0 release-evidence recovery experiment, and a WETH9 contract deployment fixture with a temporary two-payload BOD bundle recovery test and one tar.gz size/recovery baseline comparison.
 - Experimental Ethereum Release Profile v0.1 JSON Schema, dependency-free structural validator, `bod profile-validate` CLI command, a Reth v2.11.0 client-release fixture, and a WETH9 mainnet deployment fixture with explicit source/build/runtime gaps.
 - Solidity checkpoint registry source with Foundry unit/fuzz tests and a CI test job configured.
 - EAS schema-registration and linked-attestation scripts, including clean-checkout and current-snapshot checks, a fixed Sepolia chain guard, parent-attestation checks, and both EAS and portable checkpoint identifiers.
@@ -39,7 +39,8 @@ The following checks passed locally on the current working branch:
 - npm production dependency audit (zero reported vulnerabilities);
 - `bod profile-validate` for both Reth and WETH9 fixtures;
 - Draft 2020-12 JSON Schema validation of both fixtures using system `jsonschema` 4.19.2;
-- temporary WETH9 evidence-bundle creation, BOD verification, independent verification, deletion of original payloads, extraction and SHA-256 recovery checks.
+- temporary WETH9 evidence-bundle creation, BOD verification, independent verification, deletion of original payloads, extraction and SHA-256 recovery checks;
+- one WETH9 tar.gz baseline comparison: 21,285-byte gzip-compressed BOD bundle versus 14,724-byte tar.gz, both recovered and digest-checked.
 
 The workstation's active Python interpreter is 3.14.4; the declared CI support matrix remains Python 3.11, 3.12 and 3.13. GitHub Actions run [45264184657](https://github.com/BogdanXI/Blockchain-BOD/actions/runs/45264184657) passed on code commit `72ab433c1c34968093b65fe042e5c45b337d979e`: Python 3.11, 3.12, 3.13, Ethereum Solidity tests and EAS tooling all succeeded. Foundry is not installed in the workstation environment, so Solidity tests were validated remotely. Any later code or workflow changes require a fresh CI run.
 

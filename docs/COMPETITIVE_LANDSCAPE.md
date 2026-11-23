@@ -1,7 +1,8 @@
 # Competitive landscape: software supply-chain evidence
 
-**Research snapshot:** 22 November 2026  
-**Purpose:** identify direct substitutes and define a defensible comparison boundary. This is a public-documentation review, not a hands-on benchmark or market-share study.
+**Research snapshot:** 24 November 2026
+
+**Purpose:** identify direct substitutes and define a defensible comparison boundary. This is primarily a public-documentation review, supplemented by one narrow WETH9 payload-recovery/archive-size comparison; it is not a hands-on benchmark of competing products or a market-share study.
 
 ## Direct and adjacent products
 
@@ -66,6 +67,12 @@ Compare at least:
 - BOD with and without Ethereum anchoring.
 
 Publish exact versions, configuration, scripts, raw non-sensitive results and negative findings. Do not claim BOD wins unless the measurements show it.
+
+## First narrow baseline result: WETH9 payload recovery
+
+A single WETH9 fixture run compared a BOD self-contained JSON bundle with a plain `tar.gz` containing the same two evidence payloads, a JSON manifest and SHA-256SUMS. The payloads totalled 40,772 bytes. The BOD JSON was 56,804 bytes (21,285 bytes after gzip); the tar.gz baseline was 14,724 bytes. Both paths recovered the payloads and passed their respective digest checks. The compressed BOD bundle was 44.5% larger in this sample.
+
+This does not establish a performance disadvantage across workloads, but it rules out a storage-size advantage in this sample. The BOD bundle carries a checkpoint and typed evidence references that the plain archive does not. The test used one genesis checkpoint and did not exercise predecessor chains or forks. It did not test Chainloop, Kosli, Archivista or GUAC. See the [WETH9 fixture report](ETHEREUM_CONTRACT_FIXTURE.md).
 
 ## Product boundary after this review
 

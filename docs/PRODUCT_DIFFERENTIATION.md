@@ -58,6 +58,7 @@ Implemented in the current public branch:
 - local Foundry tests, including fuzz tests;
 - EAS SDK client scripts and CI syntax/smoke checks;
 - CI-generated SBOMs and GitHub artifact attestations for build outputs.
+- One WETH9 payload-recovery comparison: a BOD bundle (21,285 bytes after gzip) recovered the same two evidence payloads as a tar.gz + manifest + SHA256SUMS baseline (14,724 bytes). Both digest checks passed; BOD was 44.5% larger in this single sample. The result does not support a storage-size advantage and does not test competing evidence platforms or multi-release lineage.
 
 Not yet demonstrated:
 

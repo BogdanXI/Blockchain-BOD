@@ -118,13 +118,28 @@ This was a loss-of-origin simulation using a temporary local Git repository and 
 
 The bundle verifier reported `semantic_truth: NOT_ASSERTED`, `bundle_authenticity: NOT_ASSERTED` and `repository_source: NOT_INCLUDED`. The experiment proves selected payload recovery and digest integrity only. It does not prove that the candidate source produced the deployed bytecode or restore the upstream repository working tree.
 
-## 9. Reproduction and cost boundary
+## 9. Single-sample archive baseline comparison
+
+A second temporary run compared the same two evidence payloads with a plain archive baseline. The baseline tarball contained the candidate source file, current runtime-code observation, a JSON evidence manifest and a SHA-256SUMS file. Both paths were recovered and checked:
+
+| Format | Size |
+|---|---:|
+| Raw evidence payloads | 40,772 bytes |
+| BOD self-contained JSON bundle | 56,804 bytes |
+| BOD JSON compressed with gzip -9 | 21,285 bytes |
+| tar.gz with manifest and SHA256SUMS | 14,724 bytes |
+
+The compressed BOD bundle was **44.5% larger** than the tar.gz baseline in this sample. Both BOD bundle verification/extraction and tar extraction plus `sha256sum -c` succeeded. The BOD bundle additionally carries the checkpoint, snapshot commitment and typed evidence references; the tar baseline does not encode BOD predecessor/fork semantics. This fixture used a genesis checkpoint only, so it did not measure multi-release lineage or fork reconstruction.
+
+This is one small payload-size/recovery comparison, not a performance benchmark. No elapsed-time measurement was taken, and no Chainloop, Kosli, Archivista or GUAC workflow was tested. The result does not support a storage-size advantage for BOD. It reinforces the intended boundary: BOD's possible value is checkpoint continuity and explicit evidence relationships, not replacing efficient archive formats.
+
+## 10. Reproduction and cost boundary
 
 All observations used for this fixture are public read-only records. No paid RPC/API subscription, wallet, ETH, transaction, contract deployment, EAS schema registration or attestation was used. The fixture itself is locally structurally validated by `bod profile-validate` and validated against the Draft 2020-12 JSON Schema.
 
 Sourcify's API guidance requests single-contract lookups, reuse of responses, descriptive User-Agent values and exponential backoff on errors. No bulk query or crawl was performed. The WETH9 fixture uses one contract record; a separate single-contract lookup was used to inspect one alternative candidate during fixture selection.
 
-## 10. Sources
+## 11. Sources
 
 - [Sourcify Server API v2 documentation](https://docs.sourcify.dev/docs/api/)
 - [Sourcify WETH9 contract record](https://sourcify.dev/server/v2/contract/1/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2?fields=deployment,compilation,metadata,sources,creationMatch,runtimeMatch,verifiedAt,proxyResolution)
