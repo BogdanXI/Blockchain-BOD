@@ -1,7 +1,7 @@
 # Ethereum Foundation ESP alignment framework
 
 - **Document type:** public pre-application readiness framework
-- **Assessment date:** 22 November 2026
+- **Assessment date:** 24 November 2026
 - **Programme:** Ethereum Foundation Ecosystem Support Program (ESP)
 - **Application status:** not submitted; no matching active opportunity identified
 - **Authority:** the official ESP applicant guidance is controlling. This document is a project-side evidence map, not an EF template, endorsement, eligibility decision or prediction of funding.
@@ -49,7 +49,7 @@ The descriptions below track the official ESP applicant page. The BOD assessment
 
 | Published factor | What the proposal must establish | Current BOD evidence | Current assessment | Evidence still needed |
 |---|---|---|---|---|
-| **Technical approach** | Soundness, feasibility and clarity of methodology and implementation plan | Working Python prototype; deterministic snapshots; predecessor-linked continuity; portable evidence bundles; independent verifier; Solidity registry source/tests; experimental Ethereum release profile; CI | **Partially demonstrated.** Real engineering exists, but the Ethereum contract/release use case and independent review are incomplete | Complete public smart-contract release/upgrade fixture; clean-room reproduction; adversarial tests; independent protocol/contract review; reproducible benchmark |
+| **Technical approach** | Soundness, feasibility and clarity of methodology and implementation plan | Working Python prototype; deterministic snapshots; predecessor-linked continuity; portable evidence bundles; independent verifier; Solidity registry source/tests; experimental Ethereum release profile; Reth client fixture; WETH9 mainnet deployment fixture with 12 explicit gaps; CI | **Partially demonstrated.** Deployment facts and Sourcify compiler/source metadata are captured, and two selected evidence payloads were recovered from a temporary BOD bundle; exact source revision, historical runtime bytecode and original build provenance remain unresolved; independent review is incomplete | Resolve source-to-deployment lineage or characterize the mismatch; add a second traceable contract/upgrade fixture; clean-room reproduction; adversarial tests; independent review; comparative benchmark |
 | **Ecosystem impact** | Potential benefit to Ethereum and alignment with ecosystem priorities | Proposed use for Ethereum client, infrastructure and smart-contract release evidence | **Not independently demonstrated.** Target users and benefit remain hypotheses | Interviews or structured feedback from Ethereum maintainers/builders; documented workflow pain; measurable impact and adoption/reproduction evidence |
 | **Open source** | Outputs open-source or otherwise freely available; grant-funded work accessible to community | Public MIT-licensed repository, specifications, tests and implementation | **Strong structural fit, subject to scope confirmation.** Confirm all funded outputs, dependencies, assets and contributions can be published under compatible terms | Deliverable-level licensing plan; third-party license review; contributor/IP authority; public issue/milestone and release plan |
 | **Budget** | Cost-effectiveness and appropriate allocation; ESP notes flexibility below standard market rates for non-dilutive support | Local-first design and zero-cost testing constraints; no paid RPC or hosted BOD service required for core validation | **Not demonstrated.** No costed grant budget or effort estimate exists | Work-package estimates, contributor rates/effort, infrastructure costs, milestone payment schedule and explanation of cost-effectiveness |
@@ -113,9 +113,9 @@ These gates are project due diligence, not additional official ESP criteria.
 
 | Gate | Pass condition | Current state |
 |---|---|---|
-| G0 — Opportunity match | A live Wishlist/RFP/open round exists and the proposed scope maps to its stated requirements | **Blocked:** no active item listed on 22 November 2026 |
+| G0 — Opportunity match | A live Wishlist/RFP/open round exists and the proposed scope maps to its stated requirements | **Blocked:** no active item listed on 24 November 2026 |
 | G1 — Problem validation | Specific Ethereum users confirm the workflow and its significance; feedback is documented | **Open:** no independently documented user validation |
-| G2 — Ethereum case | At least one public contract lifecycle fixture is reproducible end-to-end, with explicit gaps and trust boundaries | **Open:** current real fixture is a Reth client release, not a contract deployment/upgrade |
+| G2 — Ethereum case | At least one public contract lifecycle fixture is reproducible end-to-end, with explicit gaps and trust boundaries | **Partially advanced, not passed:** WETH9 deployment, block, compiler metadata and Sourcify metadata are recorded, but the match classification was not retained; two selected payloads passed temporary bundle recovery; exact source commit, historical runtime bytecode and full build/test/audit lineage remain unresolved |
 | G3 — Comparative result | Reproducible head-to-head baseline test shows where BOD helps, where it does not, and operational cost | **Open:** no published comparative benchmark |
 | G4 — Independent reproduction | An external operator can reproduce the documented procedure without project-maintainer intervention | **Open:** not yet demonstrated |
 | G5 — Security confidence | Independent review findings are recorded and critical/high issues resolved before any production/deployment claim | **Open:** no independent audit/review |
@@ -130,7 +130,7 @@ Do not treat all gates as equally blocking at every stage. G0 blocks a direct ap
 |---|---|---|
 | Core implementation exists | [README](../README.md), [Project status](PROJECT_STATUS.md) | Prototype and documented boundaries; not production readiness |
 | Portable recovery was exercised | [Verification experiment](VERIFICATION_EXPERIMENT.md) | Two bounded recovery scenarios; not broad interoperability or market demand |
-| Ethereum release profile exists | [Profile specification](ETHEREUM_RELEASE_PROFILE.md), [Reth fixture](../examples/ethereum-release-profile/reth-v2.11.0.json) | Experimental client-release record and structural validation; not a smart-contract lifecycle fixture |
+| Ethereum release profile exists | [Profile specification](ETHEREUM_RELEASE_PROFILE.md), [Reth fixture](../examples/ethereum-release-profile/reth-v2.11.0.json), [WETH9 fixture](../examples/ethereum-release-profile/weth9-mainnet-2017-12-12.json), [contract fixture report](ETHEREUM_CONTRACT_FIXTURE.md) | Experimental client-release and partial contract-deployment records; WETH9 has 12 explicit gaps and is not a complete lifecycle reproduction |
 | Competitive analysis exists | [Competitive landscape](COMPETITIVE_LANDSCAPE.md) | Identified products and test design; not superiority |
 | User need remains unvalidated | [Market fit](MARKET_FIT.md) | Public problem hypothesis and validation plan; not confirmed demand |
 | CROPS commitments exist | [CROPS alignment](CROPS_COMPLIANCE.md) | Project policy and self-assessment; not EF certification |
@@ -151,7 +151,7 @@ Do not treat all gates as equally blocking at every stage. G0 blocks a direct ap
 
 ## 10. Official sources
 
-All programme status statements above were checked against these official pages on 22 November 2026:
+All programme status statements above were checked against these official pages on 24 November 2026:
 
 - [ESP applicants: scope, process, selection factors and FAQ](https://esp.ethereum.foundation/applicants)
 - [ESP About](https://esp.ethereum.foundation/about)
@@ -164,4 +164,5 @@ All programme status statements above were checked against these official pages 
 
 ## 11. Review history
 
-- 2026-11-22 — Created from a live review of official ESP applicant, scope, Wishlist, RFP, Open Rounds, Office Hours and funded-project pages, and mapped to the current public BOD evidence.
+- 2026-11-22 — Initial framework created from a live review of official ESP applicant, scope, Wishlist, RFP, Open Rounds, Office Hours and funded-project pages.
+- 2026-11-24 — Rechecked live Wishlist, RFP, Open Rounds and Office Hours pages; updated G2 after capturing the WETH9 mainnet deployment fixture and its unresolved source/build/runtime evidence gaps.

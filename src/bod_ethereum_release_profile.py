@@ -51,16 +51,26 @@ def _digest(value: Any, field: str) -> str:
     return text
 
 
-def _compiler(value: Any, field: str) -> dict:
+def _compiler(value: Any, field: str) -> list[str]:
     item = _object(
         value, field,
         {"name", "version", "settings_digest", "input_digest", "bytecode_digest", "abi_digest"},
     )
     for key in ("name", "version"):
         _string(item[key], f"{field}.{key}", 256)
-    for key in ("settings_digest", "input_digest", "bytecode_digest", "abi_digest"):
-        _digest(item[key], f"{field}.{key}")
-    return item
+    missing = []
+    gap_types = {
+        "settings_digest": "compiler-settings",
+        "input_digest": "compiler-input",
+        "bytecode_digest": "compiler-bytecode",
+        "abi_digest": "compiler-abi",
+    }
+    for key, gap_type in gap_types.items():
+        if item[key] is None:
+            missing.append(gap_type)
+        else:
+            _digest(item[key], f"{field}.{key}")
+    return missing
 
 
 def validate_release_profile(value: Any) -> dict[str, Any]:
@@ -91,10 +101,15 @@ def validate_release_profile(value: Any) -> dict[str, Any]:
         raise ReleaseProfileError("release.kind is unsupported")
     if type(release["sequence"]) is not int or release["sequence"] < 0:
         raise ReleaseProfileError("release.sequence must be a non-negative integer")
-    if not isinstance(release["source_commit"], str) or not _COMMIT.fullmatch(release["source_commit"]):
-        raise ReleaseProfileError("release.source_commit must be a full lowercase Git commit ID")
-    if not isinstance(release["source_tree"], str) or not _TREE.fullmatch(release["source_tree"]):
-        raise ReleaseProfileError("release.source_tree must use sha1:<hex> or sha256:<hex>")
+    required_gap_types = []
+    if release["source_commit"] is None:
+        required_gap_types.append("source-commit")
+    elif not isinstance(release["source_commit"], str) or not _COMMIT.fullmatch(release["source_commit"]):
+        raise ReleaseProfileError("release.source_commit must be null or a full lowercase Git commit ID")
+    if release["source_tree"] is None:
+        required_gap_types.append("source-tree")
+    elif not isinstance(release["source_tree"], str) or not _TREE.fullmatch(release["source_tree"]):
+        raise ReleaseProfileError("release.source_tree must be null or use sha1:<hex> or sha256:<hex>")
 
     predecessor = document["predecessor"]
     if predecessor is not None:
@@ -107,10 +122,16 @@ def validate_release_profile(value: Any) -> dict[str, Any]:
     build = document["build"]
     if build is not None:
         build = _object(build, "build", {"builder_id", "provenance_digest", "compiler"})
-        _uri(build["builder_id"], "build.builder_id")
-        _digest(build["provenance_digest"], "build.provenance_digest")
+        if build["builder_id"] is None:
+            required_gap_types.append("builder-identity")
+        else:
+            _uri(build["builder_id"], "build.builder_id")
+        if build["provenance_digest"] is None:
+            required_gap_types.append("build-provenance")
+        else:
+            _digest(build["provenance_digest"], "build.provenance_digest")
         if build["compiler"] is not None:
-            _compiler(build["compiler"], "build.compiler")
+            required_gap_types.extend(_compiler(build["compiler"], "build.compiler"))
 
     deployment = document["deployment"]
     contract_release = release["kind"] in {"contract-deployment", "contract-upgrade"}
@@ -134,7 +155,10 @@ def validate_release_profile(value: Any) -> dict[str, Any]:
             raise ReleaseProfileError("deployment.block_number must be a non-negative integer")
         if not isinstance(deployment["contract_address"], str) or not _ADDRESS.fullmatch(deployment["contract_address"]):
             raise ReleaseProfileError("deployment.contract_address must be a 20-byte 0x address")
-        _digest(deployment["runtime_bytecode_digest"], "deployment.runtime_bytecode_digest")
+        if deployment["runtime_bytecode_digest"] is None:
+            required_gap_types.append("deployment-runtime-bytecode")
+        else:
+            _digest(deployment["runtime_bytecode_digest"], "deployment.runtime_bytecode_digest")
         finality = _object(deployment["finality"], "deployment.finality", {"status", "observed_at", "source"})
         finality_statuses = {"NOT_CHECKED", "SAFE", "FINALIZED", "REORGED", "UNKNOWN"}
         if not isinstance(finality["status"], str) or finality["status"] not in finality_statuses:
@@ -153,11 +177,15 @@ def validate_release_profile(value: Any) -> dict[str, Any]:
         elif observed_at is not None or finality_source is not None:
             raise ReleaseProfileError("unchecked or unknown finality must use null observed_at and source")
         source_verification = deployment.get("source_verification")
-        if source_verification is not None:
+        if source_verification is None:
+            required_gap_types.append("sourcify-match-classification")
+        else:
             source_verification = _object(source_verification, "deployment.source_verification", {"provider", "reference", "match_type"})
             _string(source_verification["provider"], "deployment.source_verification.provider", 128)
             _uri(source_verification["reference"], "deployment.source_verification.reference")
-            if not isinstance(source_verification["match_type"], str) or source_verification["match_type"] not in {"exact_match", "match"}:
+            if source_verification["match_type"] is None:
+                required_gap_types.append("sourcify-match-classification")
+            elif not isinstance(source_verification["match_type"], str) or source_verification["match_type"] not in {"exact_match", "match"}:
                 raise ReleaseProfileError("deployment.source_verification.match_type is unsupported")
     elif deployment is not None:
         raise ReleaseProfileError("deployment data is only valid for contract-deployment or contract-upgrade releases")
@@ -201,6 +229,12 @@ def validate_release_profile(value: Any) -> dict[str, Any]:
         if gap_type in seen_gaps:
             raise ReleaseProfileError("duplicate gap type")
         seen_gaps.add(gap_type)
+
+    undeclared_missing = sorted(set(required_gap_types) - seen_gaps)
+    if undeclared_missing:
+        raise ReleaseProfileError(
+            f"missing explicit gap records for unavailable fields: {undeclared_missing}"
+        )
 
     witnesses = _object(document["witnesses"], "witnesses", {"ethereum_registry_checkpoint", "eas_attestation_uid"})
     registry = witnesses["ethereum_registry_checkpoint"]

@@ -220,3 +220,33 @@ def test_contract_deployment_requires_explicit_finality_observation() -> None:
     }
     with pytest.raises(ReleaseProfileError, match="must include a timezone"):
         validate_release_profile(profile)
+
+
+def test_weth9_public_contract_fixture_preserves_unavailable_evidence_as_gaps() -> None:
+    path = ROOT / "examples/ethereum-release-profile/weth9-mainnet-2017-12-12.json"
+    profile = json.loads(path.read_text(encoding="utf-8"))
+    result = validate_release_profile(profile)
+    assert result["status"] == "VALID_PROFILE_STRUCTURE"
+    assert result["release_kind"] == "contract-deployment"
+    assert result["deployment_present"] is True
+    assert result["declared_gaps"] == 12
+    assert profile["deployment"]["source_verification"]["provider"] == "Sourcify"
+    assert profile["deployment"]["source_verification"]["match_type"] is None
+    assert any(g["type"] == "sourcify-match-classification" for g in profile["gaps"])
+    assert profile["deployment"]["runtime_bytecode_digest"] is None
+
+
+def test_unknown_profile_fields_require_matching_explicit_gap_records() -> None:
+    path = ROOT / "examples/ethereum-release-profile/weth9-mainnet-2017-12-12.json"
+    profile = json.loads(path.read_text(encoding="utf-8"))
+    profile["gaps"] = [g for g in profile["gaps"] if g["type"] != "compiler-input"]
+    with pytest.raises(ReleaseProfileError, match="missing explicit gap records"):
+        validate_release_profile(profile)
+
+
+def test_missing_sourcify_classification_requires_an_explicit_gap() -> None:
+    path = ROOT / "examples/ethereum-release-profile/weth9-mainnet-2017-12-12.json"
+    profile = json.loads(path.read_text(encoding="utf-8"))
+    profile["gaps"] = [g for g in profile["gaps"] if g["type"] != "sourcify-match-classification"]
+    with pytest.raises(ReleaseProfileError, match="missing explicit gap records"):
+        validate_release_profile(profile)

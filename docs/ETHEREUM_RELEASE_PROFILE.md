@@ -4,7 +4,7 @@
 
 **Profile identifier:** bod-ethereum-release-profile-v0.1
 
-**Prepared:** 22 November 2026
+**Prepared:** 24 November 2026
 
 **Depends on:** BOD Evidence Envelope v0.1 and Evidence Bundle v0.1
 
@@ -16,7 +16,7 @@ This profile proposes a consistent way to associate the evidence for an Ethereum
 
 The goal is to make the release record portable and independently inspectable across changes in CI providers, artifact stores and maintainers. The profile does not replace the native formats or trust systems that produce the evidence.
 
-The profile remains experimental. A versioned JSON Schema, a dependency-free Python structural validator, a CLI command and a public Reth v2.11.0 fixture are now present. This does not yet implement build-system adapters, compiler capture, chain-state verification, Sourcify verification or a production integration.
+The profile remains experimental. A versioned JSON Schema, a dependency-free Python structural validator, a CLI command, a public Reth v2.11.0 client-release fixture and a partial WETH9 mainnet contract-deployment fixture with explicit missing-evidence gaps are now present. This does not yet implement build-system adapters, compiler capture, chain-state verification, Sourcify verification or a production integration.
 
 ## 2. Design requirements
 
@@ -67,19 +67,19 @@ The top-level record contains:
 |---|---|---|
 | `profile` | Exact profile identifier | Version dispatch |
 | `project` | Stable project ID, project kind, repository URI | Project namespace |
-| `release` | Release label/kind, local sequence, full source commit and Git tree ID | Immutable source identity and BOD lineage position |
+| `release` | Release label/kind, local sequence, source commit and Git tree ID; commit/tree may be null only with matching gap records | Immutable source identity when established, plus BOD lineage position |
 | `predecessor` | Null or prior release label plus checkpoint ID | Explicit release continuity |
-| `build` | Null or builder URI, provenance digest and optional compiler record | Build context; compiler is mandatory for contract deployments/upgrades |
-| `deployment` | Null or chain ID, transaction/block IDs, block number, contract address and runtime-code digest | Chain-specific deployment reference |
+| `build` | Null or builder identity, provenance digest and compiler record; unavailable builder/provenance fields may be null only with matching gap records | Build context; compiler metadata is mandatory for contract deployments/upgrades, but unavailable compiler digests must remain explicit gaps |
+| `deployment` | Null or chain ID, transaction/block IDs, block number, contract address and runtime-code digest; unavailable historical runtime digest may be null only with a gap | Chain-specific deployment reference |
 | `evidence` | Typed SHA-256 references, media types, optional URI/issuer and verification status | Evidence inventory |
 | `gaps` | Typed missing/unavailable/unverified/invalid items with reasons | Explicit incompleteness |
 | `witnesses` | Optional BOD registry checkpoint and EAS attestation UID | External witness references |
 
 The `release.sequence` is a non-negative sequence within the BOD continuity history being represented. It is not inferred from a semantic version or claimed to be a project's global release number. A single-release fixture may use sequence 1 with a null predecessor because it is the first record in that fixture's local lineage.
 
-For `contract-deployment` and `contract-upgrade` records, the validator requires a smart-contract project, compiler metadata, and deployment identifiers. Ethereum client releases do not fabricate contract or compiler deployment fields.
+For `contract-deployment` and `contract-upgrade` records, the validator requires a smart-contract project, compiler metadata, and deployment identifiers. It permits unavailable source commit/tree, builder/provenance and compiler/deployment digests only when each unavailable field has a matching explicit gap record. This prevents the profile from forcing fabricated historical provenance. Ethereum client releases do not fabricate contract or compiler deployment fields.
 
-The Reth fixture is a real public release reference populated from the documented recovery experiment. It intentionally records the binary-to-source relationship and SLSA provenance as gaps. The fixture's structural validity does not re-run GPG or independently re-verify the release asset. See [Verification Experiment](VERIFICATION_EXPERIMENT.md) for the actual GPG result and its limitations.
+The Reth fixture is a real public release reference populated from the documented recovery experiment. It intentionally records the binary-to-source relationship and SLSA provenance as gaps. The [WETH9 mainnet fixture](../examples/ethereum-release-profile/weth9-mainnet-2017-12-12.json) records a real deployment, Sourcify compiler/source metadata with its match classification explicitly marked as unavailable, and a finalized block reference while leaving the exact source revision, original build provenance and historical runtime-bytecode digest unresolved. See the [contract fixture report](ETHEREUM_CONTRACT_FIXTURE.md) for the evidence and hash comparison. Structural validity does not re-run GPG, independently re-verify Sourcify, or query Ethereum.
 
 ## 5. Required semantics
 
@@ -101,6 +101,7 @@ The Reth fixture is a real public release reference populated from the documente
 - Evidence verification states are `NOT_CHECKED`, `VALID`, `INVALID` and `UNAVAILABLE`; `VALID` and `INVALID` entries require a `verification_method` description.
 - A `VALID` value is a recorded upstream-verifier result, not a result produced by `bod profile-validate`; consumers must inspect the method, identity policy and original verification output.
 - Missing-evidence gap states are `NOT_PROVIDED`, `NOT_CHECKED`, `UNAVAILABLE` and `INVALID`.
+- A null or absent Sourcify classification must be represented by a `sourcify-match-classification` gap; do not infer `exact_match` or `match` from the presence of a source record.
 - A bundle is self-contained only for payload bytes actually included and successfully verified.
 
 ### 5.3 Trust and verification
@@ -177,18 +178,20 @@ A comparative baseline must use the project's existing Git, CI, provenance, sign
 | Independent bundle/checkpoint verifier | Implemented |
 | Solidity checkpoint registry | Source and tests present; no deployment or audit |
 | EAS client tooling | Source and SDK smoke test; no schema registration or live attestation |
-| Ethereum release profile schema | Experimental JSON Schema v0.1, dependency-free validator, CLI and Reth v2.11.0 fixture |
-| Compiler/build/deployment profile adapter | Not implemented |
-| Sourcify integration | Not implemented |
-| End-to-end public contract release fixture | Not completed |
+| Ethereum release profile schema | Experimental JSON Schema v0.1, dependency-free validator, CLI, Reth client fixture and WETH9 deployment fixture |
+| Compiler/build/deployment profile adapter | Not implemented; one historical compiler record is manually captured |
+| Sourcify integration | One API v2 record captured manually; no automated adapter or verification orchestration |
+| Public contract deployment fixture | Partial: WETH9 deployment facts captured with 12 explicit gaps; two selected evidence payloads recovered from a temporary BOD bundle; no complete source/build/test/audit/upgrade chain |
 | Comparative benchmark | Planned |
 
 ## 10. Decisions before standardization
 
 1. Validate the current v0.1 fields with independent Ethereum client and smart-contract maintainers.
-2. Decide whether client releases and contract deployment/upgrade histories should remain one profile or become separate profiles.
-3. Define canonicalization and a profile commitment only if a concrete consumer requires one.
-4. Add native-verifier orchestration and a complete contract fixture.
-5. Compare with existing tools before describing the profile as differentiated.
+2. Resolve or further characterize the WETH9 source-revision mismatch; do not substitute the candidate repository revision for an exact source commit.
+3. Obtain a second contract fixture with an independently traceable source commit and, preferably, an upgrade/proxy history.
+4. Decide whether client releases and contract deployment/upgrade histories should remain one profile or become separate profiles.
+5. Define canonicalization and a profile commitment only if a concrete consumer requires one.
+6. Add native-verifier orchestration and a complete fixture.
+7. Compare with existing tools before describing the profile as differentiated.
 
-The v0.1 data shape and structural validator are implemented as an experiment, not standardized. Contract deployment records now carry a finality observation and preserve Sourcify match classification (`exact_match` or `match`). Do not represent the profile as a stable standard, complete integration, independently reviewed format or deployed Ethereum workflow.
+The v0.1 data shape and structural validator are implemented as an experiment, not standardized. Contract deployment records carry a finality observation and preserve Sourcify classification (`exact_match` or `match`) when captured; an absent classification must be accompanied by an explicit gap. Null source/build/compiler/runtime fields are allowed only when accompanied by matching explicit gaps. Do not represent the profile as a stable standard, complete integration, independently reviewed format or deployed Ethereum workflow.

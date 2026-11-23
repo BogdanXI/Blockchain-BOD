@@ -7,7 +7,7 @@
 
   BOD links project-state checkpoints and release evidence across time — preserving predecessor relationships, exposing forks, and carrying selected evidence payloads into a verifiable recovery bundle.
 
-  [Quickstart](docs/GETTING_STARTED.md) · [Architecture](docs/ARCHITECTURE_OVERVIEW.md) · [Verification experiment](docs/VERIFICATION_EXPERIMENT.md) · [Grant technical brief](docs/GRANT_TECHNICAL_BRIEF.md) · [Ethereum release profile](docs/ETHEREUM_RELEASE_PROFILE.md)
+  [Quickstart](docs/GETTING_STARTED.md) · [Architecture](docs/ARCHITECTURE_OVERVIEW.md) · [Verification experiment](docs/VERIFICATION_EXPERIMENT.md) · [Grant technical brief](docs/GRANT_TECHNICAL_BRIEF.md) · [Ethereum release profile](docs/ETHEREUM_RELEASE_PROFILE.md) · [WETH9 contract fixture report](docs/ETHEREUM_CONTRACT_FIXTURE.md)
 
   [![CI](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml/badge.svg)](https://github.com/BogdanXI/Blockchain-BOD/actions/workflows/ci.yml)
   [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -41,7 +41,7 @@ BOD explores a small, composable layer for that problem. It does not replace Git
 | Signature verification | Delegation to the official `sigstore-python` tooling |
 | Optional Ethereum witness | Permissionless append-only checkpoint registry; commitments only |
 | EAS integration tooling | Schema and linked-attestation scripts; live registration has not been performed |
-| Ethereum release profile | Experimental JSON Schema v0.1, dependency-free structural validator, CLI and public Reth release fixture |
+| Ethereum release profile | Experimental JSON Schema v0.1, dependency-free structural validator, CLI, Reth client fixture and partial WETH9 mainnet deployment fixture with explicit gaps |
 
 See the [technical overview](docs/ARCHITECTURE_OVERVIEW.md) for component boundaries, the [project status](docs/PROJECT_STATUS.md) for implementation limits, and the [grant technical brief](docs/GRANT_TECHNICAL_BRIEF.md) for a scoped Ethereum ecosystem proposal. Current grant-channel availability and readiness gaps are recorded in the [grant readiness assessment](docs/GRANT_READINESS.md).
 
@@ -118,9 +118,10 @@ Validate the experimental Ethereum release profile fixture:
 
 ```bash
 bod profile-validate examples/ethereum-release-profile/reth-v2.11.0.json
+bod profile-validate examples/ethereum-release-profile/weth9-mainnet-2017-12-12.json
 ```
 
-This checks record structure only; it does not re-run cryptographic or chain verification. See the [profile specification](docs/ETHEREUM_RELEASE_PROFILE.md).
+This checks record structure only; it does not re-run cryptographic or chain verification. The WETH9 fixture records a real deployment and explicitly leaves unresolved source/build/runtime evidence as gaps; it is not a complete source-to-deployment proof. See the [profile specification](docs/ETHEREUM_RELEASE_PROFILE.md) and [fixture report](docs/ETHEREUM_CONTRACT_FIXTURE.md).
 
 Create, verify and recover a self-contained evidence bundle:
 

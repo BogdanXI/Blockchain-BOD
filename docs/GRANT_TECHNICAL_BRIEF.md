@@ -1,7 +1,9 @@
 # Grant technical brief: BOD release-evidence continuity for Ethereum
 
-**Document type:** pre-application technical brief  
-**Prepared:** 22 November 2026  
+**Document type:** pre-application technical brief
+
+**Prepared:** 24 November 2026
+
 **Project status:** experimental open-source prototype  
 **Requested programme:** Ethereum Foundation Ecosystem Support Program (ESP), subject to a future matching Wishlist item or RFP  
 **Funding request:** not yet set; to be costed against an agreed scope and verified contributor capacity  
@@ -45,7 +47,7 @@ This is a technical problem statement, not a claim that existing tools fail to p
 
 ### 3.2 Ethereum-specific release profile
 
-An experimental v0.1 profile now has a versioned [JSON Schema](../schemas/bod-ethereum-release-profile-v0.1.schema.json), a dependency-free [CLI structural validator](../src/bod_ethereum_release_profile.py), and a real public [Reth v2.11.0 fixture](../examples/ethereum-release-profile/reth-v2.11.0.json). It defines evidence fields and relations for:
+An experimental v0.1 profile now has a versioned [JSON Schema](../schemas/bod-ethereum-release-profile-v0.1.schema.json), a dependency-free [CLI structural validator](../src/bod_ethereum_release_profile.py), a public [Reth v2.11.0 fixture](../examples/ethereum-release-profile/reth-v2.11.0.json), and a partial [WETH9 mainnet deployment fixture](../examples/ethereum-release-profile/weth9-mainnet-2017-12-12.json). The WETH9 record captures a real creation transaction, block/finality observation, compiler metadata and a Sourcify compiler/source metadata reference. Its match classification was not retained. The record deliberately leaves exact source revision, original build provenance and historical runtime bytecode unresolved. See the [fixture report](ETHEREUM_CONTRACT_FIXTURE.md). The profile defines evidence fields and relations for:
 
 - source repository and immutable commit identity;
 - compiler name/version, build settings and reproducible build inputs;

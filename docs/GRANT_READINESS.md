@@ -1,6 +1,7 @@
 # Grant readiness assessment
 
-**Assessment date:** 22 November 2026  
+**Assessment date:** 24 November 2026
+
 **Target programme:** Ethereum Foundation Ecosystem Support Program (ESP)  
 **Status:** pre-application preparation; not submitted
 
@@ -29,9 +30,9 @@ ESP describes support for work that strengthens Ethereum and enables builders, w
 |---|---|---|
 | Core continuity | Implemented prototype; snapshot v0.2 and legacy v0.1 verification pass | Repeat across independent projects and baseline toolchains |
 | Evidence portability | One GitHub/Sigstore scenario and one Reth release recovery scenario documented | Repeat across independent projects and baseline toolchains |
-| Ethereum contract | Solidity source and Foundry tests; remote CI passed on current reviewed branch | Independent review, deeper threat analysis and deployment rehearsal |
+| Ethereum contract | Solidity source/tests; WETH9 mainnet deployment record, compiler metadata and Sourcify compiler/source metadata captured in a public fixture; match classification not retained | Exact source commit, historical runtime code, original build provenance and full lifecycle still unresolved; independent review not done |
 | EAS | SDK scripts and local smoke checks | Schema not registered; no live attestation; issuer policy needs independent review |
-| Ethereum release profile | Experimental JSON Schema, structural validator, CLI and real Reth client-release fixture | Implement a complete public smart-contract fixture including build, test, audit, bytecode and upgrade evidence |
+| Ethereum release profile | Experimental JSON Schema, structural validator, CLI, Reth client fixture and partial WETH9 mainnet deployment fixture | Resolve exact source lineage; add complete build/test/audit/bytecode/upgrade evidence and native verification |
 | Interoperability | Structural inspection and delegated Sigstore verification | Broader real fixtures and format-specific verifiers |
 | Competitive differentiation | Competitor landscape documented | Reproducible side-by-side benchmark against Git + SLSA/in-toto + Sigstore and relevant evidence tools |
 | User demand | No independently documented users, pilots or expressed team interest | Interviews, design-partner feedback or reproducible operator evaluations |
@@ -43,7 +44,8 @@ ESP describes support for work that strengthens Ethereum and enables builders, w
 The repository contains real, bounded experiments:
 - GitHub Actions-generated CycloneDX SBOM and Sigstore bundle were packaged, recovered and checked offline under the documented trust-root conditions.
 - A Reth v2.11.0 release archive and associated release evidence were recovered from a BOD bundle and independently checked with GPG.
-- Python regression tests, Ruff, public-surface validation, CLI smoke checks and npm production dependency audit have passed locally in the current working environment.
+- A WETH9 mainnet deployment fixture captures transaction/block facts, compiler metadata and Sourcify compiler/source metadata (match classification not retained); a temporary BOD bundle containing two selected evidence payloads passed both BOD and separate independent verification after original payload deletion and extraction.
+- Python regression tests, Ruff, public-surface validation, CLI smoke checks, JSON Schema validation and npm production dependency audit have passed locally in the current working environment.
 
 These results do not constitute:
 - a production security audit;
@@ -70,12 +72,12 @@ Do not frame the request as:
 - providing regulatory compliance certification;
 - a production-ready security product.
 
-The accompanying [Grant Technical Brief](GRANT_TECHNICAL_BRIEF.md) contains the proposed architecture, milestones, acceptance criteria, evaluation metrics, risks and budget assumptions. The supporting [Ethereum Release Profile](ETHEREUM_RELEASE_PROFILE.md) makes the proposed technical data model and trust boundaries explicit.
+The accompanying [Grant Technical Brief](GRANT_TECHNICAL_BRIEF.md) contains the proposed architecture, milestones, acceptance criteria, evaluation metrics, risks and budget assumptions. The supporting [Ethereum Release Profile](ETHEREUM_RELEASE_PROFILE.md) and [WETH9 contract fixture report](ETHEREUM_CONTRACT_FIXTURE.md) make the current data model, captured deployment facts and unresolved trust boundaries explicit.
 
 ## 5. Critical gaps, ordered by importance
 
 1. **Active programme fit:** wait for a relevant ESP Wishlist item or RFP; use Office Hours only for non-financial project feedback.
-2. **Ethereum-specific validation:** extend the experimental profile and demonstrate a complete smart-contract release/upgrade using a public, reproducible fixture.
+2. **Ethereum-specific validation:** resolve the WETH9 source-revision mismatch or explicitly bound the use case; add a second contract fixture with traceable source/build history and an upgrade path.
 3. **Comparative evidence:** benchmark the same workflow against a baseline without BOD and publish all methods and results.
 4. **Technical correctness:** review the snapshot v0.2 file-mode correction, independent verifier compatibility and adversarial regression tests on the exact current commit.
 5. **Security review:** obtain independent review of the registry, EAS trust model and off-chain evidence semantics before any deployment.
@@ -92,7 +94,7 @@ The accompanying [Grant Technical Brief](GRANT_TECHNICAL_BRIEF.md) contains the 
 - Do not register an EAS schema, deploy a contract, sign a transaction or use a wallet without separate explicit authorization.
 - Keep public claims synchronized with the exact code and test results on the reviewed commit.
 
-## 7. Official ESP sources checked on 22 November 2026
+## 7. Official ESP sources checked on 24 November 2026
 
 - Applicants, scope, selection criteria and process: https://esp.ethereum.foundation/applicants
 - Wishlist: https://esp.ethereum.foundation/applicants/wishlist
